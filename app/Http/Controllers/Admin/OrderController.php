@@ -29,4 +29,23 @@ class OrderController extends Controller
 
         return redirect()->route('admin.orders.show', $order)->with('success', 'Статус замовлення оновлено!');
     }
+
+    public function update(Request $request, Category $category)
+    {
+        // Валідуємо дані. Правило 'unique' має ігнорувати поточну категорію
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories')->ignore($category->id),
+            ],
+        ]);
+
+        // Оновлюємо дані категорії
+        $category->update($validated);
+
+        return redirect()->route('admin.categories.index')->with('success', 'Категорію успішно оновлено.');
+    }
 }

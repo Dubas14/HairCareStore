@@ -1,46 +1,72 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Додаємо заголовок сторінки --}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-6">Каталог товарів</h1>
-        </div>
-    </div>
-
-    {{-- Огортаємо всі товари в один .row --}}
     <div class="row">
-        @forelse($products as $product)
-            {{-- Кожен товар - це колонка. 'col-md-4' означає 3 колонки на середніх екранах і більше --}}
-            <div class="col-md-4 mb-4">
-                {{-- Використовуємо компонент .card. Клас h-100 робить усі картки в ряду однакової висоти --}}
-                <div class="card h-100">
-                    <img src="{{ $product->image }}" class="card-img-top" alt="{{ $product->name }}">
-                    {{-- .card-body для основного контенту --}}
-                    <div class="card-body d-flex flex-column">
-                        {{-- Додаємо назву категорії, якщо вона є --}}
-                        @if($product->category)
-                            <p class="card-text"><small class="text-muted">{{ $product->category->name }}</small></p>
-                        @endif
-                        <h5 class="card-title">{{ $product->name }}</h5>
-                        <p class="card-text">{{ Str::limit($product->description, 80) }}</p>
-                        <p class="card-text fs-5"><strong>{{ $product->price }} грн</strong></p>
+        {{-- SIDEBAR WITH CATEGORIES --}}
+        <div class="col-md-3">
+            <h4 class="mb-3">Категорії</h4>
+            <ul class="list-group">
+                <a href="{{ route('products.index') }}" class="list-group-item list-group-item-action">
+                    Всі товари
+                </a>
+                {{-- This loop displays all categories as links --}}
+                @foreach ($categories as $category)
+                    <a href="#" class="list-group-item list-group-item-action">{{ $category->name }}</a>
+                @endforeach
+            </ul>
+        </div>
 
-                        {{-- Цей блок з .mt-auto "притисне" кнопку до низу картки --}}
-                        <div class="mt-auto">
-                            <form action="{{ route('cart.add', $product) }}" method="POST" class="d-grid">
-                                @csrf
-                                <button type="submit" class="btn btn-primary">Додати в кошик</button>
-                            </form>
-                        </div>
-                    </div>
+        {{-- MAIN CONTENT WITH PRODUCTS --}}
+        <div class="col-md-9">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="display-6">Каталог товарів</h1>
                 </div>
             </div>
-        @empty
-            {{-- Показуємо повідомлення, якщо товарів немає --}}
-            <div class="col-12">
-                <p>На жаль, наразі немає доступних товарів.</p>
+
+            <div class="row">
+                @forelse($products as $product)
+                    {{-- Each product is a column. 'col-lg-4' means 3 columns on large screens --}}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        {{-- The h-100 class makes all cards in a row the same height --}}
+                        <div class="card h-100">
+                            {{-- The 'product-card-image' class is for uniform image sizing from custom.css --}}
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top product-card-image" alt="{{ $product->name }}">
+                            @else
+                                <img src="https://via.placeholder.com/300x250" class="card-img-top product-card-image" alt="No image">
+                            @endif
+
+                            {{-- 'd-flex flex-column' allows for vertical alignment --}}
+                            <div class="card-body d-flex flex-column">
+                                @if($product->category)
+                                    <p class="card-text"><small class="text-muted">{{ $product->category->name }}</small></p>
+                                @endif
+                                <h5 class="card-title">{{ $product->name }}</h5>
+                                <p class="card-text">{{ Str::limit($product->description, 80) }}</p>
+                                <p class="card-text fs-5"><strong>{{ $product->price }} грн</strong></p>
+
+                                {{-- This 'mt-auto' block pushes the button to the bottom of the card --}}
+                                <div class="mt-auto">
+                                    <form action="{{ route('cart.add', $product) }}" method="POST" class="d-grid">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary">Додати в кошик</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12">
+                        <p>На жаль, наразі немає доступних товарів.</p>
+                    </div>
+                @endforelse
             </div>
-        @endforelse
+
+            {{-- Pagination links --}}
+            <div class="mt-4">
+                {{ $products->links() }}
+            </div>
+        </div>
     </div>
 @endsection
