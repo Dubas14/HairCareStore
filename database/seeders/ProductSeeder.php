@@ -2,33 +2,27 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Product; // Додаємо імпорт моделі
+use App\Models\Product;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
         Product::create([
-            'name' => 'Ноутбук "BladeMaster Pro"',
-            'description' => 'Потужний ноутбук для розробки та ігор.',
-            'price' => 45999.99,
-            'image' => 'https://via.placeholder.com/640x480.png/00ff77?text=Laptop'
+            'category_id' => 1,
+            'name' => 'Шампунь "Шовкове Сяйво" для сухого волосся',
+            'description' => 'Інтенсивно зволожуючий шампунь з аргановою олією та протеїнами шовку.',
+            'price' => 350.00,
+            'image' => null
         ]);
 
         Product::create([
-            'name' => 'Механічна клавіатура "CodeType X"',
-            'description' => 'Ідеальна клавіатура для програмістів.',
-            'price' => 3200.00,
-            'image' => 'https://via.placeholder.com/640x480.png/0022ff?text=Keyboard'
-        ]);
-
-        Product::create([
-            'name' => 'Монітор "PixelPerfect 4K"',
-            'description' => '27-дюймовий 4K монітор з чудовою передачею кольору.',
-            'price' => 15500.50,
-            'image' => 'https://via.placeholder.com/640x480.png/ff0000?text=Monitor'
+            'category_id' => 2,
+            'name' => 'Відновлююча маска "Кератинова Сила"',
+            'description' => 'Глибоко відновлює пошкоджену структуру волосся, наповнюючи його кератином.',
+            'price' => 520.50,
+            'image' => null
         ]);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Category; // <-- Важливо: імпортуємо модель Category
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -16,7 +16,6 @@ class ProductController extends Controller
             $productsQuery->where('category_id', $category->id);
         }
 
-        // Використовуємо with('category') для жадібного завантаження та paginate() для пагінації
         $products = $productsQuery->with('category')->latest()->paginate(9);
         $categories = Category::all();
 
@@ -25,6 +24,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        // Потрібно створити цей view, якщо його немає
         return view('products.show', compact('product'));
     }
 }
