@@ -32,7 +32,7 @@
                     @auth
                         @if(Auth::user()->is_admin)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.orders.index') }}">
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}">
                                     <i class="bi bi-shield-lock-fill"></i> Адмін-панель
                                 </a>
                             </li>
