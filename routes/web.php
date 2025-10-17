@@ -5,11 +5,17 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+// Виправлено: Додано відсутні імпорти
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 
-// Головна сторінка з усіма товарами
+/*
+|--------------------------------------------------------------------------
+| Публічні маршрути
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
-
-// Сторінка окремого товару
+Route::get('/categories/{category:slug}', [ProductController::class, 'index'])->name('products.by_category'); // Для фільтрації
 Route::get('/product/{product}', [ProductController::class, 'show'])->name('products.show');
 
 // Кошик
@@ -17,20 +23,30 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/remove/{productId}', [CartController::class, 'remove'])->name('cart.remove');
 
-Auth::routes(); // Додаємо маршрути для автентифікації
-
+/*
+|--------------------------------------------------------------------------
+| Маршрути автентифікації
+|--------------------------------------------------------------------------
+*/
+Auth::routes(); // Видалено дублікат
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-// Маршрут для оформлення замовлення
+/*
+|--------------------------------------------------------------------------
+| Маршрути для залогінених користувачів
+|--------------------------------------------------------------------------
+*/
 Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store')->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| Маршрути адмін-панелі
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::get('/', fn() => redirect()->route('admin.orders.index'))->name('index');
+    Route::resource('orders', AdminOrderController::class)->only(['index', 'show']);
     Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    // Управління категоріями та товарами (CRUD)
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('products', AdminProductController::class);
 });

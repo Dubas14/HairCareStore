@@ -6,12 +6,14 @@
         <div class="col-md-3">
             <h4 class="mb-3">Категорії</h4>
             <ul class="list-group">
-                <a href="{{ route('products.index') }}" class="list-group-item list-group-item-action">
+                <a href="{{ route('products.index') }}" class="list-group-item list-group-item-action {{ !$category ? 'active' : '' }}">
                     Всі товари
                 </a>
-                {{-- This loop displays all categories as links --}}
-                @foreach ($categories as $category)
-                    <a href="#" class="list-group-item list-group-item-action">{{ $category->name }}</a>
+                @foreach ($categories as $cat)
+                    <a href="{{ route('products.by_category', $cat) }}"
+                       class="list-group-item list-group-item-action {{ ($category && $category->id == $cat->id) ? 'active' : '' }}">
+                        {{ $cat->name }}
+                    </a>
                 @endforeach
             </ul>
         </div>
@@ -32,9 +34,9 @@
                         <div class="card h-100">
                             {{-- The 'product-card-image' class is for uniform image sizing from custom.css --}}
                             @if($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top product-card-image" alt="{{ $product->name }}">
+                                <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top " alt="{{ $product->name }}">
                             @else
-                                <img src="https://via.placeholder.com/300x250" class="card-img-top product-card-image" alt="No image">
+                                <img src="https://via.placeholder.com/300x250" class="card-img-top" alt="No image">
                             @endif
 
                             {{-- 'd-flex flex-column' allows for vertical alignment --}}
