@@ -1,70 +1,110 @@
 version: '3.8'
 
 services:
+  # ============================
+  # PostgreSQL Database
+  # ============================
   postgres:
     image: postgres:15-alpine
     container_name: beauty-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME:-medusa}
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
     ports:
       - "5450:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-medusa}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - beauty-network
 
+  # ============================
+  # Redis Cache
+  # ============================
   redis:
     image: redis:7-alpine
     container_name: beauty-redis
+    restart: unless-stopped
     ports:
       - "6390:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - beauty-network
 
+  # ============================
+  # Medusa Backend + Admin
+  # ============================
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: beauty-backend
+    restart: unless-stopped
     ports:
       - "9100:9000"
     environment:
-      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-medusa}
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres123}@postgres:5432/${DB_NAME:-medusa}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET}
-      COOKIE_SECRET: ${COOKIE_SECRET}
-      STORE_CORS: http://localhost:3100
-      ADMIN_CORS: http://localhost:9100
+      JWT_SECRET: ${JWT_SECRET:-supersecretjwtkey1234567890abcdef}
+      COOKIE_SECRET: ${COOKIE_SECRET:-supersecretcookiekey1234567890ab}
+      STORE_CORS: ${STORE_CORS:-http://localhost:3100}
+      ADMIN_CORS: ${ADMIN_CORS:-http://localhost:9100}
+      AUTH_CORS: ${AUTH_CORS:-http://localhost:3100,http://localhost:9100}
+      # Stripe
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # LiqPay
+      LIQPAY_PUBLIC_KEY: ${LIQPAY_PUBLIC_KEY:-}
+      LIQPAY_PRIVATE_KEY: ${LIQPAY_PRIVATE_KEY:-}
+      # Admin
+      MEDUSA_ADMIN_ONBOARDING_TYPE: nextjs
+      MEDUSA_ADMIN_ONBOARDING_NEXTJS_DIRECTORY: ../frontend
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - backend_uploads:/app/uploads
     networks:
       - beauty-network
 
+  # ============================
+  # Next.js Frontend
+  # ============================
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: beauty-frontend
+    restart: unless-stopped
     ports:
       - "3100:3000"
     environment:
-      NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9100
-      NEXT_PUBLIC_STORE_URL: http://localhost:3100
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://localhost:9100}
+      NEXT_PUBLIC_BASE_URL: ${BASE_URL:-http://localhost:3100}
+      # Analytics
+      NEXT_PUBLIC_GA_ID: ${GA_ID:-}
+      NEXT_PUBLIC_HOTJAR_ID: ${HOTJAR_ID:-}
+      # Cloudinary
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
     depends_on:
       - backend
     volumes:
@@ -81,3 +121,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  backend_uploads:

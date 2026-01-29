@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Встановлюємо залежності для node-gyp
+RUN apk add --no-cache python3 make g++
+
+# Копіюємо package files
+COPY package*.json ./
+
+# Встановлюємо залежності
+RUN npm install
+
+# Копіюємо решту коду
+COPY . .
+
+# Експортуємо порт
+EXPOSE 9000
+
+# Запускаємо в dev режимі
+CMD ["npm", "run", "dev"]

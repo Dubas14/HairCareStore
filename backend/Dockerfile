@@ -1,19 +1,29 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Production
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --only=production
 
-# Copy source code
-COPY . .
+COPY --from=builder /app/.medusa ./.medusa
+COPY --from=builder /app/dist ./dist
 
-# Build the application
-RUN npm run build
+RUN mkdir -p ./uploads
 
-# Expose port
 EXPOSE 9000
 
-# Start the application
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
