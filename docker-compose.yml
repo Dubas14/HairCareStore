@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: beauty-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-medusa}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5450:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - beauty-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: beauty-redis
+    ports:
+      - "6390:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - beauty-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: beauty-backend
+    ports:
+      - "9100:9000"
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-medusa}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      STORE_CORS: http://localhost:3100
+      ADMIN_CORS: http://localhost:9100
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - beauty-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: beauty-frontend
+    ports:
+      - "3100:3000"
+    environment:
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9100
+      NEXT_PUBLIC_STORE_URL: http://localhost:3100
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - beauty-network
+
+networks:
+  beauty-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

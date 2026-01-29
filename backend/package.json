@@ -1,0 +1,40 @@
+{
+  "name": "beauty-hair-store-backend",
+  "version": "1.0.0",
+  "description": "Medusa 2.0 backend for Beauty Hair Store",
+  "main": "index.js",
+  "scripts": {
+    "dev": "medusa develop",
+    "build": "medusa build",
+    "start": "medusa start",
+    "seed": "medusa exec ./src/scripts/seed.ts",
+    "migrate": "medusa migrations run",
+    "db:setup": "medusa migrations run && npm run seed"
+  },
+  "keywords": [
+    "medusa",
+    "ecommerce",
+    "beauty",
+    "cosmetics"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@medusajs/medusa": "^2.0.0",
+    "@medusajs/ui": "^2.0.0",
+    "@medusajs/framework": "^2.0.0",
+    "@mikro-orm/core": "^5.9.0",
+    "@mikro-orm/migrations": "^5.9.0",
+    "@mikro-orm/postgresql": "^5.9.0",
+    "awilix": "^8.0.0",
+    "pg": "^8.11.0",
+    "redis": "^4.6.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@medusajs/medusa-cli": "^2.0.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.0"
+  }
+}
