@@ -78,7 +78,7 @@ export const heroSlides: HeroSlide[] = [
     type: 'image',
     backgroundUrl: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1920&h=600&fit=crop',
     title: 'Нові надходження від преміум брендів',
-    subtitle: 'Kerastase, L\'Oréal Professionnel, Schwarzkopf',
+    subtitle: 'Elgon, INEBRYA, MOOD, NEVITALY та інші',
     buttons: [
       { text: 'Переглянути новинки', href: '/products?filter=new', variant: 'primary' }
     ],
@@ -132,52 +132,192 @@ export const categories: Category[] = [
   }
 ]
 
-// Featured Products
-const createProduct = (id: number, overrides: Partial<Product>): Product => ({
-  id,
-  name: 'Product Name',
-  brand: 'Brand',
-  slug: `product-${id}`,
-  imageUrl: 'https://images.unsplash.com/photo-1571875257727-256c39da42af?w=300&h=300&fit=crop',
-  price: 599,
-  rating: 4.5,
-  reviewCount: 24,
-  ...overrides
-})
-
+// Featured Products - Real products from multicolor.ua
 export const featuredProducts = {
   bestsellers: [
-    createProduct(1, { name: 'Шампунь для сухого волосся', brand: 'Kerastase', price: 850, rating: 4.8, reviewCount: 156 }),
-    createProduct(2, { name: 'Маска відновлююча', brand: 'L\'Oréal Pro', price: 720, oldPrice: 900, discount: 20, rating: 4.7, reviewCount: 98 }),
-    createProduct(3, { name: 'Олія для волосся Argan', brand: 'Moroccanoil', price: 1150, rating: 4.9, reviewCount: 203 }),
-    createProduct(4, { name: 'Кондиціонер живильний', brand: 'Schwarzkopf', price: 680, rating: 4.6, reviewCount: 87 })
+    {
+      id: 1,
+      name: 'Щоденний шампунь Yes Daily Everyday',
+      brand: 'Elgon',
+      slug: 'shchodennyi-shampun-elgon-yes-daily-everyday-shampoo-250-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Elgon/Yes%20Daily_Shampoo_250ml-2-2-228x228.jpg',
+      price: 529,
+      rating: 4.8,
+      reviewCount: 156
+    },
+    {
+      id: 2,
+      name: 'Шампунь регенеруючий Ultra Care Restoring',
+      brand: 'MOOD',
+      slug: 'shampun-reheneruiuchyi-mood-ultra-care-restoring-shampoo-400-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/MOOD/Ultra%20Care/Mood%20Ultra%20Care%20Shampoo%20400%20ml-228x228.png',
+      price: 436,
+      rating: 4.7,
+      reviewCount: 98
+    },
+    {
+      id: 3,
+      name: 'Флюїд для додання блиску Crystal Beauty',
+      brand: 'INEBRYA',
+      slug: 'fliuid-dlia-dodannia-blysku-inebrya-crystal-beauty-100-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/INEBRYA/STYLING/Inebrya%20Crystal%20Beauty%20100-228x228.jpg',
+      price: 644,
+      rating: 4.9,
+      reviewCount: 203
+    },
+    {
+      id: 4,
+      name: 'Шампунь проти випадіння Energy Shampoo',
+      brand: 'INEBRYA',
+      slug: 'shampun-proty-vypadinnia-volossia-inebrya-energy-shampoo-300-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Inebria%202/Energy%202/Shampoo%20300%202-228x228.png',
+      price: 313,
+      rating: 4.6,
+      reviewCount: 87
+    }
   ],
   new: [
-    createProduct(5, { name: 'Серум для блиску', brand: 'CHI', price: 950, badge: 'Новинка', rating: 4.7, reviewCount: 45 }),
-    createProduct(6, { name: 'Спрей термозахист', brand: 'Redken', price: 620, badge: 'Новинка', rating: 4.5, reviewCount: 32 }),
-    createProduct(7, { name: 'Шампунь для об\'єму', brand: 'Matrix', price: 580, badge: 'Новинка', rating: 4.6, reviewCount: 56 }),
-    createProduct(8, { name: 'Маска-експрес', brand: 'Wella', price: 750, badge: 'Новинка', rating: 4.4, reviewCount: 28 })
+    {
+      id: 5,
+      name: 'Термоспрей для укладання Flawless Spray',
+      brand: 'NEVITALY',
+      slug: 'termosprei-dlia-ukladannia-volossia-nevitaly-flawless-spray-150-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/NEVITALY/STYLING/flawless%20spray%20150ml-228x228.png',
+      price: 1185,
+      badge: 'Новинка',
+      rating: 4.7,
+      reviewCount: 45
+    },
+    {
+      id: 6,
+      name: 'Термозахисний спрей Thermo Spray',
+      brand: 'INEBRYA',
+      slug: 'termozakhysnyi-sprei-inebrya-thermo-spray-250-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/INEBRYA/STYLING/Inebrya%20Thermo%20Spray%20250-228x228.jpg',
+      price: 644,
+      badge: 'Новинка',
+      rating: 4.5,
+      reviewCount: 32
+    },
+    {
+      id: 7,
+      name: 'Спрей для додання об\'єму Volume One 15в1',
+      brand: 'INEBRYA',
+      slug: 'sprei-dlia-dodannia-obiemu-15v1-inebrya-volume-one-spray-200-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Inebria%202/Pro%20Volume%202/One%20200%202-228x228.png',
+      price: 696,
+      badge: 'Новинка',
+      rating: 4.6,
+      reviewCount: 56
+    },
+    {
+      id: 8,
+      name: 'Паста для моделювання Flossy Paste',
+      brand: 'INEBRYA',
+      slug: 'pasta-dlia-modeliuvannia-inebrya-flossy-paste-100-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/INEBRYA/STYLING/Inebrya%20Flossy%20Paste%20100-228x228.jpg',
+      price: 791,
+      badge: 'Новинка',
+      rating: 4.4,
+      reviewCount: 28
+    }
   ],
   sale: [
-    createProduct(9, { name: 'Набір для догляду', brand: 'Kerastase', price: 1200, oldPrice: 1800, discount: 33, rating: 4.9, reviewCount: 167 }),
-    createProduct(10, { name: 'Фарба професійна', brand: 'L\'Oréal Pro', price: 420, oldPrice: 600, discount: 30, rating: 4.6, reviewCount: 112 }),
-    createProduct(11, { name: 'Кератинова маска', brand: 'Brazilian Blowout', price: 890, oldPrice: 1100, discount: 19, rating: 4.8, reviewCount: 94 }),
-    createProduct(12, { name: 'Шампунь безсульфатний', brand: 'Davines', price: 560, oldPrice: 700, discount: 20, rating: 4.7, reviewCount: 78 })
+    {
+      id: 9,
+      name: 'Шампунь щоденний Yes Daily Everyday 1000 мл',
+      brand: 'Elgon',
+      slug: 'shchodennyi-shampun-elgon-yes-daily-everyday-shampoo-1000-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Elgon/Yes%20Daily%202/Yes%20Daily%20Shampoo%201000ml-2-228x228.jpg',
+      price: 1116,
+      oldPrice: 1395,
+      discount: 20,
+      rating: 4.9,
+      reviewCount: 167
+    },
+    {
+      id: 10,
+      name: 'Шампунь тонуючий Grey By Day 1000 мл',
+      brand: 'INEBRYA',
+      slug: 'shampun-tonuiuchyi-inebrya-grey-by-day-shampoo-1000-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Inebria%202/Grey%20By%20Day%202/Shampoo%201000%202-228x228.png',
+      price: 876,
+      oldPrice: 1095,
+      discount: 20,
+      rating: 4.6,
+      reviewCount: 112
+    },
+    {
+      id: 11,
+      name: 'Шампунь проти лупи Cleany Shampoo 1000 мл',
+      brand: 'INEBRYA',
+      slug: 'shampun-proty-lupy-inebrya-cleany-shampoo-1000-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/Inebria%202/Cleany%202/Sampoo%201000%202-228x228.png',
+      price: 495,
+      oldPrice: 619,
+      discount: 20,
+      rating: 4.8,
+      reviewCount: 94
+    },
+    {
+      id: 12,
+      name: 'Шампунь регенеруючий Ultra Care 1000 мл',
+      brand: 'MOOD',
+      slug: 'shampun-reheneruiuchyi-mood-ultra-care-restoring-shampoo-1000-ml',
+      imageUrl: 'https://multicolor.ua/image/cache/catalog/MOOD/Ultra%20Care/Mood_Ultra%20Care%20Shampoo%201000%20ml-228x228.png',
+      price: 770,
+      oldPrice: 963,
+      discount: 20,
+      rating: 4.7,
+      reviewCount: 78
+    }
   ]
 }
 
-// Brands
+// Brands - Real brands from multicolor.ua
 export const brands: Brand[] = [
-  { id: 1, name: 'L\'Oréal Professionnel', slug: 'loreal', logoUrl: '/images/brands/loreal.svg' },
-  { id: 2, name: 'Schwarzkopf Professional', slug: 'schwarzkopf', logoUrl: '/images/brands/schwarzkopf.svg' },
-  { id: 3, name: 'Wella Professionals', slug: 'wella', logoUrl: '/images/brands/wella.svg' },
-  { id: 4, name: 'Kérastase', slug: 'kerastase', logoUrl: '/images/brands/kerastase.svg' },
-  { id: 5, name: 'Matrix', slug: 'matrix', logoUrl: '/images/brands/matrix.svg' },
-  { id: 6, name: 'Redken', slug: 'redken', logoUrl: '/images/brands/redken.svg' },
-  { id: 7, name: 'CHI', slug: 'chi', logoUrl: '/images/brands/chi.svg' },
-  { id: 8, name: 'Moroccanoil', slug: 'moroccanoil', logoUrl: '/images/brands/moroccanoil.svg' },
-  { id: 9, name: 'Alfaparf Milano', slug: 'alfaparf', logoUrl: '/images/brands/alfaparf.svg' },
-  { id: 10, name: 'Davines', slug: 'davines', logoUrl: '/images/brands/davines.svg' }
+  {
+    id: 1,
+    name: 'Elgon',
+    slug: 'elgon',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/%20Elgon%20Colorcare%20Delicate/Elgon-logo_black%20(1)-100x100.png'
+  },
+  {
+    id: 2,
+    name: 'INEBRYA',
+    slug: 'inebrya',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/INEBRYA/BALANCE/Inebrya-logo_black%20(1)-100x100.png'
+  },
+  {
+    id: 3,
+    name: 'MOOD',
+    slug: 'mood',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/MOOD/Activator/Mood-logo_black%20(1)-100x100.png'
+  },
+  {
+    id: 4,
+    name: 'NEVITALY',
+    slug: 'nevitaly',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/NEVITALY/%20Cuddles%20Hand/Nevitaly-logo-01-100x100.png'
+  },
+  {
+    id: 5,
+    name: 'LINK D',
+    slug: 'link-d',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/LINK%20D/LOGO%20LINK-D-100x100.png'
+  },
+  {
+    id: 6,
+    name: 'Trend Toujours',
+    slug: 'trend-toujours',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/TREHD%20TOUJOURS/After%20color%20care/toujours-100x100.png'
+  },
+  {
+    id: 7,
+    name: 'URBAN DOG',
+    slug: 'urban-dog',
+    logoUrl: 'https://multicolor.ua/image/cache/catalog/URBAN%20DOG/IMG_5295-100x100.PNG'
+  }
 ]
 
 // Benefits
