@@ -1,19 +1,32 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
-import { Menu, X, Search, ShoppingBag, User, FlaskConical } from "lucide-react"
+import Image from "next/image"
+import { useState, useEffect } from "react"
+import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
+import { useCartStore } from "@/stores/cart-store"
+import { useUIStore } from "@/stores/ui-store"
 
 const navigation = [
-  { name: "Каталог", href: "/products" },
-  { name: "Категорії", href: "/categories" },
-  { name: "Бренди", href: "/brands" },
+  { name: "Каталог", href: "/shop" },
+  { name: "Категорії", href: "/shop?category=all" },
+  { name: "Бренди", href: "/shop?filter=brands" },
   { name: "Quiz", href: "/quiz" },
   { name: "Блог", href: "/blog" },
 ]
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { openCart, getItemCount } = useCartStore()
+  const { openSearch } = useUIStore()
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const itemCount = mounted ? getItemCount() : 0
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -21,12 +34,29 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-[#48CAE4] flex items-center justify-center">
-              <FlaskConical className="w-5 h-5 text-white" />
+            <Image
+              src="/logo.png"
+              alt="HAIRLAB"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+            <div>
+              <div className="flex items-baseline">
+                <span className="text-xl font-black text-foreground tracking-wide">HAIR</span>
+                <span
+                  className="text-xl font-black tracking-wide"
+                  style={{
+                    background: 'linear-gradient(135deg, #2A9D8F, #48CAE4)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >LAB</span>
+              </div>
+              <div className="text-[8px] font-bold text-muted-foreground tracking-[0.15em] -mt-0.5">
+                PROFESSIONAL CARE
+              </div>
             </div>
-            <span className="font-bold text-xl tracking-tight">
-              HAIR<span className="text-primary">LAB</span>
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -45,6 +75,7 @@ export function Header() {
           {/* Right side icons */}
           <div className="flex items-center gap-4">
             <button
+              onClick={openSearch}
               className="p-2 rounded-full hover:bg-muted transition-colors"
               aria-label="Пошук"
             >
@@ -57,20 +88,23 @@ export function Header() {
             >
               <User className="w-5 h-5" />
             </Link>
-            <Link
-              href="/cart"
+            <button
+              onClick={openCart}
               className="relative p-2 rounded-full hover:bg-muted transition-colors"
               aria-label="Кошик"
             >
               <ShoppingBag className="w-5 h-5" />
               {/* Cart count badge */}
               <span
-                className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center"
+                className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center transition-transform"
+                style={{
+                  transform: itemCount > 0 ? 'scale(1)' : 'scale(0)',
+                }}
                 aria-live="polite"
               >
-                0
+                {itemCount}
               </span>
-            </Link>
+            </button>
 
             {/* Mobile menu button */}
             <button

@@ -1,33 +1,74 @@
 /**
- * TypeScript Types
- *
- * CRITICAL: Always use official types from @medusajs/types
- * NEVER define custom types for Medusa entities
+ * TypeScript Types for HairCareStore
  */
 
-// Re-export Medusa types
-export type {
-  StoreProduct,
-  StoreProductVariant,
-  StoreCart,
-  StoreCartLineItem,
-  StoreRegion,
-  StoreProductCategory,
-  StoreCustomer,
-  StoreOrder,
-  StoreCollection,
-  StorePaymentProvider,
-  StoreShippingOption,
-} from "@medusajs/types"
-
-// Custom application types
-export interface ProductWithCategory extends StoreProduct {
-  categories?: StoreProductCategory[]
+// Product types (matching home-data.ts)
+export interface Product {
+  id: number
+  name: string
+  brand: string
+  slug: string
+  imageUrl: string
+  price: number
+  oldPrice?: number
+  rating: number
+  reviewCount: number
+  discount?: number
+  badge?: string
 }
 
-export interface CartWithTotals extends StoreCart {
-  subtotal?: number
-  tax_total?: number
-  shipping_total?: number
-  total?: number
+// Category types
+export interface Category {
+  id: number
+  name: string
+  slug: string
+  productCount: number
+  imageUrl: string
+}
+
+// Brand types
+export interface Brand {
+  id: number
+  name: string
+  slug: string
+  logoUrl: string
+}
+
+// Cart types
+export interface CartItem {
+  id: string
+  productId: number
+  name: string
+  brand: string
+  variant: string
+  price: number
+  quantity: number
+  imageUrl: string
+}
+
+// Filter types
+export interface FilterState {
+  concerns: string[]
+  hairTypes: string[]
+  brands: string[]
+  priceRange: [number, number]
+}
+
+// Checkout types
+export interface ContactInfo {
+  email: string
+  phone: string
+  firstName: string
+  lastName: string
+}
+
+export interface ShippingInfo {
+  method: 'courier' | 'nova-poshta' | 'pickup'
+  city: string
+  address: string
+  warehouse?: string
+}
+
+export interface PaymentInfo {
+  method: 'card' | 'liqpay' | 'cash'
 }

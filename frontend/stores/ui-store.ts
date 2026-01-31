@@ -2,24 +2,24 @@ import { create } from 'zustand'
 
 interface UIStore {
   isMobileMenuOpen: boolean
-  isCartDrawerOpen: boolean
-  isSearchDialogOpen: boolean
+  isSearchOpen: boolean
+
   toggleMobileMenu: () => void
-  toggleCartDrawer: () => void
-  toggleSearchDialog: () => void
   closeMobileMenu: () => void
-  closeCartDrawer: () => void
-  closeSearchDialog: () => void
+
+  openSearch: () => void
+  closeSearch: () => void
+  toggleSearch: () => void
 }
 
 export const useUIStore = create<UIStore>((set) => ({
   isMobileMenuOpen: false,
-  isCartDrawerOpen: false,
-  isSearchDialogOpen: false,
+  isSearchOpen: false,
+
   toggleMobileMenu: () => set((state) => ({ isMobileMenuOpen: !state.isMobileMenuOpen })),
-  toggleCartDrawer: () => set((state) => ({ isCartDrawerOpen: !state.isCartDrawerOpen })),
-  toggleSearchDialog: () => set((state) => ({ isSearchDialogOpen: !state.isSearchDialogOpen })),
   closeMobileMenu: () => set({ isMobileMenuOpen: false }),
-  closeCartDrawer: () => set({ isCartDrawerOpen: false }),
-  closeSearchDialog: () => set({ isSearchDialogOpen: false }),
+
+  openSearch: () => set({ isSearchOpen: true }),
+  closeSearch: () => set({ isSearchOpen: false }),
+  toggleSearch: () => set((state) => ({ isSearchOpen: !state.isSearchOpen })),
 }))

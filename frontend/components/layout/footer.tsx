@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { FlaskConical, Instagram, Facebook, Youtube } from "lucide-react"
+import Image from "next/image"
+import { Instagram, Facebook, Youtube } from "lucide-react"
 
 const footerLinks = {
   shop: {
@@ -46,13 +47,30 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                <FlaskConical className="w-6 h-6" />
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src="/logo.png"
+                alt="HAIRLAB"
+                width={50}
+                height={50}
+                className="object-contain"
+              />
+              <div>
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-black text-white tracking-wide">HAIR</span>
+                  <span
+                    className="text-2xl font-black tracking-wide"
+                    style={{
+                      background: 'linear-gradient(135deg, #2A9D8F, #48CAE4)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >LAB</span>
+                </div>
+                <div className="text-[10px] font-bold text-white/60 tracking-[0.2em]">
+                  PROFESSIONAL CARE
+                </div>
               </div>
-              <span className="font-bold text-2xl tracking-tight">
-                HAIR<span className="text-primary">LAB</span>
-              </span>
             </Link>
             <p className="text-footer-foreground/70 leading-relaxed max-w-sm">
               Професійна косметика для волосся з науково підтвердженими інгредієнтами.

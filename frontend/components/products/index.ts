@@ -1,0 +1,6 @@
+export { ProductCard } from './product-card'
+export { ProductGallery } from './product-gallery'
+export { BuyBox } from './buy-box'
+export { IngredientSpotlight } from './ingredient-spotlight'
+export { RelatedProducts } from './related-products'
+export { HowToUse } from './how-to-use'
