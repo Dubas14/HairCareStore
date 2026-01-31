@@ -28,18 +28,18 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="py-20 md:py-24 bg-gradient-repair">
+    <section className="py-12 md:py-14" style={{ backgroundColor: '#D4A373' }}>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-          <Mail className="w-10 h-10 text-white" />
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-white/20 rounded-full mb-4">
+          <Mail className="w-7 h-7 text-white" />
         </div>
 
         {/* Header */}
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">
           Отримуйте ексклюзивні пропозиції
         </h2>
-        <p className="text-lg text-white/90 mb-8">
+        <p className="text-sm text-white/90 mb-6">
           Підпішіться на розсилку та отримайте знижку -10% на першу покупку
         </p>
 

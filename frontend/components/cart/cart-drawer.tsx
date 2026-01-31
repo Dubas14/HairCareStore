@@ -4,21 +4,28 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useCartStore, type CartItem } from '@/stores/cart-store'
+import { useCartContext } from '@/components/providers/cart-provider'
+import type { MedusaCartItem } from '@/lib/medusa/hooks'
 import { cn } from '@/lib/utils'
 
-const FREE_SHIPPING_THRESHOLD = 1000
+const FREE_SHIPPING_THRESHOLD = 1000 // UAH
 
-function CartItemCard({ item }: { item: CartItem }) {
-  const { updateQuantity, removeItem } = useCartStore()
+function CartItemCard({ item }: { item: MedusaCartItem }) {
+  const { updateQuantity, removeItem, isLoading } = useCartContext()
+
+  const productName = item.variant?.product?.title || item.title
+  const brand = item.variant?.product?.subtitle || 'HAIR LAB'
+  const variantName = item.variant?.title || 'Стандартний'
+  const imageUrl = item.thumbnail || item.variant?.product?.thumbnail || '/placeholder-product.jpg'
+  const price = item.unit_price // Medusa v2 stores in major units
 
   return (
     <div className="flex gap-4 py-4">
       {/* Image */}
       <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
         <img
-          src={item.imageUrl}
-          alt={item.name}
+          src={imageUrl}
+          alt={productName}
           className="w-full h-full object-cover"
         />
       </div>
@@ -26,19 +33,20 @@ function CartItemCard({ item }: { item: CartItem }) {
       {/* Details */}
       <div className="flex-1 min-w-0">
         <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          {item.brand}
+          {brand}
         </p>
         <h4 className="text-sm font-medium text-foreground line-clamp-2">
-          {item.name}
+          {productName}
         </h4>
-        <p className="text-xs text-muted-foreground mt-0.5">{item.variant}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{variantName}</p>
 
         {/* Quantity & Price */}
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center border rounded">
             <button
               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-              className="p-1.5 hover:bg-muted transition-colors"
+              disabled={isLoading}
+              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Зменшити кількість"
             >
               <Minus className="w-3 h-3" />
@@ -46,7 +54,8 @@ function CartItemCard({ item }: { item: CartItem }) {
             <span className="w-8 text-center text-sm">{item.quantity}</span>
             <button
               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-              className="p-1.5 hover:bg-muted transition-colors"
+              disabled={isLoading}
+              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Збільшити кількість"
             >
               <Plus className="w-3 h-3" />
@@ -55,11 +64,12 @@ function CartItemCard({ item }: { item: CartItem }) {
 
           <div className="flex items-center gap-2">
             <span className="font-semibold">
-              {item.price * item.quantity} ₴
+              {Math.round(price * item.quantity)} ₴
             </span>
             <button
               onClick={() => removeItem(item.id)}
-              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+              disabled={isLoading}
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
               aria-label="Видалити товар"
             >
               <Trash2 className="w-4 h-4" />
@@ -85,7 +95,7 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
           </span>
         ) : (
           <span>
-            Ще <span className="font-semibold">{remaining} ₴</span> до
+            Ще <span className="font-semibold">{Math.round(remaining)} ₴</span> до
             безкоштовної доставки
           </span>
         )}
@@ -104,13 +114,14 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, getItemCount, getSubtotal } = useCartStore()
+  const { cart, isCartOpen, closeCart, getItemCount, getSubtotal, isLoading } = useCartContext()
+  const items = cart?.items || []
   const itemCount = getItemCount()
   const subtotal = getSubtotal()
 
   // Lock body scroll when open
   useEffect(() => {
-    if (isOpen) {
+    if (isCartOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -118,20 +129,20 @@ export function CartDrawer() {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isOpen])
+  }, [isCartOpen])
 
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeCart()
     }
-    if (isOpen) {
+    if (isCartOpen) {
       document.addEventListener('keydown', handleEscape)
     }
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, closeCart])
+  }, [isCartOpen, closeCart])
 
-  if (!isOpen) return null
+  if (!isCartOpen) return null
 
   return (
     <div className="fixed inset-0 z-50">
@@ -206,7 +217,7 @@ export function CartDrawer() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Підсумок</span>
-                  <span>{subtotal} ₴</span>
+                  <span>{Math.round(subtotal)} ₴</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Доставка</span>
@@ -218,7 +229,7 @@ export function CartDrawer() {
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span>Разом</span>
-                  <span>{subtotal} ₴</span>
+                  <span>{Math.round(subtotal)} ₴</span>
                 </div>
               </div>
 

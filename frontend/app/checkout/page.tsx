@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, Package } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Package, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   CheckoutSteps,
@@ -13,36 +12,44 @@ import {
   ShippingForm,
   PaymentForm,
 } from '@/components/checkout'
-import { useCartStore } from '@/stores/cart-store'
+import { useCartContext } from '@/components/providers/cart-provider'
+import {
+  useUpdateCart,
+  useShippingOptions,
+  useAddShippingMethod,
+  useInitiatePaymentSession,
+  useCompleteCart,
+  type MedusaOrder,
+} from '@/lib/medusa/hooks'
 
-type DeliveryMethod = 'courier' | 'nova-poshta' | 'pickup'
-type PaymentMethod = 'card' | 'liqpay' | 'cash'
+interface ContactData {
+  email: string
+  phone: string
+  firstName: string
+  lastName: string
+}
+
+interface ShippingData {
+  city: string
+  warehouse: string
+}
+
+interface PaymentData {
+  method: 'cod' | 'online'
+}
 
 interface CheckoutData {
-  contact: {
-    email: string
-    phone: string
-    firstName: string
-    lastName: string
-  } | null
-  shipping: {
-    method: DeliveryMethod
-    city: string
-    address: string
-    warehouse?: string
-  } | null
-  payment: {
-    method: PaymentMethod
-  } | null
+  contact: ContactData | null
+  shipping: ShippingData | null
+  payment: PaymentData | null
 }
 
 export default function CheckoutPage() {
-  const router = useRouter()
-  const { items, getSubtotal, clearCart } = useCartStore()
+  const { cart, isLoading: isCartLoading } = useCartContext()
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('contact')
-  const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
-  const [orderId, setOrderId] = useState<string | null>(null)
+  const [order, setOrder] = useState<MedusaOrder | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
     contact: null,
@@ -50,7 +57,33 @@ export default function CheckoutPage() {
     payment: null,
   })
 
-  // Redirect if cart is empty (unless order is complete)
+  // Hooks
+  const updateCartMutation = useUpdateCart()
+  const { data: shippingOptions } = useShippingOptions(cart?.id)
+  const addShippingMethodMutation = useAddShippingMethod()
+  const initiatePaymentSessionMutation = useInitiatePaymentSession()
+  const completeCartMutation = useCompleteCart()
+
+  const items = cart?.items || []
+  const isProcessing =
+    updateCartMutation.isPending ||
+    addShippingMethodMutation.isPending ||
+    initiatePaymentSessionMutation.isPending ||
+    completeCartMutation.isPending
+
+  // Loading state
+  if (isCartLoading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-muted-foreground">Завантаження...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // Empty cart
   if (items.length === 0 && !isComplete) {
     return (
       <main className="min-h-screen bg-background">
@@ -68,8 +101,8 @@ export default function CheckoutPage() {
     )
   }
 
-  // Order Complete View
-  if (isComplete && orderId) {
+  // Order Complete
+  if (isComplete && order) {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16 max-w-lg text-center">
@@ -78,10 +111,10 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-2xl font-bold mb-2">Дякуємо за замовлення!</h1>
           <p className="text-muted-foreground mb-4">
-            Ваше замовлення #{orderId} успішно оформлено
+            Ваше замовлення #{order.display_id} успішно оформлено
           </p>
           <p className="text-sm text-muted-foreground mb-8">
-            Ми надіслали деталі замовлення на вашу електронну пошту.
+            Ми надіслали деталі замовлення на {order.email}.
             Очікуйте дзвінок від менеджера для підтвердження.
           </p>
 
@@ -99,24 +132,24 @@ export default function CheckoutPage() {
                 <span>{checkoutData.contact?.phone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Доставка</span>
-                <span>
-                  {checkoutData.shipping?.method === 'courier'
-                    ? "Кур'єр"
-                    : checkoutData.shipping?.method === 'nova-poshta'
-                    ? 'Нова Пошта'
-                    : 'Самовивіз'}
-                </span>
+                <span className="text-muted-foreground">Місто</span>
+                <span>{checkoutData.shipping?.city}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Відділення НП</span>
+                <span>{checkoutData.shipping?.warehouse}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Оплата</span>
                 <span>
-                  {checkoutData.payment?.method === 'card'
-                    ? 'Карткою онлайн'
-                    : checkoutData.payment?.method === 'liqpay'
-                    ? 'LiqPay'
-                    : 'Готівкою'}
+                  {checkoutData.payment?.method === 'cod'
+                    ? 'Накладений платіж'
+                    : 'Онлайн оплата'}
                 </span>
+              </div>
+              <div className="flex justify-between font-semibold pt-2 border-t">
+                <span>Сума</span>
+                <span>{Math.round(order.total)} ₴</span>
               </div>
             </div>
           </div>
@@ -134,32 +167,121 @@ export default function CheckoutPage() {
     )
   }
 
-  const handleContactSubmit = (data: CheckoutData['contact']) => {
-    setCheckoutData((prev) => ({ ...prev, contact: data }))
-    setCurrentStep('shipping')
+  // Handle contact form submit
+  const handleContactSubmit = async (data: ContactData) => {
+    if (!cart) return
+    setError(null)
+
+    try {
+      await updateCartMutation.mutateAsync({
+        cartId: cart.id,
+        data: {
+          email: data.email,
+          shipping_address: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            address_1: 'Нова Пошта', // Will be updated in shipping step
+            city: 'Україна',
+            postal_code: '00000',
+            country_code: 'ua',
+            phone: data.phone,
+          },
+          billing_address: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            address_1: 'Нова Пошта',
+            city: 'Україна',
+            postal_code: '00000',
+            country_code: 'ua',
+            phone: data.phone,
+          },
+        },
+      })
+
+      setCheckoutData((prev) => ({ ...prev, contact: data }))
+      setCurrentStep('shipping')
+    } catch (err) {
+      setError('Не вдалося зберегти контактну інформацію. Спробуйте ще раз.')
+      console.error('Contact submit error:', err)
+    }
   }
 
-  const handleShippingSubmit = (data: CheckoutData['shipping']) => {
-    setCheckoutData((prev) => ({ ...prev, shipping: data }))
-    setCurrentStep('payment')
+  // Handle shipping form submit
+  const handleShippingSubmit = async (data: ShippingData) => {
+    if (!cart) return
+    setError(null)
+
+    try {
+      // Update address with city and warehouse
+      await updateCartMutation.mutateAsync({
+        cartId: cart.id,
+        data: {
+          shipping_address: {
+            first_name: checkoutData.contact?.firstName || '',
+            last_name: checkoutData.contact?.lastName || '',
+            address_1: `НП: ${data.warehouse}`,
+            city: data.city,
+            postal_code: '00000',
+            country_code: 'ua',
+            phone: checkoutData.contact?.phone,
+          },
+          billing_address: {
+            first_name: checkoutData.contact?.firstName || '',
+            last_name: checkoutData.contact?.lastName || '',
+            address_1: `НП: ${data.warehouse}`,
+            city: data.city,
+            postal_code: '00000',
+            country_code: 'ua',
+            phone: checkoutData.contact?.phone,
+          },
+        },
+      })
+
+      // Add shipping method (use first available option - Nova Poshta)
+      if (shippingOptions && shippingOptions.length > 0) {
+        await addShippingMethodMutation.mutateAsync({
+          cartId: cart.id,
+          optionId: shippingOptions[0].id,
+        })
+      }
+
+      setCheckoutData((prev) => ({ ...prev, shipping: data }))
+      setCurrentStep('payment')
+    } catch (err) {
+      setError('Не вдалося зберегти інформацію про доставку. Спробуйте ще раз.')
+      console.error('Shipping submit error:', err)
+    }
   }
 
-  const handlePaymentSubmit = async (data: CheckoutData['payment']) => {
-    setCheckoutData((prev) => ({ ...prev, payment: data }))
-    setIsProcessing(true)
+  // Handle payment form submit
+  const handlePaymentSubmit = async (data: PaymentData) => {
+    if (!cart) return
+    setError(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      setCheckoutData((prev) => ({ ...prev, payment: data }))
 
-    // Generate order ID
-    const newOrderId = `HL-${Date.now().toString(36).toUpperCase()}`
-    setOrderId(newOrderId)
+      // Initialize payment session with system provider (COD)
+      // This also creates payment collection automatically
+      // pp_system_default is the default payment provider for cash on delivery
+      await initiatePaymentSessionMutation.mutateAsync({
+        cart,
+        providerId: 'pp_system_default',
+      })
 
-    // Clear cart
-    clearCart()
+      // Complete the cart and place order
+      const result = await completeCartMutation.mutateAsync(cart.id)
 
-    setIsProcessing(false)
-    setIsComplete(true)
+      if (result.type === 'order' && result.order) {
+        setOrder(result.order)
+        setIsComplete(true)
+      } else {
+        setError(result.error?.message || 'Не вдалося оформити замовлення')
+      }
+    } catch (err) {
+      setError('Не вдалося оформити замовлення. Спробуйте ще раз.')
+      console.error('Payment submit error:', err)
+    }
   }
 
   return (
@@ -181,6 +303,14 @@ export default function CheckoutPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-center mb-8">
           Оформлення замовлення
         </h1>
+
+        {/* Error message */}
+        {error && (
+          <div className="max-w-2xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-card flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
 
         {/* Steps */}
         <div className="max-w-2xl mx-auto">
@@ -204,6 +334,7 @@ export default function CheckoutPage() {
                   onSubmit={handleShippingSubmit}
                   onBack={() => setCurrentStep('contact')}
                   initialData={checkoutData.shipping || undefined}
+                  isLoading={isProcessing}
                 />
               )}
 
@@ -212,6 +343,7 @@ export default function CheckoutPage() {
                   onSubmit={handlePaymentSubmit}
                   onBack={() => setCurrentStep('shipping')}
                   isProcessing={isProcessing}
+                  total={cart ? cart.total : 0}
                 />
               )}
             </div>
@@ -220,7 +352,7 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-24">
-              <OrderSummary />
+              <OrderSummary cart={cart} />
             </div>
           </div>
         </div>

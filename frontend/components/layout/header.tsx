@@ -4,21 +4,21 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
-import { useCartStore } from "@/stores/cart-store"
+import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
 
 const navigation = [
   { name: "Каталог", href: "/shop" },
-  { name: "Категорії", href: "/shop?category=all" },
   { name: "Бренди", href: "/shop?filter=brands" },
-  { name: "Quiz", href: "/quiz" },
-  { name: "Блог", href: "/blog" },
+  { name: "Про нас", href: "/pages/about" },
+  { name: "Доставка", href: "/pages/delivery" },
+  { name: "Контакти", href: "/pages/contacts" },
 ]
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const { openCart, getItemCount } = useCartStore()
+  const { openCart, getItemCount } = useCartContext()
   const { openSearch } = useUIStore()
 
   // Prevent hydration mismatch
@@ -40,6 +40,7 @@ export function Header() {
               width={40}
               height={40}
               className="object-contain"
+              style={{ height: 'auto' }}
             />
             <div>
               <div className="flex items-baseline">
