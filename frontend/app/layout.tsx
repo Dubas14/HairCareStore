@@ -3,6 +3,8 @@ import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { CartDrawer } from '@/components/cart'
+import { SearchDialog } from '@/components/search'
 import '../styles/globals.css'
 
 // Main font for body text
@@ -48,6 +50,8 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <CartDrawer />
+          <SearchDialog />
         </QueryProvider>
       </body>
     </html>

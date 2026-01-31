@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, ShoppingCart, Star } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useCartStore } from '@/stores/cart-store'
 import type { Product } from '@/lib/constants/home-data'
 
 interface ProductCardProps {
@@ -13,16 +14,36 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [isAdded, setIsAdded] = useState(false)
+
+  const { addItem } = useCartStore()
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsWishlisted(!isWishlisted)
   }
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
-    // TODO: Add to cart logic
-    console.log('Add to cart:', product.id)
+    setIsAdding(true)
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    addItem({
+      productId: product.id,
+      name: product.name,
+      brand: product.brand,
+      variant: '250 мл',
+      price: product.price,
+      quantity: 1,
+      imageUrl: product.imageUrl,
+    })
+
+    setIsAdding(false)
+    setIsAdded(true)
+    setTimeout(() => setIsAdded(false), 2000)
   }
 
   return (
@@ -112,12 +133,27 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Add to Cart Button */}
       <Button
         onClick={handleAddToCart}
+        disabled={isAdding}
         className={`w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-button transition-all duration-300 ${
           isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
       >
-        <ShoppingCart className="w-4 h-4 mr-2" />
-        Додати в кошик
+        {isAdded ? (
+          <>
+            <Check className="w-4 h-4 mr-2" />
+            Додано
+          </>
+        ) : isAdding ? (
+          <>
+            <span className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Додаємо...
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Додати в кошик
+          </>
+        )}
       </Button>
     </Link>
   )
