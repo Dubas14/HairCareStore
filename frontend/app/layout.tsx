@@ -1,13 +1,35 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
+import { QueryProvider } from '@/components/providers/query-provider'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 import '../styles/globals.css'
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
+// Main font for body text
+const inter = Inter({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+// Accent font for quotes, ingredients, testimonials
+const playfair = Playfair_Display({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
+
+// Monospace font for scientific data, formulas, percentages
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: 'Beauty Hair Store - Професійна косметика для волосся',
-  description: 'Інтернет-магазин професійної косметики для волосся. Шампуні, кондиціонери, маски та засоби для укладання від провідних брендів.',
-  keywords: 'косметика для волосся, професійна косметика, шампунь, кондиціонер, маска для волосся',
+  title: 'HAIR LAB - Професійна косметика для волосся',
+  description: 'Інтернет-магазин професійної косметики для волосся. Науковий підхід до догляду з клінічно перевіреними інгредієнтами.',
+  keywords: 'косметика для волосся, професійна косметика, шампунь, кондиціонер, маска для волосся, кератин, арганова олія',
 }
 
 export default function RootLayout({
@@ -16,23 +38,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="uk" className={inter.variable}>
+    <html lang="uk" className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}>
       <body>
-        <div className="min-h-screen flex flex-col">
-          <header className="border-b">
-            <div className="container mx-auto px-4 py-4">
-              <h1 className="text-2xl font-bold text-primary">Beauty Hair Store</h1>
-            </div>
-          </header>
-          <main className="flex-1">
-            {children}
-          </main>
-          <footer className="border-t mt-auto">
-            <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-              © 2026 Beauty Hair Store. Всі права захищені.
-            </div>
-          </footer>
-        </div>
+        <QueryProvider>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </QueryProvider>
       </body>
     </html>
   )

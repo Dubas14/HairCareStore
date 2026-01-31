@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8' # Removed - obsolete in Docker Compose V2
 
 services:
   # ============================
@@ -88,31 +88,33 @@ services:
   # ============================
   # Next.js Frontend
   # ============================
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: beauty-frontend
-    restart: unless-stopped
-    ports:
-      - "3100:3000"
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://localhost:9100}
-      NEXT_PUBLIC_BASE_URL: ${BASE_URL:-http://localhost:3100}
-      # Analytics
-      NEXT_PUBLIC_GA_ID: ${GA_ID:-}
-      NEXT_PUBLIC_HOTJAR_ID: ${HOTJAR_ID:-}
-      # Cloudinary
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    networks:
-      - beauty-network
+  # DISABLED: Run frontend locally for faster hot-reload
+  # Command: cd frontend && npm run dev
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: beauty-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3100:3000"
+  #   environment:
+  #     NODE_ENV: ${NODE_ENV:-development}
+  #     NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://localhost:9100}
+  #     NEXT_PUBLIC_BASE_URL: ${BASE_URL:-http://localhost:3100}
+  #     # Analytics
+  #     NEXT_PUBLIC_GA_ID: ${GA_ID:-}
+  #     NEXT_PUBLIC_HOTJAR_ID: ${HOTJAR_ID:-}
+  #     # Cloudinary
+  #     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   networks:
+  #     - beauty-network
 
 networks:
   beauty-network:

@@ -1,26 +1,33 @@
-// Common types for the application
+/**
+ * TypeScript Types
+ *
+ * CRITICAL: Always use official types from @medusajs/types
+ * NEVER define custom types for Medusa entities
+ */
 
-export type HairType = 'straight' | 'wavy' | 'curly' | 'coily'
+// Re-export Medusa types
+export type {
+  StoreProduct,
+  StoreProductVariant,
+  StoreCart,
+  StoreCartLineItem,
+  StoreRegion,
+  StoreProductCategory,
+  StoreCustomer,
+  StoreOrder,
+  StoreCollection,
+  StorePaymentProvider,
+  StoreShippingOption,
+} from "@medusajs/types"
 
-export type HairProblem = 'dry' | 'oily' | 'dandruff' | 'hair_loss' | 'damage' | 'frizz'
-
-export type ProductCategory = 'shampoo' | 'conditioner' | 'mask' | 'oil' | 'spray' | 'styling'
-
-export type LoyaltyLevel = 'bronze' | 'silver' | 'gold'
-
-export interface QuizStep {
-  id: string
-  question: string
-  options: QuizOption[]
+// Custom application types
+export interface ProductWithCategory extends StoreProduct {
+  categories?: StoreProductCategory[]
 }
 
-export interface QuizOption {
-  value: string
-  label: string
-  description?: string
-}
-
-export interface QuizResult {
-  recommendations: string[]
-  explanation: string
+export interface CartWithTotals extends StoreCart {
+  subtotal?: number
+  tax_total?: number
+  shipping_total?: number
+  total?: number
 }
