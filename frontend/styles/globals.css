@@ -1,37 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 4%;
+    /* HAIR LAB Design System - "Scientific Self-Care" */
+
+    /* Base Colors */
+    --background: 0 0% 98%; /* #FAFAFA */
+    --foreground: 0 0% 10%; /* #1A1A1A */
+
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 4%;
+    --card-foreground: 0 0% 10%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Premium color scheme */
-    --primary: 45 65% 52%; /* Gold #D4AF37 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 162 43% 20%; /* Dark green #1B4D3E */
-    --secondary-foreground: 0 0% 100%;
+    /* Primary - Anthracite */
+    --primary: 0 0% 10%; /* #1A1A1A */
+    --primary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 97%;
-    --muted-foreground: 0 0% 42%;
-    --accent: 0 0% 97%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 0 84% 60%;
+    /* Secondary - Muted Gray */
+    --secondary: 0 0% 44%; /* #717171 */
+    --secondary-foreground: 0 0% 98%;
+
+    /* Muted */
+    --muted: 0 0% 96%; /* #F5F5F7 - Science bg */
+    --muted-foreground: 0 0% 44%;
+
+    /* Accent - Warm Beige for ingredients sections */
+    --accent: 50 100% 94%; /* #FEFAE0 */
+    --accent-foreground: 0 0% 10%;
+
+    /* Signal Colors */
+    --destructive: 0 47% 51%; /* #BC4749 - Dusty Rose */
     --destructive-foreground: 0 0% 98%;
+
+    --success: 85 29% 32%; /* #606C38 - Olive Green */
+    --success-foreground: 0 0% 98%;
+
+    --sale: 34 65% 62%; /* #DDA15E - Mustard */
+    --sale-foreground: 0 0% 10%;
+
+    /* Category Gradients */
+    --repair-start: 27 50% 64%; /* #D4A373 - Warm Sand */
+    --repair-end: 45 74% 66%; /* #E9C46A - Soft Peach */
+
+    --hydrate-start: 171 58% 39%; /* #2A9D8F - Ocean Teal */
+    --hydrate-end: 194 74% 56%; /* #48CAE4 - Aqua */
+
+    --volume-start: 240 18% 78%; /* #B8B8D1 - Lavender Mist */
+    --volume-end: 239 19% 69%; /* #9FA0C3 - Periwinkle */
+
+    --curl-start: 78 22% 47%; /* #8A9A5B - Golden Olive */
+    --curl-end: 27 63% 44%; /* #BC6C25 - Amber */
+
+    /* Footer */
+    --footer: 195 40% 24%; /* #264653 - Charcoal */
+    --footer-foreground: 0 0% 98%;
+
+    /* UI Elements */
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 45 65% 52%;
-    --radius: 0.5rem;
+    --ring: 0 0% 10%;
 
-    /* Custom colors */
-    --gold: 45 65% 52%;
-    --dark: 0 0% 4%;
-    --light-gray: 0 0% 97%;
+    /* Border Radius */
+    --radius-card: 1rem; /* 16px */
+    --radius-button: 9999px; /* pill */
+    --radius-input: 0.75rem; /* 12px */
+    --radius: 0.5rem;
   }
 }
 
@@ -39,9 +78,24 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
   }
 }
 
@@ -60,7 +114,7 @@
 @keyframes fadeInScale {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -86,6 +140,15 @@
   }
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 @layer utilities {
   .animate-fadeInUp {
     animation: fadeInUp 0.6s ease-out forwards;
@@ -97,5 +160,65 @@
 
   .animate-pulse-slow {
     animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* Card hover effect - lift 8px + shadow increase */
+@layer utilities {
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Soft shadows for interactive elements */
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .shadow-soft-lg {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Category gradient backgrounds */
+@layer utilities {
+  .bg-gradient-repair {
+    background: linear-gradient(135deg, hsl(var(--repair-start)), hsl(var(--repair-end)));
+  }
+
+  .bg-gradient-hydrate {
+    background: linear-gradient(135deg, hsl(var(--hydrate-start)), hsl(var(--hydrate-end)));
+  }
+
+  .bg-gradient-volume {
+    background: linear-gradient(135deg, hsl(var(--volume-start)), hsl(var(--volume-end)));
+  }
+
+  .bg-gradient-curl {
+    background: linear-gradient(135deg, hsl(var(--curl-start)), hsl(var(--curl-end)));
+  }
+}
+
+/* Focus ring for accessibility */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+}
+
+/* Section spacing - "Air & Structure" principle */
+@layer utilities {
+  .section-spacing {
+    @apply py-20 md:py-24 lg:py-32;
   }
 }

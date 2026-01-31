@@ -28,28 +28,28 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group block bg-white rounded-xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+      className="group block bg-card rounded-card p-4 shadow-soft card-hover"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <div className="relative aspect-square mb-4 overflow-hidden rounded-lg">
+      <div className="relative aspect-square mb-4 overflow-hidden rounded-card bg-muted">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
         {/* Discount Badge */}
         {product.discount && (
-          <div className="absolute top-2 left-2 bg-destructive text-white text-sm font-bold px-2 py-1 rounded">
+          <div className="absolute top-3 left-3 bg-sale text-sale-foreground text-sm font-semibold px-3 py-1 rounded-button">
             -{product.discount}%
           </div>
         )}
 
         {/* New Badge */}
-        {product.badge && (
-          <div className="absolute top-2 left-2 bg-secondary text-white text-sm font-bold px-2 py-1 rounded">
+        {product.badge && !product.discount && (
+          <div className="absolute top-3 left-3 bg-success text-success-foreground text-sm font-semibold px-3 py-1 rounded-button">
             {product.badge}
           </div>
         )}
@@ -57,37 +57,37 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistClick}
-          className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full transition-colors duration-250"
+          className="absolute top-3 right-3 p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring"
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart
-            className={`w-5 h-5 transition-colors ${
-              isWishlisted ? 'fill-destructive text-destructive' : 'text-gray-600'
+            className={`w-5 h-5 transition-colors duration-300 ${
+              isWishlisted ? 'fill-destructive text-destructive' : 'text-secondary'
             }`}
           />
         </button>
       </div>
 
       {/* Brand */}
-      <p className="text-xs text-muted-foreground uppercase mb-1">
+      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1 font-medium">
         {product.brand}
       </p>
 
       {/* Name */}
-      <h3 className="text-base font-semibold text-dark mb-2 line-clamp-2 min-h-[3rem]">
+      <h3 className="text-base font-semibold text-foreground mb-2 line-clamp-2 min-h-[3rem] leading-snug">
         {product.name}
       </h3>
 
       {/* Rating */}
-      <div className="flex items-center gap-1 mb-3">
+      <div className="flex items-center gap-1.5 mb-3">
         <div className="flex">
           {[...Array(5)].map((_, i) => (
             <Star
               key={i}
               className={`w-4 h-4 ${
                 i < Math.floor(product.rating)
-                  ? 'fill-gold text-gold'
-                  : 'fill-gray-200 text-gray-200'
+                  ? 'fill-sale text-sale'
+                  : 'fill-muted text-muted'
               }`}
             />
           ))}
@@ -98,8 +98,8 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Price */}
-      <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-xl font-bold text-gold">
+      <div className="flex items-baseline gap-2 mb-4">
+        <span className="text-xl font-bold text-foreground">
           {product.price} грн
         </span>
         {product.oldPrice && (
@@ -112,7 +112,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Add to Cart Button */}
       <Button
         onClick={handleAddToCart}
-        className={`w-full bg-gold hover:bg-gold/90 text-white transition-all duration-300 ${
+        className={`w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-button transition-all duration-300 ${
           isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
       >

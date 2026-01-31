@@ -20,7 +20,7 @@ export function NewsletterSection() {
 
       if (result.success) {
         setMessage({ type: 'success', text: result.message! })
-        e.currentTarget.reset()
+        ;(e.target as HTMLFormElement).reset()
       } else {
         setMessage({ type: 'error', text: result.error! })
       }
@@ -28,15 +28,15 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-gold via-gold/90 to-secondary">
+    <section className="py-20 md:py-24 bg-gradient-repair">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-full mb-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
           <Mail className="w-10 h-10 text-white" />
         </div>
 
         {/* Header */}
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
           Отримуйте ексклюзивні пропозиції
         </h2>
         <p className="text-lg text-white/90 mb-8">
@@ -52,13 +52,13 @@ export function NewsletterSection() {
               placeholder="Ваш email"
               required
               disabled={isPending}
-              className="flex-1 px-4 py-3 rounded-lg bg-white text-dark placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50"
+              className="flex-1 px-5 py-3.5 rounded-button bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 shadow-soft"
             />
             <Button
               type="submit"
               disabled={isPending}
               size="lg"
-              className="bg-dark hover:bg-dark/90 text-white whitespace-nowrap"
+              className="bg-foreground hover:bg-foreground/90 text-background rounded-button px-8 whitespace-nowrap shadow-soft-lg"
             >
               {isPending ? (
                 <>
@@ -71,14 +71,14 @@ export function NewsletterSection() {
             </Button>
           </div>
 
-          <div className="flex items-start gap-2 text-left">
+          <div className="flex items-start gap-3 text-left justify-center">
             <input
               type="checkbox"
               name="consent"
               id="consent"
               required
               disabled={isPending}
-              className="mt-1"
+              className="mt-1 w-4 h-4 rounded accent-white"
             />
             <label htmlFor="consent" className="text-sm text-white/90">
               Я погоджуюсь з умовами розсилки та політикою приватності
@@ -88,8 +88,8 @@ export function NewsletterSection() {
           {/* Message */}
           {message && (
             <div
-              className={`flex items-center gap-2 p-3 rounded-lg ${
-                message.type === 'success' ? 'bg-green-500/20 text-white' : 'bg-red-500/20 text-white'
+              className={`flex items-center justify-center gap-2 p-3 rounded-card ${
+                message.type === 'success' ? 'bg-success/30 text-white' : 'bg-destructive/30 text-white'
               }`}
             >
               {message.type === 'success' && <Check className="w-5 h-5" />}

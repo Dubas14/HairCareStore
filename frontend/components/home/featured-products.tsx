@@ -26,14 +26,14 @@ export function FeaturedProducts() {
   const products = featuredProducts[activeTab]
 
   return (
-    <section className="py-20 md:py-24 bg-dark">
+    <section className="section-spacing bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
             Популярні товари
           </h2>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Найкращий вибір наших клієнтів
           </p>
         </div>
@@ -44,10 +44,10 @@ export function FeaturedProducts() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-3 text-sm md:text-base font-medium rounded-lg transition-all duration-200 ${
+              className={`px-6 py-3 text-sm md:text-base font-medium rounded-button transition-all duration-300 focus-ring ${
                 activeTab === tab.id
-                  ? 'bg-gold text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary text-primary-foreground shadow-soft'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white'
               }`}
             >
               {tab.label}
@@ -77,7 +77,7 @@ export function FeaturedProducts() {
             asChild
             variant="outline"
             size="lg"
-            className="border-white/30 text-white hover:bg-white/10 hover:border-gold"
+            className="rounded-button border-2 border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all duration-300"
           >
             <Link href="/products">
               Дивитись всі товари

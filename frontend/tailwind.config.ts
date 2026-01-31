@@ -51,16 +51,57 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        gold: 'hsl(var(--gold))',
-        dark: 'hsl(var(--dark))',
+        // HAIR LAB custom colors
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        sale: {
+          DEFAULT: 'hsl(var(--sale))',
+          foreground: 'hsl(var(--sale-foreground))',
+        },
+        footer: {
+          DEFAULT: 'hsl(var(--footer))',
+          foreground: 'hsl(var(--footer-foreground))',
+        },
+        // Category accent colors
+        repair: {
+          start: 'hsl(var(--repair-start))',
+          end: 'hsl(var(--repair-end))',
+        },
+        hydrate: {
+          start: 'hsl(var(--hydrate-start))',
+          end: 'hsl(var(--hydrate-end))',
+        },
+        volume: {
+          start: 'hsl(var(--volume-start))',
+          end: 'hsl(var(--volume-end))',
+        },
+        curl: {
+          start: 'hsl(var(--curl-start))',
+          end: 'hsl(var(--curl-end))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        card: 'var(--radius-card)',
+        button: 'var(--radius-button)',
+        input: 'var(--radius-input)',
       },
       fontFamily: {
-        sans: ['var(--font-inter)'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+      },
+      spacing: {
+        'section': '120px',
+      },
+      boxShadow: {
+        'soft': '0 4px 20px rgba(0, 0, 0, 0.04)',
+        'soft-lg': '0 8px 30px rgba(0, 0, 0, 0.06)',
+        'lift': '0 12px 40px rgba(0, 0, 0, 0.08)',
       },
     },
   },
