@@ -10,7 +10,8 @@ import { HowToUse } from '@/components/products/how-to-use'
 import { RelatedProducts } from '@/components/products/related-products'
 import { useProduct, useProducts } from '@/lib/medusa/hooks'
 import { toFrontendProducts, getImageUrl } from '@/lib/medusa/adapters'
-import { useCartContext } from '@/components/providers/cart-provider'
+import { useCartStore } from '@/stores/cart-store'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 // Mock ingredients data
 const mockIngredients = [
@@ -30,8 +31,8 @@ export default function ProductPage() {
   // Fetch all products for related section
   const { data: allProductsData } = useProducts({ limit: 20 })
 
-  // Cart context
-  const { addToCart, isLoading: isCartLoading } = useCartContext()
+  // Cart store
+  const { addItem } = useCartStore()
 
   // Convert Medusa variants to frontend format
   const variants = useMemo(() => {
@@ -102,12 +103,19 @@ export default function ProductPage() {
   const brand = medusaProduct.subtitle || 'HAIR LAB'
   const productName = medusaProduct.title
 
-  const handleAddToCart = async (variantId: string, quantity: number) => {
-    try {
-      await addToCart(variantId, quantity)
-    } catch (err) {
-      console.error('Failed to add to cart:', err)
-    }
+  const handleAddToCart = (variantId: string, quantity: number) => {
+    const selectedVariant = variants.find(v => v.id === variantId)
+    if (!selectedVariant || !medusaProduct) return
+
+    addItem({
+      productId: parseInt(medusaProduct.id.replace(/\D/g, '')) || Date.now(),
+      name: medusaProduct.title,
+      brand: medusaProduct.subtitle || 'HAIR LAB',
+      variant: selectedVariant.name,
+      price: selectedVariant.price,
+      quantity,
+      imageUrl: images[0] || '/placeholder-product.jpg',
+    })
   }
 
   const handleAddToWishlist = () => {
@@ -118,82 +126,95 @@ export default function ProductPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Breadcrumb */}
-      <div className="container mx-auto px-4 py-4">
-        <Breadcrumb
-          items={[
-            { label: 'Каталог', href: '/shop' },
-            { label: brand, href: `/shop?brand=${brand.toLowerCase().replace(/\s+/g, '-')}` },
-            { label: productName },
-          ]}
-        />
-      </div>
+      <ScrollReveal variant="fade" duration={400}>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb
+            items={[
+              { label: 'Каталог', href: '/shop' },
+              { label: brand, href: `/shop?brand=${brand.toLowerCase().replace(/\s+/g, '-')}` },
+              { label: productName },
+            ]}
+          />
+        </div>
+      </ScrollReveal>
 
       {/* Product Section */}
       <div className="container mx-auto px-4 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Gallery */}
-          <ProductGallery
-            images={images}
-            productName={productName}
-          />
+          <ScrollReveal variant="fade-right" duration={600}>
+            <ProductGallery
+              images={images}
+              productName={productName}
+            />
+          </ScrollReveal>
 
           {/* Buy Box - Sticky on desktop */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <BuyBox
-              productName={productName}
-              brand={brand}
-              rating={4.5}
-              reviewCount={0}
-              variants={variants}
-              badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
-              onAddToCart={handleAddToCart}
-              onAddToWishlist={handleAddToWishlist}
-            />
-          </div>
+          <ScrollReveal variant="fade-left" delay={150} duration={600}>
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <BuyBox
+                productName={productName}
+                brand={brand}
+                rating={4.5}
+                reviewCount={0}
+                variants={variants}
+                badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
+                productImage={images[0]}
+                onAddToCart={handleAddToCart}
+                onAddToWishlist={handleAddToWishlist}
+              />
+            </div>
+          </ScrollReveal>
         </div>
 
         {/* Divider */}
         <hr className="my-12 border-border" />
 
         {/* Ingredient Spotlight */}
-        <IngredientSpotlight ingredients={mockIngredients} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <IngredientSpotlight ingredients={mockIngredients} />
+        </ScrollReveal>
 
         {/* Divider */}
         <hr className="my-8 border-border" />
 
         {/* How to Use */}
-        <HowToUse steps={[
-          {
-            id: 'wet',
-            title: 'Зволожте',
-            description: 'Ретельно зволожте волосся теплою водою',
-            icon: '💧',
-          },
-          {
-            id: 'apply',
-            title: 'Нанесіть',
-            description: 'Нанесіть невелику кількість засобу на долоні та рівномірно розподіліть по волоссю',
-            icon: '✋',
-          },
-          {
-            id: 'massage',
-            title: 'Масажуйте',
-            description: 'Злегка помасажуйте шкіру голови протягом 2-3 хвилин',
-            icon: '🧘',
-          },
-          {
-            id: 'rinse',
-            title: 'Змийте',
-            description: 'Ретельно змийте теплою водою. За потреби повторіть',
-            icon: '🚿',
-          },
-        ]} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <HowToUse steps={[
+            {
+              id: 'wet',
+              title: 'Зволожте',
+              description: 'Ретельно зволожте волосся теплою водою',
+              icon: '💧',
+            },
+            {
+              id: 'apply',
+              title: 'Нанесіть',
+              description: 'Нанесіть невелику кількість засобу на долоні та рівномірно розподіліть по волоссю',
+              icon: '✋',
+            },
+            {
+              id: 'massage',
+              title: 'Масажуйте',
+              description: 'Злегка помасажуйте шкіру голови протягом 2-3 хвилин',
+              icon: '🧘',
+            },
+            {
+              id: 'rinse',
+              title: 'Змийте',
+              description: 'Ретельно змийте теплою водою. За потреби повторіть',
+              icon: '🚿',
+            },
+          ]} />
+        </ScrollReveal>
 
         {/* Divider */}
         <hr className="my-8 border-border" />
 
         {/* Related Products */}
-        <RelatedProducts products={relatedProducts} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <RelatedProducts products={relatedProducts} />
+        </ScrollReveal>
       </div>
     </main>
   )

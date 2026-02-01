@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { heroSlides } from '@/lib/constants/home-data'
 import { Button } from '@/components/ui/button'
+import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 
 export function HeroSlider() {
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -64,20 +65,28 @@ export function HeroSlider() {
                     {slide.subtitle}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp" style={{ animationDelay: '400ms' }}>
-                    {slide.buttons.map((button, idx) => (
-                      <Button
-                        key={idx}
-                        asChild
-                        size="lg"
-                        className={
-                          button.variant === 'primary'
-                            ? 'bg-white text-foreground hover:bg-white/90 rounded-button px-8 shadow-soft-lg hover:shadow-lift hover:scale-[1.02] transition-all duration-300'
-                            : 'bg-transparent border-2 border-white/50 text-white hover:bg-white/10 rounded-button px-8 hover:scale-[1.02] transition-all duration-300'
-                        }
-                      >
-                        <Link href={button.href}>{button.text}</Link>
-                      </Button>
-                    ))}
+                    {slide.buttons.map((button, idx) =>
+                      button.variant === 'primary' ? (
+                        <Link key={idx} href={button.href}>
+                          <BorderGradientButton
+                            variant="white"
+                            size="lg"
+                            className="shadow-soft-lg hover:shadow-lift"
+                          >
+                            {button.text}
+                          </BorderGradientButton>
+                        </Link>
+                      ) : (
+                        <Button
+                          key={idx}
+                          asChild
+                          size="lg"
+                          className="bg-transparent border-2 border-white/50 text-white hover:bg-white/10 rounded-button px-8 hover:scale-[1.02] transition-all duration-300"
+                        >
+                          <Link href={button.href}>{button.text}</Link>
+                        </Button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>

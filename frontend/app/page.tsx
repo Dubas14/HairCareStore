@@ -6,6 +6,7 @@ import { BenefitsSection } from '@/components/home/benefits-section'
 import { NewsletterSection } from '@/components/home/newsletter-section'
 import { PromoBlocks } from '@/components/home/promo-blocks'
 import { getBanners, getPromoBlocks } from '@/lib/strapi/client'
+import { HomePageAnimations } from '@/components/home/home-page-animations'
 
 export default async function HomePage() {
   // Завантажуємо контент з Strapi CMS
@@ -15,7 +16,7 @@ export default async function HomePage() {
   ])
 
   return (
-    <>
+    <HomePageAnimations>
       <HeroSliderCMS banners={banners} />
       <CategoriesSection />
       <PromoBlocks blocks={promoBlocks} />
@@ -23,6 +24,6 @@ export default async function HomePage() {
       <BrandsSection />
       <BenefitsSection />
       <NewsletterSection />
-    </>
+    </HomePageAnimations>
   )
 }

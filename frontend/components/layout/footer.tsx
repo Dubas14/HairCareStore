@@ -6,28 +6,23 @@ const footerLinks = {
   shop: {
     title: "Магазин",
     links: [
-      { name: "Каталог", href: "/products" },
-      { name: "Категорії", href: "/categories" },
-      { name: "Бренди", href: "/brands" },
-      { name: "Новинки", href: "/products?sort=newest" },
-      { name: "Акції", href: "/products?sale=true" },
+      { name: "Каталог", href: "/shop" },
+      { name: "Новинки", href: "/shop" },
+      { name: "Акції", href: "/shop" },
     ],
   },
   help: {
     title: "Допомога",
     links: [
-      { name: "Hair Quiz", href: "/quiz" },
-      { name: "Доставка і оплата", href: "/pages/delivery" },
-      { name: "Повернення", href: "/returns" },
-      { name: "FAQ", href: "/faq" },
+      { name: "Доставка", href: "/pages/delivery" },
+      { name: "Оплата", href: "/pages/payment" },
+      { name: "Контакти", href: "/pages/contacts" },
     ],
   },
   company: {
     title: "Компанія",
     links: [
       { name: "Про нас", href: "/pages/about" },
-      { name: "Контакти", href: "/pages/contacts" },
-      { name: "Блог", href: "/blog" },
     ],
   },
 }
@@ -120,11 +115,11 @@ export function Footer() {
             © 2026 HAIR LAB. Всі права захищені.
           </p>
           <div className="flex gap-6 text-sm text-footer-foreground/60">
-            <Link href="/privacy" className="hover:text-footer-foreground transition-colors">
-              Політика конфіденційності
+            <Link href="/pages/delivery" className="hover:text-footer-foreground transition-colors">
+              Доставка та оплата
             </Link>
-            <Link href="/terms" className="hover:text-footer-foreground transition-colors">
-              Умови використання
+            <Link href="/pages/contacts" className="hover:text-footer-foreground transition-colors">
+              Контакти
             </Link>
           </div>
         </div>

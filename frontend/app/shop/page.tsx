@@ -9,6 +9,7 @@ import { SortSelect, SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
 import { useProducts, useSearchProducts } from '@/lib/medusa/hooks'
 import { toFrontendProducts } from '@/lib/medusa/adapters'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 const PRODUCTS_PER_PAGE = 12
 
@@ -119,41 +120,43 @@ function ShopContent() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-muted/50 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            {localSearch ? `Результати пошуку: "${localSearch}"` : 'Каталог товарів'}
-          </h1>
-          <p className="text-muted-foreground">
-            {localSearch
-              ? `Знайдено ${filteredProducts.length} товарів`
-              : 'Професійна косметика для догляду за волоссям'}
-          </p>
+      <ScrollReveal variant="fade-down" duration={500}>
+        <div className="bg-muted/50 border-b">
+          <div className="container mx-auto px-4 py-8 md:py-12">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+              {localSearch ? `Результати пошуку: "${localSearch}"` : 'Каталог товарів'}
+            </h1>
+            <p className="text-muted-foreground">
+              {localSearch
+                ? `Знайдено ${filteredProducts.length} товарів`
+                : 'Професійна косметика для догляду за волоссям'}
+            </p>
 
-          {/* Search Bar */}
-          <div className="mt-6 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                placeholder="Пошук товарів..."
-                className="w-full h-11 pl-10 pr-10 bg-background border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              {localSearch && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full"
-                  aria-label="Очистити пошук"
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              )}
+            {/* Search Bar */}
+            <div className="mt-6 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  placeholder="Пошук товарів..."
+                  className="w-full h-11 pl-10 pr-10 bg-background border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                {localSearch && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full"
+                    aria-label="Очистити пошук"
+                  >
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
@@ -165,50 +168,54 @@ function ShopContent() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <FilterSidebar
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            maxPrice={5000}
-            className="w-full lg:w-64 flex-shrink-0"
-          />
+          <ScrollReveal variant="fade-right" delay={100} duration={600}>
+            <FilterSidebar
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              maxPrice={5000}
+              className="w-full lg:w-64 flex-shrink-0"
+            />
+          </ScrollReveal>
 
           {/* Main content */}
-          <div className="flex-1">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <p className="text-sm text-muted-foreground">
-                {isLoadingProducts ? (
-                  'Завантаження...'
-                ) : (
-                  <>
-                    Знайдено{' '}
-                    <span className="font-medium text-foreground">
-                      {filteredProducts.length}
-                    </span>{' '}
-                    {filteredProducts.length === 1
-                      ? 'товар'
-                      : filteredProducts.length < 5
-                      ? 'товари'
-                      : 'товарів'}
-                  </>
-                )}
-              </p>
+          <ScrollReveal variant="fade-up" delay={200} duration={600} className="flex-1">
+            <div>
+              {/* Toolbar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <p className="text-sm text-muted-foreground">
+                  {isLoadingProducts ? (
+                    'Завантаження...'
+                  ) : (
+                    <>
+                      Знайдено{' '}
+                      <span className="font-medium text-foreground">
+                        {filteredProducts.length}
+                      </span>{' '}
+                      {filteredProducts.length === 1
+                        ? 'товар'
+                        : filteredProducts.length < 5
+                        ? 'товари'
+                        : 'товарів'}
+                    </>
+                  )}
+                </p>
 
-              <SortSelect value={sortBy} onChange={handleSortChange} />
+                <SortSelect value={sortBy} onChange={handleSortChange} />
+              </div>
+
+              {/* Product Grid */}
+              <ProductGrid products={paginatedProducts} isLoading={isLoadingProducts} />
+
+              {/* Pagination */}
+              {!isLoadingProducts && totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              )}
             </div>
-
-            {/* Product Grid */}
-            <ProductGrid products={paginatedProducts} isLoading={isLoadingProducts} />
-
-            {/* Pagination */}
-            {!isLoadingProducts && totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            )}
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </main>

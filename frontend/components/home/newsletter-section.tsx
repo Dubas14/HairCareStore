@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Mail, Check, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { subscribeToNewsletter } from '@/app/actions/newsletter'
 
 export function NewsletterSection() {
@@ -54,21 +54,22 @@ export function NewsletterSection() {
               disabled={isPending}
               className="flex-1 px-5 py-3.5 rounded-button bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 shadow-soft"
             />
-            <Button
+            <BorderGradientButton
               type="submit"
               disabled={isPending}
+              variant="white"
               size="lg"
-              className="bg-foreground hover:bg-foreground/90 text-background rounded-button px-8 whitespace-nowrap shadow-soft-lg"
+              className="whitespace-nowrap"
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Підписуємо...
                 </>
               ) : (
                 'Підписатися'
               )}
-            </Button>
+            </BorderGradientButton>
           </div>
 
           <div className="flex items-start gap-3 text-left justify-center">

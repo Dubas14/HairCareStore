@@ -4,28 +4,22 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useCartContext } from '@/components/providers/cart-provider'
-import type { MedusaCartItem } from '@/lib/medusa/hooks'
+import { BorderGradientButton } from '@/components/ui/border-gradient-button'
+import { useCartStore, type CartItem } from '@/stores/cart-store'
 import { cn } from '@/lib/utils'
 
 const FREE_SHIPPING_THRESHOLD = 1000 // UAH
 
-function CartItemCard({ item }: { item: MedusaCartItem }) {
-  const { updateQuantity, removeItem, isLoading } = useCartContext()
-
-  const productName = item.variant?.product?.title || item.title
-  const brand = item.variant?.product?.subtitle || 'HAIR LAB'
-  const variantName = item.variant?.title || 'Стандартний'
-  const imageUrl = item.thumbnail || item.variant?.product?.thumbnail || '/placeholder-product.jpg'
-  const price = item.unit_price // Medusa v2 stores in major units
+function CartItemCard({ item }: { item: CartItem }) {
+  const { updateQuantity, removeItem } = useCartStore()
 
   return (
     <div className="flex gap-4 py-4">
       {/* Image */}
       <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
         <img
-          src={imageUrl}
-          alt={productName}
+          src={item.imageUrl}
+          alt={item.name}
           className="w-full h-full object-cover"
         />
       </div>
@@ -33,20 +27,19 @@ function CartItemCard({ item }: { item: MedusaCartItem }) {
       {/* Details */}
       <div className="flex-1 min-w-0">
         <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          {brand}
+          {item.brand}
         </p>
         <h4 className="text-sm font-medium text-foreground line-clamp-2">
-          {productName}
+          {item.name}
         </h4>
-        <p className="text-xs text-muted-foreground mt-0.5">{variantName}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{item.variant}</p>
 
         {/* Quantity & Price */}
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center border rounded">
             <button
               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-              disabled={isLoading}
-              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-1.5 hover:bg-muted transition-colors"
               aria-label="Зменшити кількість"
             >
               <Minus className="w-3 h-3" />
@@ -54,8 +47,7 @@ function CartItemCard({ item }: { item: MedusaCartItem }) {
             <span className="w-8 text-center text-sm">{item.quantity}</span>
             <button
               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-              disabled={isLoading}
-              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-1.5 hover:bg-muted transition-colors"
               aria-label="Збільшити кількість"
             >
               <Plus className="w-3 h-3" />
@@ -64,12 +56,11 @@ function CartItemCard({ item }: { item: MedusaCartItem }) {
 
           <div className="flex items-center gap-2">
             <span className="font-semibold">
-              {Math.round(price * item.quantity)} ₴
+              {Math.round(item.price * item.quantity)} ₴
             </span>
             <button
               onClick={() => removeItem(item.id)}
-              disabled={isLoading}
-              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
               aria-label="Видалити товар"
             >
               <Trash2 className="w-4 h-4" />
@@ -87,24 +78,32 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
   const isFree = remaining <= 0
 
   return (
-    <div className="bg-muted/50 rounded-lg p-4">
-      <div className="flex items-center justify-between text-sm mb-2">
+    <div className={cn(
+      "rounded-2xl p-4",
+      isFree
+        ? "bg-gradient-to-r from-[#606C38]/10 to-[#606C38]/5"
+        : "bg-gradient-to-r from-[#2A9D8F]/10 to-[#48CAE4]/5"
+    )}>
+      <div className="flex items-center justify-between text-sm mb-3">
         {isFree ? (
-          <span className="text-success font-medium">
-            Вітаємо! Безкоштовна доставка!
+          <span className="text-[#606C38] font-semibold flex items-center gap-2">
+            <span className="text-lg">🎉</span>
+            Безкоштовна доставка!
           </span>
         ) : (
-          <span>
-            Ще <span className="font-semibold">{Math.round(remaining)} ₴</span> до
+          <span className="text-[#1A1A1A]">
+            Ще <span className="font-bold text-[#2A9D8F]">{Math.round(remaining)} ₴</span> до
             безкоштовної доставки
           </span>
         )}
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-2.5 bg-white rounded-full overflow-hidden shadow-inner">
         <div
           className={cn(
-            "h-full transition-all duration-500",
-            isFree ? "bg-success" : "bg-primary"
+            "h-full rounded-full transition-all duration-700 ease-out",
+            isFree
+              ? "bg-gradient-to-r from-[#606C38] to-[#8A9A5B]"
+              : "bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4]"
           )}
           style={{ width: `${progress}%` }}
         />
@@ -114,14 +113,13 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
 }
 
 export function CartDrawer() {
-  const { cart, isCartOpen, closeCart, getItemCount, getSubtotal, isLoading } = useCartContext()
-  const items = cart?.items || []
+  const { items, isOpen, closeCart, getItemCount, getSubtotal } = useCartStore()
   const itemCount = getItemCount()
   const subtotal = getSubtotal()
 
   // Lock body scroll when open
   useEffect(() => {
-    if (isCartOpen) {
+    if (isOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -129,51 +127,66 @@ export function CartDrawer() {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isCartOpen])
+  }, [isOpen])
 
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeCart()
     }
-    if (isCartOpen) {
+    if (isOpen) {
       document.addEventListener('keydown', handleEscape)
     }
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isCartOpen, closeCart])
+  }, [isOpen, closeCart])
 
-  if (!isCartOpen) return null
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300"
         onClick={closeCart}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
-        className="fixed inset-y-0 right-0 w-full max-w-md bg-background shadow-xl flex flex-col"
+        className={cn(
+          "fixed inset-y-0 right-0 w-full max-w-md flex flex-col",
+          "bg-white/95 backdrop-blur-xl",
+          "shadow-2xl shadow-black/20",
+          "border-l border-white/20",
+          "animate-in slide-in-from-right duration-300"
+        )}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 id="cart-title" className="text-lg font-semibold flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
+        <div className="relative flex items-center justify-between px-6 py-5 border-b border-black/5">
+          {/* Gradient accent line */}
+          <div className="absolute bottom-0 left-6 right-6 h-[2px] bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4] opacity-30" />
+
+          <h2 id="cart-title" className="text-lg font-semibold flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-[#2A9D8F]/10 to-[#48CAE4]/10">
+              <ShoppingBag className="w-5 h-5 text-[#2A9D8F]" />
+            </div>
             Кошик
             {itemCount > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+              <span className="bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4] text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-md">
                 {itemCount}
               </span>
             )}
           </h2>
           <button
             onClick={closeCart}
-            className="p-2 rounded-full hover:bg-muted transition-colors"
+            className={cn(
+              "p-2.5 rounded-full transition-all duration-300",
+              "hover:bg-black/5 hover:rotate-90",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2A9D8F]"
+            )}
             aria-label="Закрити кошик"
           >
             <X className="h-5 w-5" />
@@ -212,42 +225,50 @@ export function CartDrawer() {
             </div>
 
             {/* Footer */}
-            <div className="border-t p-6 space-y-4">
+            <div className="border-t border-black/5 p-6 space-y-4 bg-gradient-to-t from-[#F5F5F7]/50 to-transparent">
               {/* Summary */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Підсумок</span>
-                  <span>{Math.round(subtotal)} ₴</span>
+                  <span className="font-medium">{Math.round(subtotal)} ₴</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Доставка</span>
-                  <span>
+                  <span className={cn(
+                    "font-medium",
+                    subtotal >= FREE_SHIPPING_THRESHOLD && "text-[#606C38]"
+                  )}>
                     {subtotal >= FREE_SHIPPING_THRESHOLD
                       ? 'Безкоштовно'
                       : 'Розраховується'}
                   </span>
                 </div>
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                  <span>Разом</span>
-                  <span>{Math.round(subtotal)} ₴</span>
+                <div className="flex justify-between items-baseline pt-3 border-t border-black/5">
+                  <span className="font-semibold text-lg">Разом</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-[#1A1A1A] to-[#717171] bg-clip-text text-transparent">
+                    {Math.round(subtotal)} ₴
+                  </span>
                 </div>
               </div>
 
               {/* Actions */}
-              <Button className="w-full h-12 rounded-button" asChild>
-                <Link href="/checkout" onClick={closeCart}>
+              <Link href="/checkout" onClick={closeCart} className="block">
+                <BorderGradientButton variant="teal" size="lg" className="w-full">
                   Оформити замовлення
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+                  <ArrowRight className="w-4 h-4" />
+                </BorderGradientButton>
+              </Link>
 
-              <Button
-                variant="ghost"
-                className="w-full"
+              <button
                 onClick={closeCart}
+                className={cn(
+                  "w-full py-3 text-sm font-medium text-muted-foreground",
+                  "hover:text-foreground transition-colors",
+                  "flex items-center justify-center gap-2"
+                )}
               >
                 Продовжити покупки
-              </Button>
+              </button>
             </div>
           </>
         )}
