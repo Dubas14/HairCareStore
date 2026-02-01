@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { useInView } from 'react-intersection-observer'
 import { ProductCard } from '@/components/products/product-card'
 import { featuredProducts } from '@/lib/constants/home-data'
-import { Button } from '@/components/ui/button'
+import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 type Tab = 'bestsellers' | 'new' | 'sale'
 
@@ -44,13 +45,18 @@ export function FeaturedProducts() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-3 text-sm md:text-base font-medium rounded-button transition-all duration-300 focus-ring ${
+              className={cn(
+                "relative px-6 py-3 text-sm md:text-base font-medium rounded-full transition-all duration-300",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                 activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-soft'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white'
-              }`}
+                  ? "bg-[#1A1A1A] text-white shadow-lg"
+                  : "text-muted-foreground hover:text-foreground bg-white/50 hover:bg-white"
+              )}
             >
               {tab.label}
+              {activeTab === tab.id && (
+                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#2A9D8F]/20 to-[#48CAE4]/20 animate-pulse-subtle" />
+              )}
             </button>
           ))}
         </div>
@@ -73,17 +79,12 @@ export function FeaturedProducts() {
 
         {/* View All Button */}
         <div className="text-center">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="rounded-button border-2 border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background transition-all duration-300"
-          >
-            <Link href="/products">
+          <Link href="/shop">
+            <BorderGradientButton variant="mono" size="lg">
               Дивитись всі товари
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
+              <ArrowRight className="w-4 h-4" />
+            </BorderGradientButton>
+          </Link>
         </div>
       </div>
     </section>

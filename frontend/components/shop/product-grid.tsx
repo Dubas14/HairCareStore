@@ -2,6 +2,7 @@
 
 import { ProductCard } from '@/components/products/product-card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import type { Product } from '@/lib/constants/home-data'
 
 interface ProductGridProps {
@@ -66,8 +67,16 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, index) => (
+        <ScrollReveal
+          key={product.id}
+          variant="fade-up"
+          delay={Math.min(index * 50, 300)}
+          duration={500}
+          threshold={0.05}
+        >
+          <ProductCard product={product} />
+        </ScrollReveal>
       ))}
     </div>
   )

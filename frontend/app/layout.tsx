@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { QueryProvider } from '@/components/providers/query-provider'
+import { CartProvider } from '@/components/providers/cart-provider'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/cart'
@@ -43,15 +44,17 @@ export default function RootLayout({
     <html lang="uk" className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}>
       <body>
         <QueryProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <CartDrawer />
-          <SearchDialog />
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <CartDrawer />
+            <SearchDialog />
+          </CartProvider>
         </QueryProvider>
       </body>
     </html>

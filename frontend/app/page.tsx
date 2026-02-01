@@ -1,19 +1,29 @@
-import { HeroSlider } from '@/components/home/hero-slider'
+import { HeroSliderCMS } from '@/components/home/hero-slider-cms'
 import { CategoriesSection } from '@/components/home/categories-section'
 import { FeaturedProducts } from '@/components/home/featured-products'
 import { BrandsSection } from '@/components/home/brands-section'
 import { BenefitsSection } from '@/components/home/benefits-section'
 import { NewsletterSection } from '@/components/home/newsletter-section'
+import { PromoBlocks } from '@/components/home/promo-blocks'
+import { getBanners, getPromoBlocks } from '@/lib/strapi/client'
+import { HomePageAnimations } from '@/components/home/home-page-animations'
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Завантажуємо контент з Strapi CMS
+  const [banners, promoBlocks] = await Promise.all([
+    getBanners('home'),
+    getPromoBlocks(),
+  ])
+
   return (
-    <>
-      <HeroSlider />
+    <HomePageAnimations>
+      <HeroSliderCMS banners={banners} />
       <CategoriesSection />
+      <PromoBlocks blocks={promoBlocks} />
       <FeaturedProducts />
       <BrandsSection />
       <BenefitsSection />
       <NewsletterSection />
-    </>
+    </HomePageAnimations>
   )
 }

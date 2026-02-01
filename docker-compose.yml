@@ -1,8 +1,19 @@
-# version: '3.8' # Removed - obsolete in Docker Compose V2
+# ============================
+# HAIR LAB Docker Compose
+# ============================
+# Docker тільки для баз даних!
+# Backend і Frontend запускаються ЛОКАЛЬНО
+# ============================
+# Порти:
+# - PostgreSQL: 5450
+# - Redis: 6390
+# - Backend (локально): 9000
+# - Frontend (локально): 3200
+# ============================
 
 services:
   # ============================
-  # PostgreSQL Database
+  # PostgreSQL Database (порт 5450)
   # ============================
   postgres:
     image: postgres:15-alpine
@@ -25,7 +36,7 @@ services:
       - beauty-network
 
   # ============================
-  # Redis Cache
+  # Redis Cache (порт 6390)
   # ============================
   redis:
     image: redis:7-alpine
@@ -45,76 +56,28 @@ services:
       - beauty-network
 
   # ============================
-  # Medusa Backend + Admin
+  # Medusa Backend (DISABLED - run locally)
   # ============================
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
-    container_name: beauty-backend
-    restart: unless-stopped
-    ports:
-      - "9100:9000"
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres123}@postgres:5432/${DB_NAME:-medusa}
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-supersecretjwtkey1234567890abcdef}
-      COOKIE_SECRET: ${COOKIE_SECRET:-supersecretcookiekey1234567890ab}
-      STORE_CORS: ${STORE_CORS:-http://localhost:3100}
-      ADMIN_CORS: ${ADMIN_CORS:-http://localhost:9100}
-      AUTH_CORS: ${AUTH_CORS:-http://localhost:3100,http://localhost:9100}
-      # Stripe
-      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
-      # LiqPay
-      LIQPAY_PUBLIC_KEY: ${LIQPAY_PUBLIC_KEY:-}
-      LIQPAY_PRIVATE_KEY: ${LIQPAY_PRIVATE_KEY:-}
-      # Admin
-      MEDUSA_ADMIN_ONBOARDING_TYPE: nextjs
-      MEDUSA_ADMIN_ONBOARDING_NEXTJS_DIRECTORY: ../frontend
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - backend_uploads:/app/uploads
-    networks:
-      - beauty-network
+  # Vite HMR не працює в Docker, тому backend запускається локально:
+  # cd backend && npm run dev
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: beauty-backend
+  #   ...
 
   # ============================
-  # Next.js Frontend
+  # Next.js Frontend (DISABLED - run locally)
   # ============================
-  # DISABLED: Run frontend locally for faster hot-reload
-  # Command: cd frontend && npm run dev
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: beauty-frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3100:3000"
-  #   environment:
-  #     NODE_ENV: ${NODE_ENV:-development}
-  #     NEXT_PUBLIC_MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://localhost:9100}
-  #     NEXT_PUBLIC_BASE_URL: ${BASE_URL:-http://localhost:3100}
-  #     # Analytics
-  #     NEXT_PUBLIC_GA_ID: ${GA_ID:-}
-  #     NEXT_PUBLIC_HOTJAR_ID: ${HOTJAR_ID:-}
-  #     # Cloudinary
-  #     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
-  #   depends_on:
-  #     - backend
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #     - /app/.next
-  #   networks:
-  #     - beauty-network
+  # cd frontend && npm run dev
+
+  # ============================
+  # Strapi CMS (DISABLED - run locally)
+  # ============================
+  # cd cms && npm run develop
+  # strapi:
+  #   ...
 
 networks:
   beauty-network:
@@ -123,4 +86,3 @@ networks:
 volumes:
   postgres_data:
   redis_data:
-  backend_uploads:

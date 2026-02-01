@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ProductGallery } from '@/components/products/product-gallery'
@@ -7,14 +8,10 @@ import { BuyBox } from '@/components/products/buy-box'
 import { IngredientSpotlight } from '@/components/products/ingredient-spotlight'
 import { HowToUse } from '@/components/products/how-to-use'
 import { RelatedProducts } from '@/components/products/related-products'
-import { featuredProducts, type Product } from '@/lib/constants/home-data'
-
-// Combine all products
-const allProducts: Product[] = [
-  ...featuredProducts.bestsellers,
-  ...featuredProducts.new,
-  ...featuredProducts.sale,
-]
+import { useProduct, useProducts } from '@/lib/medusa/hooks'
+import { toFrontendProducts, getImageUrl } from '@/lib/medusa/adapters'
+import { useCartStore } from '@/stores/cart-store'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 // Mock ingredients data
 const mockIngredients = [
@@ -28,13 +25,71 @@ export default function ProductPage() {
   const params = useParams()
   const handle = params.handle as string
 
-  // Find product by slug
-  const product = allProducts.find((p) => p.slug === handle)
+  // Fetch product from Medusa
+  const { data: medusaProduct, isLoading, error } = useProduct(handle)
 
-  // For demo purposes, show first product if not found
-  const displayProduct = product || allProducts[0]
+  // Fetch all products for related section
+  const { data: allProductsData } = useProducts({ limit: 20 })
 
-  if (!displayProduct) {
+  // Cart store
+  const { addItem } = useCartStore()
+
+  // Convert Medusa variants to frontend format
+  const variants = useMemo(() => {
+    if (!medusaProduct?.variants) return []
+    return medusaProduct.variants.map((variant) => {
+      // Use calculated_price if available, otherwise fallback to prices
+      // Medusa v2 stores prices in major units
+      const calculatedPrice = variant.calculated_price?.calculated_amount
+      const price = calculatedPrice
+        ? calculatedPrice
+        : variant.prices?.[0]?.amount
+        ? variant.prices[0].amount
+        : 0
+
+      return {
+        id: variant.id,
+        name: variant.title || 'Стандартний',
+        price,
+        inStock: true,
+      }
+    })
+  }, [medusaProduct?.variants])
+
+  // Get product images
+  const images = useMemo(() => {
+    if (!medusaProduct) return []
+    const imgs: string[] = []
+    if (medusaProduct.thumbnail) imgs.push(getImageUrl(medusaProduct.thumbnail))
+    if (medusaProduct.images) {
+      imgs.push(...medusaProduct.images.map((img) => getImageUrl(img.url)))
+    }
+    return imgs.length > 0 ? imgs : ['/placeholder-product.jpg']
+  }, [medusaProduct])
+
+  // Get related products (excluding current)
+  const relatedProducts = useMemo(() => {
+    if (!allProductsData?.products || !medusaProduct) return []
+    const otherProducts = allProductsData.products.filter(
+      (p) => p.id !== medusaProduct.id
+    )
+    return toFrontendProducts(otherProducts.slice(0, 4))
+  }, [allProductsData?.products, medusaProduct])
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Завантаження...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // Error or not found
+  if (error || !medusaProduct) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -45,129 +100,121 @@ export default function ProductPage() {
     )
   }
 
-  // Create variants from product data
-  const variants = [
-    {
-      id: '100ml',
-      name: '100 мл',
-      price: Math.round(displayProduct.price * 0.5),
-      inStock: true,
-    },
-    {
-      id: '250ml',
-      name: '250 мл',
-      price: displayProduct.price,
-      oldPrice: displayProduct.oldPrice,
-      inStock: true,
-    },
-    {
-      id: '500ml',
-      name: '500 мл',
-      price: Math.round(displayProduct.price * 1.7),
-      inStock: true,
-    },
-  ]
+  const brand = medusaProduct.subtitle || 'HAIR LAB'
+  const productName = medusaProduct.title
 
-  // Get related products (same brand or random)
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== displayProduct.id)
-    .slice(0, 4)
+  const handleAddToCart = (variantId: string, quantity: number) => {
+    const selectedVariant = variants.find(v => v.id === variantId)
+    if (!selectedVariant || !medusaProduct) return
 
-  const handleAddToCart = async (variantId: string, quantity: number) => {
-    // TODO: Integrate with Medusa cart API
-    console.log('Add to cart:', { variantId, quantity, product: displayProduct.id })
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    addItem({
+      productId: parseInt(medusaProduct.id.replace(/\D/g, '')) || Date.now(),
+      name: medusaProduct.title,
+      brand: medusaProduct.subtitle || 'HAIR LAB',
+      variant: selectedVariant.name,
+      price: selectedVariant.price,
+      quantity,
+      imageUrl: images[0] || '/placeholder-product.jpg',
+    })
   }
 
   const handleAddToWishlist = () => {
     // TODO: Integrate with wishlist store
-    console.log('Add to wishlist:', displayProduct.id)
+    console.log('Add to wishlist:', medusaProduct.id)
   }
 
   return (
     <main className="min-h-screen bg-background">
       {/* Breadcrumb */}
-      <div className="container mx-auto px-4 py-4">
-        <Breadcrumb
-          items={[
-            { label: 'Каталог', href: '/shop' },
-            { label: displayProduct.brand, href: `/shop?brand=${displayProduct.brand.toLowerCase()}` },
-            { label: displayProduct.name },
-          ]}
-        />
-      </div>
+      <ScrollReveal variant="fade" duration={400}>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb
+            items={[
+              { label: 'Каталог', href: '/shop' },
+              { label: brand, href: `/shop?brand=${brand.toLowerCase().replace(/\s+/g, '-')}` },
+              { label: productName },
+            ]}
+          />
+        </div>
+      </ScrollReveal>
 
       {/* Product Section */}
       <div className="container mx-auto px-4 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Gallery */}
-          <ProductGallery
-            images={[
-              displayProduct.imageUrl,
-              displayProduct.imageUrl,
-              displayProduct.imageUrl,
-            ]}
-            productName={displayProduct.name}
-          />
+          <ScrollReveal variant="fade-right" duration={600}>
+            <ProductGallery
+              images={images}
+              productName={productName}
+            />
+          </ScrollReveal>
 
           {/* Buy Box - Sticky on desktop */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <BuyBox
-              productName={displayProduct.name}
-              brand={displayProduct.brand}
-              rating={displayProduct.rating}
-              reviewCount={displayProduct.reviewCount}
-              variants={variants}
-              badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
-              onAddToCart={handleAddToCart}
-              onAddToWishlist={handleAddToWishlist}
-            />
-          </div>
+          <ScrollReveal variant="fade-left" delay={150} duration={600}>
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <BuyBox
+                productName={productName}
+                brand={brand}
+                rating={4.5}
+                reviewCount={0}
+                variants={variants}
+                badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
+                productImage={images[0]}
+                onAddToCart={handleAddToCart}
+                onAddToWishlist={handleAddToWishlist}
+              />
+            </div>
+          </ScrollReveal>
         </div>
 
         {/* Divider */}
         <hr className="my-12 border-border" />
 
         {/* Ingredient Spotlight */}
-        <IngredientSpotlight ingredients={mockIngredients} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <IngredientSpotlight ingredients={mockIngredients} />
+        </ScrollReveal>
 
         {/* Divider */}
         <hr className="my-8 border-border" />
 
         {/* How to Use */}
-        <HowToUse steps={[
-          {
-            id: 'wet',
-            title: 'Зволожте',
-            description: 'Ретельно зволожте волосся теплою водою',
-            icon: '💧',
-          },
-          {
-            id: 'apply',
-            title: 'Нанесіть',
-            description: 'Нанесіть невелику кількість засобу на долоні та рівномірно розподіліть по волоссю',
-            icon: '✋',
-          },
-          {
-            id: 'massage',
-            title: 'Масажуйте',
-            description: 'Злегка помасажуйте шкіру голови протягом 2-3 хвилин',
-            icon: '🧘',
-          },
-          {
-            id: 'rinse',
-            title: 'Змийте',
-            description: 'Ретельно змийте теплою водою. За потреби повторіть',
-            icon: '🚿',
-          },
-        ]} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <HowToUse steps={[
+            {
+              id: 'wet',
+              title: 'Зволожте',
+              description: 'Ретельно зволожте волосся теплою водою',
+              icon: '💧',
+            },
+            {
+              id: 'apply',
+              title: 'Нанесіть',
+              description: 'Нанесіть невелику кількість засобу на долоні та рівномірно розподіліть по волоссю',
+              icon: '✋',
+            },
+            {
+              id: 'massage',
+              title: 'Масажуйте',
+              description: 'Злегка помасажуйте шкіру голови протягом 2-3 хвилин',
+              icon: '🧘',
+            },
+            {
+              id: 'rinse',
+              title: 'Змийте',
+              description: 'Ретельно змийте теплою водою. За потреби повторіть',
+              icon: '🚿',
+            },
+          ]} />
+        </ScrollReveal>
 
         {/* Divider */}
         <hr className="my-8 border-border" />
 
         {/* Related Products */}
-        <RelatedProducts products={relatedProducts} />
+        <ScrollReveal variant="fade-up" duration={700}>
+          <RelatedProducts products={relatedProducts} />
+        </ScrollReveal>
       </div>
     </main>
   )

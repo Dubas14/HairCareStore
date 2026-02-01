@@ -66,9 +66,6 @@ export const useCartStore = create<CartStore>()(
           }
           set({ items: [...items, newItem] })
         }
-
-        // Open cart after adding
-        set({ isOpen: true })
       },
 
       removeItem: (itemId) => {

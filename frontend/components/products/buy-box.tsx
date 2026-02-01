@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, ShoppingCart, Minus, Plus, Check, Truck, Shield, RotateCcw } from 'lucide-react'
+import { Heart, Minus, Plus, Check, Truck, Shield, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { cn } from '@/lib/utils'
 
 interface Variant {
@@ -20,6 +21,7 @@ interface BuyBoxProps {
   reviewCount: number
   variants: Variant[]
   badges?: string[]
+  productImage?: string
   onAddToCart: (variantId: string, quantity: number) => void
   onAddToWishlist: () => void
 }
@@ -31,25 +33,20 @@ export function BuyBox({
   reviewCount,
   variants,
   badges = [],
+  productImage,
   onAddToCart,
   onAddToWishlist,
 }: BuyBoxProps) {
   const [selectedVariant, setSelectedVariant] = useState(variants[0])
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
-  const [isAdding, setIsAdding] = useState(false)
-  const [isAdded, setIsAdded] = useState(false)
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(10, prev + delta)))
   }
 
-  const handleAddToCart = async () => {
-    setIsAdding(true)
-    await onAddToCart(selectedVariant.id, quantity)
-    setIsAdding(false)
-    setIsAdded(true)
-    setTimeout(() => setIsAdded(false), 2000)
+  const handleAddToCart = () => {
+    onAddToCart(selectedVariant.id, quantity)
   }
 
   const handleWishlistClick = () => {
@@ -189,28 +186,16 @@ export function BuyBox({
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button
-          onClick={handleAddToCart}
-          disabled={isAdding || !selectedVariant.inStock}
-          className="flex-1 h-12 rounded-button text-base"
+        <AddToCartAnimation
+          onAddToCart={handleAddToCart}
+          productImage={productImage}
+          disabled={!selectedVariant?.inStock}
+          variant="teal"
+          size="lg"
+          className="flex-1"
         >
-          {isAdded ? (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              Додано в кошик
-            </>
-          ) : isAdding ? (
-            <>
-              <span className="w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Додаємо...
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              Додати в кошик
-            </>
-          )}
-        </Button>
+          Додати в кошик
+        </AddToCartAnimation>
 
         <Button
           variant="outline"

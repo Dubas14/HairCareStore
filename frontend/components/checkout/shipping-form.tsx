@@ -1,55 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, Package, MapPin } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-type DeliveryMethod = 'courier' | 'nova-poshta' | 'pickup'
-
 interface ShippingFormData {
-  method: DeliveryMethod
   city: string
-  address: string
-  warehouse?: string
+  warehouse: string
 }
 
 interface ShippingFormProps {
   onSubmit: (data: ShippingFormData) => void
   onBack: () => void
   initialData?: Partial<ShippingFormData>
+  isLoading?: boolean
 }
 
-const deliveryMethods = [
-  {
-    id: 'courier' as const,
-    name: "Кур'єр",
-    description: '1-2 робочі дні',
-    price: '80 ₴',
-    icon: Truck,
-  },
-  {
-    id: 'nova-poshta' as const,
-    name: 'Нова Пошта',
-    description: '2-3 робочі дні',
-    price: 'за тарифами',
-    icon: Package,
-  },
-  {
-    id: 'pickup' as const,
-    name: 'Самовивіз',
-    description: 'Сьогодні',
-    price: 'Безкоштовно',
-    icon: MapPin,
-  },
-]
-
-export function ShippingForm({ onSubmit, onBack, initialData }: ShippingFormProps) {
+export function ShippingForm({ onSubmit, onBack, initialData, isLoading }: ShippingFormProps) {
   const [formData, setFormData] = useState<ShippingFormData>({
-    method: initialData?.method || 'nova-poshta',
     city: initialData?.city || '',
-    address: initialData?.address || '',
     warehouse: initialData?.warehouse || '',
   })
 
@@ -63,10 +34,6 @@ export function ShippingForm({ onSubmit, onBack, initialData }: ShippingFormProp
     }
   }
 
-  const handleMethodChange = (method: DeliveryMethod) => {
-    setFormData((prev) => ({ ...prev, method }))
-  }
-
   const validate = () => {
     const newErrors: Partial<Record<keyof ShippingFormData, string>> = {}
 
@@ -74,11 +41,7 @@ export function ShippingForm({ onSubmit, onBack, initialData }: ShippingFormProp
       newErrors.city = "Обов'язкове поле"
     }
 
-    if (formData.method === 'courier' && !formData.address) {
-      newErrors.address = "Обов'язкове поле"
-    }
-
-    if (formData.method === 'nova-poshta' && !formData.warehouse) {
+    if (!formData.warehouse) {
       newErrors.warehouse = "Обов'язкове поле"
     }
 
@@ -97,31 +60,21 @@ export function ShippingForm({ onSubmit, onBack, initialData }: ShippingFormProp
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-xl font-semibold">Спосіб доставки</h2>
 
-      {/* Delivery Methods */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {deliveryMethods.map((method) => {
-          const Icon = method.icon
-          const isSelected = formData.method === method.id
-
-          return (
-            <button
-              key={method.id}
-              type="button"
-              onClick={() => handleMethodChange(method.id)}
-              className={cn(
-                "flex flex-col items-center p-4 rounded-card border-2 transition-all text-center",
-                isSelected
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              )}
-            >
-              <Icon className={cn("w-8 h-8 mb-2", isSelected ? "text-primary" : "text-muted-foreground")} />
-              <span className="font-medium">{method.name}</span>
-              <span className="text-xs text-muted-foreground">{method.description}</span>
-              <span className="text-sm font-semibold mt-1">{method.price}</span>
-            </button>
-          )
-        })}
+      {/* Nova Poshta card */}
+      <div
+        className={cn(
+          "flex items-center gap-4 p-4 rounded-card border-2 border-primary bg-primary/5"
+        )}
+      >
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+          <Package className="w-6 h-6" />
+        </div>
+        <div className="flex-1">
+          <span className="font-medium block">Нова Пошта</span>
+          <span className="text-sm text-muted-foreground">
+            Доставка 2-3 робочі дні, за тарифами перевізника
+          </span>
+        </div>
       </div>
 
       {/* City */}
@@ -134,72 +87,54 @@ export function ShippingForm({ onSubmit, onBack, initialData }: ShippingFormProp
           name="city"
           value={formData.city}
           onChange={handleChange}
-          placeholder="Введіть місто"
+          placeholder="Введіть назву міста"
           className={errors.city ? 'border-destructive' : ''}
+          disabled={isLoading}
         />
         {errors.city && (
           <p className="text-sm text-destructive">{errors.city}</p>
         )}
       </div>
 
-      {/* Courier Address */}
-      {formData.method === 'courier' && (
-        <div className="space-y-2">
-          <label htmlFor="address" className="text-sm font-medium">
-            Адреса <span className="text-destructive">*</span>
-          </label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Вулиця, будинок, квартира"
-            className={errors.address ? 'border-destructive' : ''}
-          />
-          {errors.address && (
-            <p className="text-sm text-destructive">{errors.address}</p>
-          )}
-        </div>
-      )}
-
       {/* Nova Poshta Warehouse */}
-      {formData.method === 'nova-poshta' && (
-        <div className="space-y-2">
-          <label htmlFor="warehouse" className="text-sm font-medium">
-            Відділення Нової Пошти <span className="text-destructive">*</span>
-          </label>
-          <Input
-            id="warehouse"
-            name="warehouse"
-            value={formData.warehouse}
-            onChange={handleChange}
-            placeholder="Номер або адреса відділення"
-            className={errors.warehouse ? 'border-destructive' : ''}
-          />
-          {errors.warehouse && (
-            <p className="text-sm text-destructive">{errors.warehouse}</p>
-          )}
-        </div>
-      )}
-
-      {/* Pickup Info */}
-      {formData.method === 'pickup' && (
-        <div className="bg-muted/50 rounded-lg p-4">
-          <p className="font-medium">Адреса самовивозу:</p>
-          <p className="text-muted-foreground">м. Київ, вул. Хрещатик, 1</p>
-          <p className="text-muted-foreground text-sm mt-2">
-            Пн-Пт: 10:00 - 20:00, Сб-Нд: 11:00 - 18:00
-          </p>
-        </div>
-      )}
+      <div className="space-y-2">
+        <label htmlFor="warehouse" className="text-sm font-medium">
+          Відділення / Поштомат <span className="text-destructive">*</span>
+        </label>
+        <Input
+          id="warehouse"
+          name="warehouse"
+          value={formData.warehouse}
+          onChange={handleChange}
+          placeholder="Номер або адреса відділення"
+          className={errors.warehouse ? 'border-destructive' : ''}
+          disabled={isLoading}
+        />
+        {errors.warehouse && (
+          <p className="text-sm text-destructive">{errors.warehouse}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Наприклад: Відділення №5, вул. Шевченка, 10
+        </p>
+      </div>
 
       {/* Actions */}
       <div className="flex gap-4">
-        <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-12">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className="flex-1 h-12"
+          disabled={isLoading}
+        >
           Назад
         </Button>
-        <Button type="submit" className="flex-1 h-12 rounded-button">
-          Продовжити
+        <Button
+          type="submit"
+          className="flex-1 h-12 rounded-button"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Завантаження...' : 'Продовжити'}
         </Button>
       </div>
     </form>

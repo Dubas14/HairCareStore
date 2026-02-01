@@ -1,69 +1,38 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Search, X, ArrowRight, Clock, TrendingUp } from 'lucide-react'
+import Image from 'next/image'
+import { Search, X, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
-import { featuredProducts, type Product } from '@/lib/constants/home-data'
+import { useSearchProducts, getProductPrice, formatPrice } from '@/lib/medusa/hooks'
 import { cn } from '@/lib/utils'
 
-// Combine all products for search
-const allProducts: Product[] = [
-  ...featuredProducts.bestsellers,
-  ...featuredProducts.new,
-  ...featuredProducts.sale,
-]
-
 const popularSearches = [
-  'Шампунь відновлюючий',
+  'Шампунь',
   'Маска для волосся',
   'Термозахист',
-  'Проти випадіння',
-  'Для фарбованого волосся',
-]
-
-const recentSearches = [
-  'Elgon шампунь',
-  'Inebrya маска',
+  'Кондиціонер',
+  'Олія для волосся',
 ]
 
 export function SearchDialog() {
   const { isSearchOpen, closeSearch } = useUIStore()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Product[]>([])
-  const [isSearching, setIsSearching] = useState(false)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Search function
-  const searchProducts = useCallback((searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([])
-      return
-    }
-
-    setIsSearching(true)
-    const lowerQuery = searchQuery.toLowerCase()
-
-    // Simulate API delay
-    setTimeout(() => {
-      const filtered = allProducts.filter(
-        (product) =>
-          product.name.toLowerCase().includes(lowerQuery) ||
-          product.brand.toLowerCase().includes(lowerQuery)
-      )
-      setResults(filtered)
-      setIsSearching(false)
-    }, 150)
-  }, [])
-
-  // Debounced search
+  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
-      searchProducts(query)
+      setDebouncedQuery(query)
     }, 300)
-
     return () => clearTimeout(timer)
-  }, [query, searchProducts])
+  }, [query])
+
+  // Search via Medusa API
+  const { data, isLoading } = useSearchProducts(debouncedQuery)
+  const results = data?.products || []
 
   // Focus input when opened
   useEffect(() => {
@@ -71,7 +40,7 @@ export function SearchDialog() {
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
       setQuery('')
-      setResults([])
+      setDebouncedQuery('')
     }
   }, [isSearchOpen])
 
@@ -105,6 +74,10 @@ export function SearchDialog() {
   }
 
   const handleResultClick = () => {
+    closeSearch()
+  }
+
+  const handleViewAll = () => {
     closeSearch()
   }
 
@@ -148,12 +121,12 @@ export function SearchDialog() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto p-4">
-            {query ? (
+            {debouncedQuery.length >= 2 ? (
               // Search Results
               <div>
-                {isSearching ? (
+                {isLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                   </div>
                 ) : results.length > 0 ? (
                   <>
@@ -161,46 +134,59 @@ export function SearchDialog() {
                       Знайдено {results.length} товарів
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {results.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/products/${product.slug}`}
-                          onClick={handleResultClick}
-                          className="flex gap-4 p-3 rounded-lg hover:bg-muted transition-colors group"
-                        >
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground uppercase">
-                              {product.brand}
-                            </p>
-                            <h4 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                              {product.name}
-                            </h4>
-                            <p className="text-sm font-semibold mt-1">
-                              {product.price} ₴
-                            </p>
-                          </div>
-                        </Link>
-                      ))}
+                      {results.slice(0, 8).map((product) => {
+                        const price = getProductPrice(product)
+                        return (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.handle}`}
+                            onClick={handleResultClick}
+                            className="flex gap-4 p-3 rounded-lg hover:bg-muted transition-colors group"
+                          >
+                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                              {product.thumbnail ? (
+                                <Image
+                                  src={product.thumbnail}
+                                  alt={product.title}
+                                  width={64}
+                                  height={64}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-neutral-200" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              {product.subtitle && (
+                                <p className="text-xs text-muted-foreground uppercase">
+                                  {product.subtitle}
+                                </p>
+                              )}
+                              <h4 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
+                                {product.title}
+                              </h4>
+                              <p className="text-sm font-semibold mt-1">
+                                {formatPrice(price)}
+                              </p>
+                            </div>
+                          </Link>
+                        )
+                      })}
                     </div>
 
                     {/* View All Results */}
-                    <div className="mt-6 text-center">
-                      <Link
-                        href={`/shop?search=${encodeURIComponent(query)}`}
-                        onClick={handleResultClick}
-                        className="inline-flex items-center gap-2 text-primary hover:underline"
-                      >
-                        Переглянути всі результати
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
+                    {results.length > 8 && (
+                      <div className="mt-6 text-center">
+                        <Link
+                          href={`/shop?search=${encodeURIComponent(debouncedQuery)}`}
+                          onClick={handleViewAll}
+                          className="inline-flex items-center gap-2 text-primary hover:underline"
+                        >
+                          Переглянути всі результати ({results.length})
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center py-12">
@@ -213,28 +199,7 @@ export function SearchDialog() {
               </div>
             ) : (
               // Suggestions
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Recent Searches */}
-                {recentSearches.length > 0 && (
-                  <div>
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-4">
-                      <Clock className="w-4 h-4" />
-                      Останні пошуки
-                    </h3>
-                    <div className="space-y-2">
-                      {recentSearches.map((term) => (
-                        <button
-                          key={term}
-                          onClick={() => handleSearch(term)}
-                          className="block w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
-                        >
-                          {term}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+              <div>
                 {/* Popular Searches */}
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-4">
@@ -246,7 +211,7 @@ export function SearchDialog() {
                       <button
                         key={term}
                         onClick={() => handleSearch(term)}
-                        className="px-3 py-1.5 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground text-sm transition-colors"
+                        className="px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground text-sm transition-colors"
                       >
                         {term}
                       </button>

@@ -1,21 +1,27 @@
 'use client'
 
-import { useCartStore, type CartItem } from '@/stores/cart-store'
+import type { MedusaCart, MedusaCartItem } from '@/lib/medusa/hooks'
 
 const FREE_SHIPPING_THRESHOLD = 1000
-const SHIPPING_COST = 80
 
 interface OrderSummaryProps {
+  cart: MedusaCart | null
   showItems?: boolean
 }
 
-function OrderItem({ item }: { item: CartItem }) {
+function OrderItem({ item }: { item: MedusaCartItem }) {
+  const productName = item.variant?.product?.title || item.title
+  const brand = item.variant?.product?.subtitle || 'HAIR LAB'
+  const variantName = item.variant?.title || 'Стандартний'
+  const imageUrl = item.thumbnail || item.variant?.product?.thumbnail || '/placeholder-product.jpg'
+  const price = item.unit_price
+
   return (
     <div className="flex gap-3 py-3">
       <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
         <img
-          src={item.imageUrl}
-          alt={item.name}
+          src={imageUrl}
+          alt={productName}
           className="w-full h-full object-cover"
         />
         <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
@@ -23,23 +29,23 @@ function OrderItem({ item }: { item: CartItem }) {
         </span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground">{item.brand}</p>
-        <h4 className="text-sm font-medium line-clamp-1">{item.name}</h4>
-        <p className="text-xs text-muted-foreground">{item.variant}</p>
+        <p className="text-xs text-muted-foreground">{brand}</p>
+        <h4 className="text-sm font-medium line-clamp-1">{productName}</h4>
+        <p className="text-xs text-muted-foreground">{variantName}</p>
       </div>
       <div className="text-sm font-medium">
-        {item.price * item.quantity} ₴
+        {Math.round(price * item.quantity)} ₴
       </div>
     </div>
   )
 }
 
-export function OrderSummary({ showItems = true }: OrderSummaryProps) {
-  const { items, getSubtotal } = useCartStore()
-  const subtotal = getSubtotal()
+export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
+  const items = cart?.items || []
+  const subtotal = cart ? cart.subtotal : 0
+  const shippingTotal = cart ? cart.shipping_total : 0
+  const total = cart ? cart.total : 0
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
-  const shipping = isFreeShipping ? 0 : SHIPPING_COST
-  const total = subtotal + shipping
 
   return (
     <div className="bg-muted/50 rounded-card p-6">
@@ -58,15 +64,27 @@ export function OrderSummary({ showItems = true }: OrderSummaryProps) {
       <div className="space-y-2 border-t pt-4">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Підсумок</span>
-          <span>{subtotal} ₴</span>
+          <span>{Math.round(subtotal)} ₴</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Доставка</span>
-          <span>{isFreeShipping ? 'Безкоштовно' : `${shipping} ₴`}</span>
+          <span>
+            {isFreeShipping
+              ? 'Безкоштовно'
+              : shippingTotal > 0
+              ? `${Math.round(shippingTotal)} ₴`
+              : 'За тарифами НП'}
+          </span>
         </div>
+        {cart?.discount_total && cart.discount_total > 0 && (
+          <div className="flex justify-between text-sm text-success">
+            <span>Знижка</span>
+            <span>-{Math.round(cart.discount_total)} ₴</span>
+          </div>
+        )}
         <div className="flex justify-between font-semibold text-lg pt-2 border-t">
           <span>Разом</span>
-          <span>{total} ₴</span>
+          <span>{Math.round(total)} ₴</span>
         </div>
       </div>
 

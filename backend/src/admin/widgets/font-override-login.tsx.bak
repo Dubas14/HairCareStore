@@ -1,0 +1,17 @@
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
+import { useEffect } from "react"
+import { injectFontStyles } from "../utils/inject-font-styles"
+
+const FontOverrideLogin = () => {
+  useEffect(() => {
+    injectFontStyles()
+  }, [])
+
+  return null
+}
+
+export const config = defineWidgetConfig({
+  zone: "login.after",
+})
+
+export default FontOverrideLogin
