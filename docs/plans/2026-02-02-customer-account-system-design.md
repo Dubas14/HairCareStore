@@ -34,11 +34,11 @@
 - [x] `WishlistTab` in dashboard with product grid
 - [x] Toast for unauthenticated users
 
-### Phase 5: Password Management ⬜ Not Started
-- [ ] `useChangePassword` hook
-- [ ] `ChangePasswordModal` component
-- [ ] `/account/forgot-password` page
-- [ ] `/account/reset-password` page
+### Phase 5: Password Management ✅ Complete
+- [x] `use-password.ts` hook (requestReset, resetPassword)
+- [x] Change password modal in Settings tab
+- [x] `/account/forgot-password` page
+- [x] `/account/reset-password` page
 
 ### Phase 6: Personal Discounts ⬜ Not Started
 - [ ] ProductCard price display update
@@ -50,6 +50,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 5 | Phase 5 complete: password hooks, forgot/reset pages, settings modal |
 | 2026-02-02 | 4 | Phase 4 complete: wishlist hook (metadata storage), ProductCard button, WishlistTab |
 | 2026-02-02 | 3 | Phase 3 complete: orders hook, OrderCard, OrdersTab, order details page, repeat order |
 | 2026-02-02 | 2 | Phase 2 complete: AddressSelect, checkout autofill from customer + addresses |

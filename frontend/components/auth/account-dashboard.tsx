@@ -20,6 +20,14 @@ import { AddressForm } from './address-form'
 import { OrderCard } from './order-card'
 import { useOrders } from '@/lib/medusa/hooks/use-orders'
 import { useWishlist, useRemoveFromWishlist } from '@/lib/medusa/hooks/use-wishlist'
+import { useRequestPasswordReset } from '@/lib/medusa/hooks/use-password'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ProductCard } from '@/components/products/product-card'
 import {
   User,
@@ -38,6 +46,9 @@ import {
   Bell,
   CreditCard,
   Plus,
+  Lock,
+  CheckCircle,
+  Mail,
 } from 'lucide-react'
 
 type TabType = 'overview' | 'orders' | 'wishlist' | 'addresses' | 'settings'
@@ -503,6 +514,30 @@ function AddressesTab() {
 
 function SettingsTab() {
   const { customer } = useCustomer()
+  const requestPasswordReset = useRequestPasswordReset()
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [passwordResetSent, setPasswordResetSent] = useState(false)
+  const [passwordResetError, setPasswordResetError] = useState<string | null>(null)
+
+  const handleRequestPasswordReset = async () => {
+    if (!customer?.email) return
+
+    setPasswordResetError(null)
+    try {
+      await requestPasswordReset.mutateAsync(customer.email)
+      setPasswordResetSent(true)
+    } catch (error) {
+      setPasswordResetError(
+        error instanceof Error ? error.message : 'Помилка надсилання. Спробуйте пізніше.'
+      )
+    }
+  }
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false)
+    setPasswordResetSent(false)
+    setPasswordResetError(null)
+  }
 
   return (
     <div className="space-y-6 animate-fadeInUp">
@@ -541,7 +576,7 @@ function SettingsTab() {
       {/* Security */}
       <div className="bg-card rounded-2xl p-6 shadow-soft">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <CreditCard className="w-5 h-5" />
+          <Lock className="w-5 h-5" />
           Безпека
         </h3>
         <div className="space-y-4">
@@ -550,7 +585,12 @@ function SettingsTab() {
               <p className="font-medium">Змінити пароль</p>
               <p className="text-sm text-muted-foreground">Оновіть пароль для безпеки</p>
             </div>
-            <Button variant="outline" size="sm" className="rounded-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => setShowPasswordModal(true)}
+            >
               Змінити
             </Button>
           </div>
@@ -581,6 +621,79 @@ function SettingsTab() {
           Видалити акаунт
         </Button>
       </div>
+
+      {/* Password Change Modal */}
+      <Dialog open={showPasswordModal} onOpenChange={handleClosePasswordModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              Зміна пароля
+            </DialogTitle>
+            <DialogDescription>
+              {passwordResetSent
+                ? 'Перевірте вашу пошту для подальших інструкцій.'
+                : 'Ми надішлемо посилання для зміни пароля на вашу електронну пошту.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {passwordResetSent ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-full bg-[#2A9D8F]/10 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-[#2A9D8F]" />
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">Лист надіслано на</p>
+              <p className="font-medium">{customer?.email}</p>
+              <Button
+                onClick={handleClosePasswordModal}
+                className="mt-6 rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]"
+              >
+                Зрозуміло
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-3 p-4 bg-muted rounded-xl">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Лист буде надіслано на</p>
+                  <p className="font-medium">{customer?.email}</p>
+                </div>
+              </div>
+
+              {passwordResetError && (
+                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm text-destructive">{passwordResetError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-full"
+                  onClick={handleClosePasswordModal}
+                >
+                  Скасувати
+                </Button>
+                <Button
+                  className="flex-1 rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]"
+                  onClick={handleRequestPasswordReset}
+                  disabled={requestPasswordReset.isPending}
+                >
+                  {requestPasswordReset.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Надсилаємо...
+                    </>
+                  ) : (
+                    'Надіслати лист'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
