@@ -3,6 +3,15 @@
 import type { MedusaCart, MedusaCartItem } from '@/lib/medusa/hooks'
 
 const FREE_SHIPPING_THRESHOLD = 1000
+const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
+
+function getImageUrl(url: string | null | undefined): string {
+  if (!url) return '/placeholder-product.jpg'
+  // If URL is absolute (starts with http), return as is
+  if (url.startsWith('http')) return url
+  // Otherwise, prepend Medusa backend URL
+  return `${MEDUSA_BACKEND_URL}${url}`
+}
 
 interface OrderSummaryProps {
   cart: MedusaCart | null
@@ -13,7 +22,7 @@ function OrderItem({ item }: { item: MedusaCartItem }) {
   const productName = item.variant?.product?.title || item.title
   const brand = item.variant?.product?.subtitle || 'HAIR LAB'
   const variantName = item.variant?.title || 'Стандартний'
-  const imageUrl = item.thumbnail || item.variant?.product?.thumbnail || '/placeholder-product.jpg'
+  const imageUrl = getImageUrl(item.thumbnail || item.variant?.product?.thumbnail)
   const price = item.unit_price
 
   return (
