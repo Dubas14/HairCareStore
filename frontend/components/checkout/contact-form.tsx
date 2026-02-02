@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -25,6 +25,18 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
   })
 
   const [errors, setErrors] = useState<Partial<ContactFormData>>({})
+
+  // Update form when initialData changes (e.g., when customer data loads)
+  useEffect(() => {
+    if (initialData) {
+      setFormData((prev) => ({
+        email: initialData.email || prev.email,
+        phone: initialData.phone || prev.phone,
+        firstName: initialData.firstName || prev.firstName,
+        lastName: initialData.lastName || prev.lastName,
+      }))
+    }
+  }, [initialData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
