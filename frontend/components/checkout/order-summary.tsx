@@ -1,6 +1,8 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import type { MedusaCart, MedusaCartItem } from '@/lib/medusa/hooks'
+import { LoyaltyPointsSection } from './loyalty-points-section'
 
 const FREE_SHIPPING_THRESHOLD = 1000
 const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
@@ -53,8 +55,17 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
   const items = cart?.items || []
   const subtotal = cart ? cart.subtotal : 0
   const shippingTotal = cart ? cart.shipping_total : 0
-  const total = cart ? cart.total : 0
+  const cartTotal = cart ? cart.total : 0
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
+
+  // Loyalty points state
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0)
+
+  const handleLoyaltyPointsChange = useCallback((points: number, discount: number) => {
+    setLoyaltyDiscount(discount)
+  }, [])
+
+  const total = cartTotal - loyaltyDiscount
 
   return (
     <div className="bg-muted/50 rounded-card p-6">
@@ -91,11 +102,27 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
             <span>-{Math.round(cart.discount_total)} ₴</span>
           </div>
         )}
+        {loyaltyDiscount > 0 && (
+          <div className="flex justify-between text-sm text-[#2A9D8F]">
+            <span>Бонуси</span>
+            <span>-{Math.round(loyaltyDiscount)} ₴</span>
+          </div>
+        )}
         <div className="flex justify-between font-semibold text-lg pt-2 border-t">
           <span>Разом</span>
           <span>{Math.round(total)} ₴</span>
         </div>
       </div>
+
+      {/* Loyalty points section */}
+      {cart && subtotal > 0 && (
+        <div className="mt-4 pt-4 border-t">
+          <LoyaltyPointsSection
+            orderTotal={subtotal}
+            onPointsChange={handleLoyaltyPointsChange}
+          />
+        </div>
+      )}
 
       {/* Promo code */}
       <div className="mt-4 pt-4 border-t">

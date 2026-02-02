@@ -1,6 +1,8 @@
-// Loyalty Module
-// Бонусна система для нарахування та списання балів
-// Рівні лояльності: Bronze, Silver, Gold
-// TODO: Implement loyalty points system, levels, and referral program
+import LoyaltyModuleService from "./services/loyalty"
+import { Module } from "@medusajs/framework/utils"
 
-export default {}
+export const LOYALTY_MODULE = "loyaltyModuleService"
+
+export default Module(LOYALTY_MODULE, {
+  service: LoyaltyModuleService,
+})

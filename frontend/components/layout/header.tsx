@@ -216,6 +216,7 @@ export function Header() {
                 alt="HAIRLAB"
                 width={40}
                 height={40}
+                priority
                 className={cn(
                   "object-contain transition-transform duration-500",
                   "group-hover:scale-110"

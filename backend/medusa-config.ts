@@ -48,5 +48,10 @@ export default defineConfig({
     },
     // Payment module - system provider для накладеного платежу
     // Stripe та інші провайдери можна додати пізніше
+
+    // Loyalty module - бонусна система
+    {
+      resolve: "./src/modules/loyalty",
+    },
   ],
 })

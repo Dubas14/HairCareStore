@@ -1,6 +1,29 @@
-// Loyalty Transaction Model
-// Tracks all loyalty points transactions (earned, spent, expired)
-// Fields: customer_id, transaction_type, points_amount, order_id, created_at, description
-// TODO: Implement model using Medusa 2.0 data model
+import { model } from "@medusajs/framework/utils"
 
-export default {}
+export const LoyaltyTransaction = model.define("loyalty_transaction", {
+  id: model.id().primaryKey(),
+  customer_id: model.text(),
+  transaction_type: model.enum([
+    "earned",
+    "spent",
+    "expired",
+    "welcome",
+    "referral",
+    "adjustment"
+  ]),
+  points_amount: model.number(),
+  order_id: model.text().nullable(),
+  description: model.text().nullable(),
+  balance_after: model.number(),
+})
+.indexes([
+  {
+    on: ["customer_id"],
+    name: "idx_loyalty_transaction_customer",
+  },
+  {
+    on: ["order_id"],
+    name: "idx_loyalty_transaction_order",
+    where: "order_id IS NOT NULL",
+  },
+])

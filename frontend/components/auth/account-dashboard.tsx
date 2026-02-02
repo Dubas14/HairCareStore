@@ -18,9 +18,11 @@ import {
 import { AddressCard } from './address-card'
 import { AddressForm } from './address-form'
 import { OrderCard } from './order-card'
+import { LoyaltyTab } from './loyalty-tab'
 import { useOrders } from '@/lib/medusa/hooks/use-orders'
 import { useWishlist, useRemoveFromWishlist } from '@/lib/medusa/hooks/use-wishlist'
 import { useRequestPasswordReset } from '@/lib/medusa/hooks/use-password'
+import { useLoyalty } from '@/lib/medusa/hooks/use-loyalty'
 import {
   Dialog,
   DialogContent,
@@ -51,18 +53,20 @@ import {
   Mail,
 } from 'lucide-react'
 
-type TabType = 'overview' | 'orders' | 'wishlist' | 'addresses' | 'settings'
+type TabType = 'overview' | 'orders' | 'wishlist' | 'loyalty' | 'addresses' | 'settings'
 
 const tabs = [
   { id: 'overview' as TabType, label: 'Огляд', icon: User },
   { id: 'orders' as TabType, label: 'Замовлення', icon: Package },
   { id: 'wishlist' as TabType, label: 'Обране', icon: Heart },
+  { id: 'loyalty' as TabType, label: 'Бонуси', icon: Gift },
   { id: 'addresses' as TabType, label: 'Адреси', icon: MapPin },
   { id: 'settings' as TabType, label: 'Налаштування', icon: Settings },
 ]
 
 function OverviewTab() {
   const { customer } = useCustomer()
+  const { summary: loyaltySummary } = useLoyalty()
   const updateCustomer = useUpdateCustomer()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -110,7 +114,7 @@ function OverviewTab() {
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
             <Gift className="w-5 h-5 mb-2" />
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{loyaltySummary?.pointsBalance ?? 0}</p>
             <p className="text-sm text-white/70">Бонусів</p>
           </div>
         </div>
@@ -739,6 +743,8 @@ export function AccountDashboard() {
         return <OrdersTab />
       case 'wishlist':
         return <WishlistTab />
+      case 'loyalty':
+        return <LoyaltyTab />
       case 'addresses':
         return <AddressesTab />
       case 'settings':
