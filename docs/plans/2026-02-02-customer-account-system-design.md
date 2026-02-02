@@ -1,5 +1,59 @@
 # Customer Account System Design
 
+> **Status:** 🚧 In Progress
+> **Created:** 2026-02-02
+> **Last Updated:** 2026-02-02
+
+---
+
+## Implementation Progress
+
+### Phase 1: Addresses ⬜ Not Started
+- [ ] `use-addresses.ts` hook
+- [ ] `AddressCard` component
+- [ ] `AddressForm` modal component
+- [ ] `AddressesTab` in dashboard
+- [ ] Integration tests
+
+### Phase 2: Checkout Autofill ⬜ Not Started
+- [ ] `AddressSelect` component
+- [ ] ContactForm autofill integration
+- [ ] ShippingForm address selection
+- [ ] "Save address" checkbox
+
+### Phase 3: Orders History ⬜ Not Started
+- [ ] `use-orders.ts` hook
+- [ ] `OrderCard` component
+- [ ] `OrdersTab` in dashboard
+- [ ] `/account/orders/[id]` page
+- [ ] "Repeat order" functionality
+
+### Phase 4: Wishlist ⬜ Not Started
+- [ ] `use-wishlist.ts` hook
+- [ ] ProductCard wishlist button
+- [ ] `WishlistTab` in dashboard
+- [ ] Toast for unauthenticated users
+
+### Phase 5: Password Management ⬜ Not Started
+- [ ] `useChangePassword` hook
+- [ ] `ChangePasswordModal` component
+- [ ] `/account/forgot-password` page
+- [ ] `/account/reset-password` page
+
+### Phase 6: Personal Discounts ⬜ Not Started
+- [ ] ProductCard price display update
+- [ ] Cart/OrderSummary discount row
+
+---
+
+## Changelog
+
+| Date | Phase | Changes |
+|------|-------|---------|
+| 2026-02-02 | - | Initial design document created |
+
+---
+
 ## Overview
 
 Повна система особистого кабінету користувача для HAIR LAB e-commerce платформи.
