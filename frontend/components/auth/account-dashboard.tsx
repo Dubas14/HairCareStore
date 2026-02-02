@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ProductCard } from '@/components/products/product-card'
+import { getImageUrl } from '@/lib/medusa/adapters'
 import {
   User,
   Package,
@@ -67,6 +68,8 @@ const tabs = [
 function OverviewTab() {
   const { customer } = useCustomer()
   const { summary: loyaltySummary } = useLoyalty()
+  const { count: wishlistCount } = useWishlist()
+  const { orders } = useOrders()
   const updateCustomer = useUpdateCustomer()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -104,12 +107,12 @@ function OverviewTab() {
         <div className="grid grid-cols-3 gap-4 mt-6 relative z-10">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
             <ShoppingBag className="w-5 h-5 mb-2" />
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{orders?.length ?? 0}</p>
             <p className="text-sm text-white/70">Замовлень</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
             <Heart className="w-5 h-5 mb-2" />
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{wishlistCount}</p>
             <p className="text-sm text-white/70">В обраному</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -370,7 +373,7 @@ function WishlistTab() {
             discount: originalPrice > price
               ? Math.round(((originalPrice - price) / originalPrice) * 100)
               : undefined,
-            imageUrl: product.thumbnail || '/placeholder-product.jpg',
+            imageUrl: getImageUrl(product.thumbnail),
             rating: 4.5,
             reviewCount: 0,
             variantId: variant?.id,

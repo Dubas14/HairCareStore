@@ -24,9 +24,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const { isInWishlist } = useWishlist()
   const toggleWishlist = useToggleWishlist()
 
-  // Use medusaId if available, otherwise use product handle as ID
-  const wishlistProductId = product.medusaId || product.slug || String(product.id)
-  const isWishlisted = isInWishlist(wishlistProductId)
+  // IMPORTANT: Always use Medusa ID for wishlist to ensure consistency
+  // across all pages (catalog, homepage, product detail)
+  const wishlistProductId = product.medusaId
+  const isWishlisted = wishlistProductId ? isInWishlist(wishlistProductId) : false
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -35,6 +36,11 @@ export function ProductCard({ product }: ProductCardProps) {
     if (!isAuthenticated) {
       setShowAuthToast(true)
       setTimeout(() => setShowAuthToast(false), 3000)
+      return
+    }
+
+    if (!wishlistProductId) {
+      console.error('Cannot add to wishlist: missing medusaId for product', product)
       return
     }
 

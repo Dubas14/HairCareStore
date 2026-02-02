@@ -45,6 +45,9 @@ export const sdk = new Medusa({
   baseUrl,
   debug: process.env.NODE_ENV === "development",
   publishableKey,
+  auth: {
+    type: "session", // Use session-based auth (cookies)
+  },
 })
 
 /**

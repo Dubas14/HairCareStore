@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CartProvider } from '@/components/providers/cart-provider'
+import { CustomerInitializer } from '@/components/providers/customer-initializer'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/cart'
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <CartProvider>
+            <CustomerInitializer />
             <div className="min-h-screen flex flex-col">
               <Header />
               <main className="flex-1">

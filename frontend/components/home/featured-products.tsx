@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useInView } from 'react-intersection-observer'
 import { ProductCard } from '@/components/products/product-card'
-import { featuredProducts } from '@/lib/constants/home-data'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useProducts } from '@/lib/medusa/hooks'
+import { toFrontendProducts } from '@/lib/medusa/adapters'
 
 type Tab = 'bestsellers' | 'new' | 'sale'
 
@@ -24,7 +25,28 @@ export function FeaturedProducts() {
     threshold: 0.1
   })
 
-  const products = featuredProducts[activeTab]
+  // Завантажуємо товари з Medusa
+  const { data: productsData, isLoading } = useProducts({ limit: 12 })
+
+  // Фільтруємо товари за табами
+  const products = useMemo(() => {
+    if (!productsData?.products) return []
+
+    const frontendProducts = toFrontendProducts(productsData.products)
+
+    // Для демо повертаємо перші 4 товари для кожного табу
+    // В продакшені тут буде реальна логіка фільтрації
+    switch (activeTab) {
+      case 'bestsellers':
+        return frontendProducts.slice(0, 4)
+      case 'new':
+        return frontendProducts.slice(4, 8)
+      case 'sale':
+        return frontendProducts.filter(p => p.discount).slice(0, 4)
+      default:
+        return frontendProducts.slice(0, 4)
+    }
+  }, [productsData, activeTab])
 
   return (
     <section className="section-spacing bg-muted">
@@ -62,20 +84,26 @@ export function FeaturedProducts() {
         </div>
 
         {/* Products Grid */}
-        <div
-          ref={ref}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
-        >
-          {products.map((product, index) => (
-            <div
-              key={product.id}
-              className={inView ? 'animate-fadeInUp' : 'opacity-0'}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2A9D8F]" />
+          </div>
+        ) : (
+          <div
+            ref={ref}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+          >
+            {products.map((product, index) => (
+              <div
+                key={product.medusaId || product.id}
+                className={inView ? 'animate-fadeInUp' : 'opacity-0'}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* View All Button */}
         <div className="text-center">
