@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
-import { useCartStore } from "@/stores/cart-store"
+import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/utils"
 
@@ -158,7 +158,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const { openCart, getItemCount } = useCartStore()
+  const { openCart, getItemCount } = useCartContext()
   const { openSearch } = useUIStore()
 
   useEffect(() => {
