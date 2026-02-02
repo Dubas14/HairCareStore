@@ -229,12 +229,7 @@ export async function getPages(): Promise<Page[]> {
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   try {
     const response = await fetchStrapi<Category[]>('/categories', {
-      'populate[banner]': '*',
-      'populate[icon]': '*',
-      'populate[subcategories][populate][icon]': '*',
-      'populate[parentCategory]': '*',
-      'populate[promoBlock][populate][image]': '*',
-      'populate[seo][populate][ogImage]': '*',
+      'populate': '*',
       'filters[slug][$eq]': slug,
       'filters[isActive][$eq]': 'true',
     })
