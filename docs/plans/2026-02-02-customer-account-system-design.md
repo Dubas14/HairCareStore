@@ -21,12 +21,12 @@
 - [x] ShippingForm address selection
 - [ ] "Save address" checkbox (deferred - can be added later)
 
-### Phase 3: Orders History ⬜ Not Started
-- [ ] `use-orders.ts` hook
-- [ ] `OrderCard` component
-- [ ] `OrdersTab` in dashboard
-- [ ] `/account/orders/[id]` page
-- [ ] "Repeat order" functionality
+### Phase 3: Orders History ✅ Complete
+- [x] `use-orders.ts` hook
+- [x] `OrderCard` component
+- [x] `OrdersTab` in dashboard
+- [x] `/account/orders/[id]` page
+- [x] "Repeat order" functionality
 
 ### Phase 4: Wishlist ⬜ Not Started
 - [ ] `use-wishlist.ts` hook
@@ -50,6 +50,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 3 | Phase 3 complete: orders hook, OrderCard, OrdersTab, order details page, repeat order |
 | 2026-02-02 | 2 | Phase 2 complete: AddressSelect, checkout autofill from customer + addresses |
 | 2026-02-02 | 1 | Phase 1 complete: addresses hook, AddressCard, AddressForm, AddressesTab |
 | 2026-02-02 | - | Initial design document created |

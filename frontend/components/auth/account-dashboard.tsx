@@ -17,6 +17,8 @@ import {
 } from '@/lib/medusa/hooks/use-addresses'
 import { AddressCard } from './address-card'
 import { AddressForm } from './address-form'
+import { OrderCard } from './order-card'
+import { useOrders } from '@/lib/medusa/hooks/use-orders'
 import {
   User,
   Package,
@@ -236,20 +238,59 @@ function OverviewTab() {
 }
 
 function OrdersTab() {
-  return (
-    <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
-      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
-        <Package className="w-10 h-10 text-muted-foreground" />
+  const { orders, isLoading, hasMore } = useOrders()
+  const [page, setPage] = useState(1)
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-2xl p-8 shadow-soft flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2A9D8F]" />
       </div>
-      <h3 className="text-xl font-semibold mb-2">Замовлень поки немає</h3>
-      <p className="text-muted-foreground mb-6">
-        Ваші замовлення з&apos;являться тут після першої покупки
-      </p>
-      <Link href="/shop">
-        <Button className="rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]">
-          Перейти до каталогу
-        </Button>
-      </Link>
+    )
+  }
+
+  // Empty state
+  if (orders.length === 0) {
+    return (
+      <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+          <Package className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">Замовлень поки немає</h3>
+        <p className="text-muted-foreground mb-6">
+          Ваші замовлення з&apos;являться тут після першої покупки
+        </p>
+        <Link href="/shop">
+          <Button className="rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]">
+            Перейти до каталогу
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Orders list
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-4">Мої замовлення</h3>
+
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <OrderCard key={order.id} order={order} />
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="text-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() => setPage((p) => p + 1)}
+            className="rounded-full"
+          >
+            Завантажити більше
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
