@@ -31,13 +31,24 @@ export function toFrontendProduct(medusaProduct: MedusaProduct): Product {
     : 0
 
   // Check if there's a sale (original price differs from calculated)
-  const oldPrice =
+  // This happens when:
+  // - Price list discount is applied
+  // - Customer group pricing is active
+  // - Promotion is applied
+  const hasDiscount =
     originalPrice && calculatedPrice && originalPrice > calculatedPrice
-      ? originalPrice
-      : undefined
+
+  const oldPrice = hasDiscount ? originalPrice : undefined
+
+  // Calculate discount percentage if there's a price difference
+  const discount = hasDiscount
+    ? Math.round(((originalPrice - calculatedPrice) / originalPrice) * 100)
+    : undefined
 
   return {
     id: hashStringToNumber(medusaProduct.id), // Convert string ID to number
+    medusaId: medusaProduct.id,
+    variantId: variant?.id,
     name: medusaProduct.title,
     brand: medusaProduct.subtitle || "HAIR LAB",
     slug: medusaProduct.handle,
@@ -46,7 +57,7 @@ export function toFrontendProduct(medusaProduct: MedusaProduct): Product {
     rating: 4.5, // Default rating (Medusa doesn't have ratings by default)
     reviewCount: 0, // Default review count
     oldPrice,
-    discount: undefined,
+    discount,
     badge: undefined,
   }
 }

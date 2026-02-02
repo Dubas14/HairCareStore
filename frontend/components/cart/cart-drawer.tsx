@@ -2,52 +2,100 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
-import { useCartStore, type CartItem } from '@/stores/cart-store'
+import { useCartContext } from '@/components/providers/cart-provider'
 import { cn } from '@/lib/utils'
 
 const FREE_SHIPPING_THRESHOLD = 1000 // UAH
 
-function CartItemCard({ item }: { item: CartItem }) {
-  const { updateQuantity, removeItem } = useCartStore()
+interface CartItemCardProps {
+  item: {
+    id: string
+    title: string
+    quantity: number
+    unit_price: number
+    subtotal: number
+    thumbnail: string | null
+    variant: {
+      id: string
+      title: string
+      product: {
+        id: string
+        title: string
+        subtitle: string | null
+        thumbnail: string | null
+      }
+    }
+  }
+  onUpdateQuantity: (itemId: string, quantity: number) => void
+  onRemove: (itemId: string) => void
+  isUpdating: boolean
+}
+
+const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
+
+function getImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  // If URL is absolute (starts with http), return as is
+  if (url.startsWith('http')) return url
+  // Otherwise, prepend Medusa backend URL
+  return `${MEDUSA_BACKEND_URL}${url}`
+}
+
+function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItemCardProps) {
+  const rawThumbnail = item.thumbnail || item.variant?.product?.thumbnail
+  const thumbnail = getImageUrl(rawThumbnail)
+  const brand = item.variant?.product?.subtitle || ''
+  const productTitle = item.variant?.product?.title || item.title
+  const variantTitle = item.variant?.title || ''
 
   return (
     <div className="flex gap-4 py-4">
       {/* Image */}
       <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-        <img
-          src={item.imageUrl}
-          alt={item.name}
-          className="w-full h-full object-cover"
-        />
+        {thumbnail ? (
+          <Image
+            src={thumbnail}
+            alt={productTitle}
+            width={80}
+            height={80}
+            unoptimized
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-neutral-200" />
+        )}
       </div>
 
       {/* Details */}
       <div className="flex-1 min-w-0">
         <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          {item.brand}
+          {brand}
         </p>
         <h4 className="text-sm font-medium text-foreground line-clamp-2">
-          {item.name}
+          {productTitle}
         </h4>
-        <p className="text-xs text-muted-foreground mt-0.5">{item.variant}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{variantTitle}</p>
 
         {/* Quantity & Price */}
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center border rounded">
             <button
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-              className="p-1.5 hover:bg-muted transition-colors"
+              onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+              disabled={isUpdating}
+              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Зменшити кількість"
             >
               <Minus className="w-3 h-3" />
             </button>
             <span className="w-8 text-center text-sm">{item.quantity}</span>
             <button
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-              className="p-1.5 hover:bg-muted transition-colors"
+              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+              disabled={isUpdating}
+              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Збільшити кількість"
             >
               <Plus className="w-3 h-3" />
@@ -56,11 +104,12 @@ function CartItemCard({ item }: { item: CartItem }) {
 
           <div className="flex items-center gap-2">
             <span className="font-semibold">
-              {Math.round(item.price * item.quantity)} ₴
+              {Math.round(item.unit_price * item.quantity)} ₴
             </span>
             <button
-              onClick={() => removeItem(item.id)}
-              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+              onClick={() => onRemove(item.id)}
+              disabled={isUpdating}
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
               aria-label="Видалити товар"
             >
               <Trash2 className="w-4 h-4" />
@@ -113,13 +162,24 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, getItemCount, getSubtotal } = useCartStore()
+  const {
+    cart,
+    isLoading,
+    isCartOpen,
+    closeCart,
+    updateQuantity,
+    removeItem,
+    getItemCount,
+    getSubtotal,
+  } = useCartContext()
+
+  const items = cart?.items || []
   const itemCount = getItemCount()
   const subtotal = getSubtotal()
 
   // Lock body scroll when open
   useEffect(() => {
-    if (isOpen) {
+    if (isCartOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -127,20 +187,28 @@ export function CartDrawer() {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isOpen])
+  }, [isCartOpen])
 
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeCart()
     }
-    if (isOpen) {
+    if (isCartOpen) {
       document.addEventListener('keydown', handleEscape)
     }
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, closeCart])
+  }, [isCartOpen, closeCart])
 
-  if (!isOpen) return null
+  if (!isCartOpen) return null
+
+  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    await updateQuantity(itemId, quantity)
+  }
+
+  const handleRemoveItem = async (itemId: string) => {
+    await removeItem(itemId)
+  }
 
   return (
     <div className="fixed inset-0 z-50">
@@ -194,7 +262,11 @@ export function CartDrawer() {
         </div>
 
         {/* Content */}
-        {items.length === 0 ? (
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">Кошик порожній</h3>
@@ -219,7 +291,13 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-6">
               <div className="divide-y divide-border">
                 {items.map((item) => (
-                  <CartItemCard key={item.id} item={item} />
+                  <CartItemCard
+                    key={item.id}
+                    item={item}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemove={handleRemoveItem}
+                    isUpdating={isLoading}
+                  />
                 ))}
               </div>
             </div>
@@ -232,6 +310,14 @@ export function CartDrawer() {
                   <span className="text-muted-foreground">Підсумок</span>
                   <span className="font-medium">{Math.round(subtotal)} ₴</span>
                 </div>
+                {cart?.discount_total && cart.discount_total > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#606C38] font-medium">Знижка</span>
+                    <span className="text-[#606C38] font-medium">
+                      -{Math.round(cart.discount_total)} ₴
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Доставка</span>
                   <span className={cn(
@@ -246,7 +332,7 @@ export function CartDrawer() {
                 <div className="flex justify-between items-baseline pt-3 border-t border-black/5">
                   <span className="font-semibold text-lg">Разом</span>
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#1A1A1A] to-[#717171] bg-clip-text text-transparent">
-                    {Math.round(subtotal)} ₴
+                    {Math.round(cart?.total || subtotal)} ₴
                   </span>
                 </div>
               </div>

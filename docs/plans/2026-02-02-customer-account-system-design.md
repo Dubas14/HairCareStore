@@ -1,6 +1,6 @@
 # Customer Account System Design
 
-> **Status:** 🚧 In Progress
+> **Status:** ✅ Complete
 > **Created:** 2026-02-02
 > **Last Updated:** 2026-02-02
 
@@ -40,9 +40,12 @@
 - [x] `/account/forgot-password` page
 - [x] `/account/reset-password` page
 
-### Phase 6: Personal Discounts ⬜ Not Started
-- [ ] ProductCard price display update
-- [ ] Cart/OrderSummary discount row
+### Phase 6: Personal Discounts ✅ Complete
+- [x] Adapter calculates discount % from calculated_price
+- [x] ProductCard shows discount badge and old price
+- [x] Product page BuyBox shows variant discounts
+- [x] Cart drawer shows discount_total row
+- [x] OrderSummary shows discount_total row
 
 ---
 
@@ -50,6 +53,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 6 | Phase 6 complete: discount display in adapter, cart, product page |
 | 2026-02-02 | 5 | Phase 5 complete: password hooks, forgot/reset pages, settings modal |
 | 2026-02-02 | 4 | Phase 4 complete: wishlist hook (metadata storage), ProductCard button, WishlistTab |
 | 2026-02-02 | 3 | Phase 3 complete: orders hook, OrderCard, OrdersTab, order details page, repeat order |
