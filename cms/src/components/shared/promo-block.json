@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_shared_promo_blocks",
+  "info": {
+    "displayName": "PromoBlock",
+    "icon": "gift",
+    "description": "Promotional block for categories"
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "link": {
+      "type": "string"
+    },
+    "buttonText": {
+      "type": "string"
+    }
+  }
+}

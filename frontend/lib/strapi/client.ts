@@ -78,6 +78,41 @@ export interface Page {
   isPublished: boolean
 }
 
+export interface CategoryPromoBlock {
+  id: number
+  title: string
+  description?: string
+  image?: StrapiMedia
+  link?: string
+  buttonText?: string
+}
+
+export interface CategorySeo {
+  id: number
+  metaTitle?: string
+  metaDescription?: string
+  ogImage?: StrapiMedia
+}
+
+export interface Category {
+  id: number
+  documentId: string
+  name: string
+  slug: string
+  medusaHandle: string
+  description?: any // Rich text
+  shortDescription?: string
+  banner?: StrapiMedia
+  icon?: StrapiMedia
+  accentColor?: string
+  subcategories?: Category[]
+  parentCategory?: Category
+  promoBlock?: CategoryPromoBlock
+  seo?: CategorySeo
+  order: number
+  isActive: boolean
+}
+
 /**
  * Get full image URL from Strapi
  */
@@ -184,6 +219,47 @@ export async function getPages(): Promise<Page[]> {
     return response.data || []
   } catch (error) {
     console.error('Error fetching pages:', error)
+    return []
+  }
+}
+
+/**
+ * Get a single category by slug
+ */
+export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+  try {
+    const response = await fetchStrapi<Category[]>('/categories', {
+      'populate[banner]': '*',
+      'populate[icon]': '*',
+      'populate[subcategories][populate][icon]': '*',
+      'populate[parentCategory]': '*',
+      'populate[promoBlock][populate][image]': '*',
+      'populate[seo][populate][ogImage]': '*',
+      'filters[slug][$eq]': slug,
+      'filters[isActive][$eq]': 'true',
+    })
+    return response.data?.[0] || null
+  } catch (error) {
+    console.error('Error fetching category:', error)
+    return null
+  }
+}
+
+/**
+ * Get all active categories (top-level only)
+ */
+export async function getCategories(): Promise<Category[]> {
+  try {
+    const response = await fetchStrapi<Category[]>('/categories', {
+      'populate[banner]': '*',
+      'populate[icon]': '*',
+      'filters[isActive][$eq]': 'true',
+      'filters[parentCategory][$null]': 'true',
+      'sort': 'order:asc',
+    })
+    return response.data || []
+  } catch (error) {
+    console.error('Error fetching categories:', error)
     return []
   }
 }

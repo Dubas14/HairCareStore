@@ -12,12 +12,14 @@ import {
 
 // Категорії товарів
 const CATEGORIES = [
-  { name: "Шампуні", handle: "shampuni", description: "Професійні шампуні для всіх типів волосся" },
-  { name: "Кондиціонери", handle: "kondytsionery", description: "Кондиціонери та бальзами для волосся" },
-  { name: "Маски", handle: "masky", description: "Інтенсивні маски для відновлення волосся" },
-  { name: "Сироватки та флюїди", handle: "syrovatky-fluidy", description: "Сироватки, флюїди та олії для волосся" },
-  { name: "Спреї", handle: "sprei", description: "Спреї для догляду та захисту волосся" },
-  { name: "Стайлінг", handle: "stailing", description: "Засоби для укладання волосся" },
+  { name: "Шампуні", handle: "shampoos", description: "Професійні шампуні для всіх типів волосся" },
+  { name: "Кондиціонери", handle: "conditioners", description: "Кондиціонери та бальзами для волосся" },
+  { name: "Маски", handle: "masks", description: "Інтенсивні маски для відновлення волосся" },
+  { name: "Сироватки та флюїди", handle: "serums", description: "Сироватки, флюїди та олії для волосся" },
+  { name: "Спреї", handle: "sprays", description: "Спреї для догляду та захисту волосся" },
+  { name: "Стайлінг", handle: "styling", description: "Засоби для укладання волосся" },
+  { name: "Фарби для волосся", handle: "hair-color", description: "Професійні фарби та засоби для фарбування волосся" },
+  { name: "Аксесуари", handle: "accessories", description: "Аксесуари для догляду та укладання волосся" },
 ]
 
 // Колекції (маркетингові групи)
@@ -29,12 +31,14 @@ const COLLECTIONS = [
 
 // Правила для автоматичного призначення категорій
 const CATEGORY_RULES: Record<string, string[]> = {
-  "shampuni": ["шампунь", "shampoo"],
-  "kondytsionery": ["кондиціонер", "conditioner", "бальзам"],
-  "masky": ["маска", "mask"],
-  "syrovatky-fluidy": ["флюїд", "fluid", "сироватка", "serum", "олія", "oil", "crystal"],
-  "sprei": ["спрей", "spray"],
-  "stailing": ["паста", "paste", "гель", "gel", "віск", "wax", "мус", "mousse", "лак"],
+  "shampoos": ["шампунь", "shampoo"],
+  "conditioners": ["кондиціонер", "conditioner", "бальзам"],
+  "masks": ["маска", "mask"],
+  "serums": ["флюїд", "fluid", "сироватка", "serum", "олія", "oil", "crystal"],
+  "sprays": ["спрей", "spray"],
+  "styling": ["паста", "paste", "гель", "gel", "віск", "wax", "мус", "mousse", "лак"],
+  "hair-color": ["фарба", "фарбування", "color", "dye", "toner", "тонер"],
+  "accessories": ["гребінець", "щітка", "brush", "comb", "заколка", "резинка"],
 }
 
 // Правила для колекцій (на основі seed-products.ts)

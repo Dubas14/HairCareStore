@@ -4,6 +4,13 @@ import { sdk } from "../client"
 // Region ID for Ukraine (EUR currency)
 const DEFAULT_REGION_ID = "reg_01KGA7S8A0WMWH3W0Y8YWGVSJG"
 
+export interface MedusaCategory {
+  id: string
+  name: string
+  handle: string
+  description: string | null
+}
+
 export interface MedusaProduct {
   id: string
   title: string
@@ -32,6 +39,7 @@ export interface MedusaProduct {
     title: string
     values: Array<{ id: string; value: string }>
   }>
+  categories?: MedusaCategory[]
   created_at: string
   updated_at: string
 }
@@ -139,4 +147,91 @@ export function useSearchProducts(query: string) {
     },
     enabled: query.length >= 2,
   })
+}
+
+interface UseProductsByCategoryOptions {
+  categoryHandle: string
+  limit?: number
+  offset?: number
+}
+
+/**
+ * Fetch products by category handle
+ * Loads all products and filters by category on client side
+ */
+export function useProductsByCategory(options: UseProductsByCategoryOptions) {
+  const { categoryHandle, limit = 100, offset = 0 } = options
+
+  return useQuery({
+    queryKey: ["products", "category", categoryHandle, { limit, offset }],
+    queryFn: async (): Promise<ProductsResponse> => {
+      // Fetch all products with categories
+      const response = await sdk.store.product.list({
+        limit,
+        offset,
+        region_id: DEFAULT_REGION_ID,
+        fields: "+variants.calculated_price,+images.*,+categories.*",
+      })
+
+      const allProducts = (response as unknown as ProductsResponse).products
+
+      // Filter by category handle on client side
+      const filteredProducts = allProducts.filter((product) =>
+        product.categories?.some((cat) => cat.handle === categoryHandle)
+      )
+
+      return {
+        products: filteredProducts,
+        count: filteredProducts.length,
+        offset,
+        limit,
+      }
+    },
+    enabled: !!categoryHandle,
+  })
+}
+
+/**
+ * Fetch all products (for server-side rendering)
+ */
+export async function fetchProducts(options: UseProductsOptions = {}): Promise<ProductsResponse> {
+  const { limit = 100, offset = 0 } = options
+  const response = await sdk.store.product.list({
+    limit,
+    offset,
+    region_id: DEFAULT_REGION_ID,
+    fields: "+variants.calculated_price,+images.*,+categories.*",
+  })
+  return response as unknown as ProductsResponse
+}
+
+/**
+ * Fetch products by category (for server-side rendering)
+ * Loads all products and filters by category handle
+ */
+export async function fetchProductsByCategory(
+  categoryHandle: string,
+  options: UseProductsOptions = {}
+): Promise<ProductsResponse> {
+  const { limit = 100, offset = 0 } = options
+  const response = await sdk.store.product.list({
+    limit,
+    offset,
+    region_id: DEFAULT_REGION_ID,
+    fields: "+variants.calculated_price,+images.*,+categories.*",
+  })
+
+  const allProducts = (response as unknown as ProductsResponse).products
+
+  // Filter by category handle
+  const filteredProducts = allProducts.filter((product) =>
+    product.categories?.some((cat) => cat.handle === categoryHandle)
+  )
+
+  return {
+    products: filteredProducts,
+    count: filteredProducts.length,
+    offset,
+    limit,
+  }
 }
