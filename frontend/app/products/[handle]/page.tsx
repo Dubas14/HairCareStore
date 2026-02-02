@@ -10,7 +10,7 @@ import { HowToUse } from '@/components/products/how-to-use'
 import { RelatedProducts } from '@/components/products/related-products'
 import { useProduct, useProducts } from '@/lib/medusa/hooks'
 import { toFrontendProducts, getImageUrl } from '@/lib/medusa/adapters'
-import { useCartStore } from '@/stores/cart-store'
+import { useCartContext } from '@/components/providers/cart-provider'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 // Mock ingredients data
@@ -31,8 +31,8 @@ export default function ProductPage() {
   // Fetch all products for related section
   const { data: allProductsData } = useProducts({ limit: 20 })
 
-  // Cart store
-  const { addItem } = useCartStore()
+  // Cart context (Medusa)
+  const { addToCart } = useCartContext()
 
   // Convert Medusa variants to frontend format
   const variants = useMemo(() => {
@@ -41,16 +41,24 @@ export default function ProductPage() {
       // Use calculated_price if available, otherwise fallback to prices
       // Medusa v2 stores prices in major units
       const calculatedPrice = variant.calculated_price?.calculated_amount
+      const originalPrice = variant.calculated_price?.original_amount
       const price = calculatedPrice
         ? calculatedPrice
         : variant.prices?.[0]?.amount
         ? variant.prices[0].amount
         : 0
 
+      // Show old price if there's a discount (price list, customer group, promo)
+      const oldPrice =
+        originalPrice && calculatedPrice && originalPrice > calculatedPrice
+          ? originalPrice
+          : undefined
+
       return {
         id: variant.id,
         name: variant.title || 'Стандартний',
         price,
+        oldPrice,
         inStock: true,
       }
     })
@@ -103,19 +111,12 @@ export default function ProductPage() {
   const brand = medusaProduct.subtitle || 'HAIR LAB'
   const productName = medusaProduct.title
 
-  const handleAddToCart = (variantId: string, quantity: number) => {
-    const selectedVariant = variants.find(v => v.id === variantId)
-    if (!selectedVariant || !medusaProduct) return
-
-    addItem({
-      productId: parseInt(medusaProduct.id.replace(/\D/g, '')) || Date.now(),
-      name: medusaProduct.title,
-      brand: medusaProduct.subtitle || 'HAIR LAB',
-      variant: selectedVariant.name,
-      price: selectedVariant.price,
-      quantity,
-      imageUrl: images[0] || '/placeholder-product.jpg',
-    })
+  const handleAddToCart = async (variantId: string, quantity: number) => {
+    try {
+      await addToCart(variantId, quantity)
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+    }
   }
 
   const handleAddToWishlist = () => {

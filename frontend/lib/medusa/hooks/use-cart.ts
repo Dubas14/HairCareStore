@@ -16,6 +16,7 @@ export interface MedusaCartItem {
     product: {
       id: string
       title: string
+      handle: string
       subtitle: string | null
       thumbnail: string | null
     }

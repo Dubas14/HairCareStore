@@ -1,3 +1,7 @@
 export * from "./use-products"
 export * from "./use-regions"
 export * from "./use-cart"
+export * from "./use-addresses"
+export * from "./use-orders"
+export * from "./use-wishlist"
+export * from "./use-password"

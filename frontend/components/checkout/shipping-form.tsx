@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { AddressSelect } from './address-select'
+import type { Address } from '@/lib/medusa/hooks/use-addresses'
 
 interface ShippingFormData {
   city: string
@@ -16,13 +18,41 @@ interface ShippingFormProps {
   onBack: () => void
   initialData?: Partial<ShippingFormData>
   isLoading?: boolean
+  addresses?: Address[]
+  isAuthenticated?: boolean
 }
 
-export function ShippingForm({ onSubmit, onBack, initialData, isLoading }: ShippingFormProps) {
+export function ShippingForm({
+  onSubmit,
+  onBack,
+  initialData,
+  isLoading,
+  addresses = [],
+  isAuthenticated = false,
+}: ShippingFormProps) {
   const [formData, setFormData] = useState<ShippingFormData>({
     city: initialData?.city || '',
     warehouse: initialData?.warehouse || '',
   })
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>()
+
+  // Update form when initialData changes (e.g., from customer profile)
+  useEffect(() => {
+    if (initialData?.city || initialData?.warehouse) {
+      setFormData({
+        city: initialData.city || '',
+        warehouse: initialData.warehouse || '',
+      })
+    }
+  }, [initialData?.city, initialData?.warehouse])
+
+  const handleAddressSelect = (address: Address) => {
+    setSelectedAddressId(address.id)
+    setFormData({
+      city: address.city || '',
+      warehouse: address.address_1 || '',
+    })
+  }
 
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({})
 
@@ -59,6 +89,15 @@ export function ShippingForm({ onSubmit, onBack, initialData, isLoading }: Shipp
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-xl font-semibold">Спосіб доставки</h2>
+
+      {/* Saved addresses selector */}
+      {isAuthenticated && addresses.length > 0 && (
+        <AddressSelect
+          addresses={addresses}
+          onSelect={handleAddressSelect}
+          selectedId={selectedAddressId}
+        />
+      )}
 
       {/* Nova Poshta card */}
       <div
