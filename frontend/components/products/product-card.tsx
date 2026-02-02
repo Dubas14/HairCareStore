@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Star } from 'lucide-react'
+import { Heart, Star, Loader2 } from 'lucide-react'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { ShimmerBadge } from '@/components/ui/shimmer-badge'
-import { useCartStore } from '@/stores/cart-store'
+import { useCartContext } from '@/components/providers/cart-provider'
+import { useWishlist, useToggleWishlist } from '@/lib/medusa/hooks/use-wishlist'
+import { useAuthStore } from '@/stores/auth-store'
 import type { Product } from '@/lib/constants/home-data'
 
 interface ProductCardProps {
@@ -13,26 +15,52 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [showAuthToast, setShowAuthToast] = useState(false)
 
-  const { addItem } = useCartStore()
+  const { addToCart } = useCartContext()
+  const { isAuthenticated } = useAuthStore()
+  const { isInWishlist } = useWishlist()
+  const toggleWishlist = useToggleWishlist()
 
-  const handleWishlistClick = (e: React.MouseEvent) => {
+  // Use medusaId if available, otherwise use product handle as ID
+  const wishlistProductId = product.medusaId || product.slug || String(product.id)
+  const isWishlisted = isInWishlist(wishlistProductId)
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault()
-    setIsWishlisted(!isWishlisted)
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      setShowAuthToast(true)
+      setTimeout(() => setShowAuthToast(false), 3000)
+      return
+    }
+
+    try {
+      await toggleWishlist.mutateAsync(wishlistProductId)
+    } catch (error) {
+      console.error('Failed to update wishlist:', error)
+    }
   }
 
-  const handleAddToCart = () => {
-    addItem({
-      productId: product.id,
-      name: product.name,
-      brand: product.brand,
-      variant: '250 мл',
-      price: product.price,
-      quantity: 1,
-      imageUrl: product.imageUrl,
-    })
+  const handleAddToCart = async () => {
+    if (isAdding) return
+
+    if (!product.variantId) {
+      console.error('No variantId for product:', product.name, product)
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      await addToCart(product.variantId, 1)
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -74,15 +102,30 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistClick}
-          className="absolute top-3 right-3 p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring"
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          disabled={toggleWishlist.isPending}
+          className="absolute top-3 right-3 p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
+          aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
         >
-          <Heart
-            className={`w-5 h-5 transition-colors duration-300 ${
-              isWishlisted ? 'fill-destructive text-destructive' : 'text-secondary'
-            }`}
-          />
+          {toggleWishlist.isPending ? (
+            <Loader2 className="w-5 h-5 animate-spin text-secondary" />
+          ) : (
+            <Heart
+              className={`w-5 h-5 transition-colors duration-300 ${
+                isWishlisted ? 'fill-destructive text-destructive' : 'text-secondary'
+              }`}
+            />
+          )}
         </button>
+
+        {/* Auth toast */}
+        {showAuthToast && (
+          <div className="absolute top-14 right-3 bg-card text-foreground text-xs px-3 py-2 rounded-lg shadow-lg animate-fadeInUp z-10 whitespace-nowrap">
+            <Link href="/account/login" className="text-[#2A9D8F] hover:underline">
+              Увійдіть
+            </Link>
+            {' '}щоб зберегти товар
+          </div>
+        )}
       </div>
 
       {/* Brand */}
@@ -139,6 +182,7 @@ export function ProductCard({ product }: ProductCardProps) {
           variant="teal"
           size="sm"
           className="w-full"
+          disabled={!product.variantId || isAdding}
         />
       </div>
     </Link>

@@ -28,11 +28,11 @@
 - [x] `/account/orders/[id]` page
 - [x] "Repeat order" functionality
 
-### Phase 4: Wishlist ⬜ Not Started
-- [ ] `use-wishlist.ts` hook
-- [ ] ProductCard wishlist button
-- [ ] `WishlistTab` in dashboard
-- [ ] Toast for unauthenticated users
+### Phase 4: Wishlist ✅ Complete
+- [x] `use-wishlist.ts` hook (stored in customer.metadata)
+- [x] ProductCard wishlist button with toggle
+- [x] `WishlistTab` in dashboard with product grid
+- [x] Toast for unauthenticated users
 
 ### Phase 5: Password Management ⬜ Not Started
 - [ ] `useChangePassword` hook
@@ -50,6 +50,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 4 | Phase 4 complete: wishlist hook (metadata storage), ProductCard button, WishlistTab |
 | 2026-02-02 | 3 | Phase 3 complete: orders hook, OrderCard, OrdersTab, order details page, repeat order |
 | 2026-02-02 | 2 | Phase 2 complete: AddressSelect, checkout autofill from customer + addresses |
 | 2026-02-02 | 1 | Phase 1 complete: addresses hook, AddressCard, AddressForm, AddressesTab |

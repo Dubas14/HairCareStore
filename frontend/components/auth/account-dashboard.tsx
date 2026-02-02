@@ -19,6 +19,8 @@ import { AddressCard } from './address-card'
 import { AddressForm } from './address-form'
 import { OrderCard } from './order-card'
 import { useOrders } from '@/lib/medusa/hooks/use-orders'
+import { useWishlist, useRemoveFromWishlist } from '@/lib/medusa/hooks/use-wishlist'
+import { ProductCard } from '@/components/products/product-card'
 import {
   User,
   Package,
@@ -296,20 +298,74 @@ function OrdersTab() {
 }
 
 function WishlistTab() {
-  return (
-    <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
-      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
-        <Heart className="w-10 h-10 text-muted-foreground" />
+  const { items, isLoading, count } = useWishlist()
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-2xl p-8 shadow-soft flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2A9D8F]" />
       </div>
-      <h3 className="text-xl font-semibold mb-2">Список бажань порожній</h3>
-      <p className="text-muted-foreground mb-6">
-        Додавайте товари до обраного, щоб не загубити їх
-      </p>
-      <Link href="/shop">
-        <Button className="rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]">
-          Переглянути товари
-        </Button>
-      </Link>
+    )
+  }
+
+  // Empty state
+  if (items.length === 0) {
+    return (
+      <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+          <Heart className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">Список бажань порожній</h3>
+        <p className="text-muted-foreground mb-6">
+          Додавайте товари до обраного, щоб не загубити їх
+        </p>
+        <Link href="/shop">
+          <Button className="rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]">
+            Переглянути товари
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Wishlist grid
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">
+          Обране ({count})
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.map((product, index) => {
+          // Transform Medusa product to ProductCard format
+          const variant = product.variants?.[0]
+          const price = variant?.calculated_price?.calculated_amount || 0
+          const originalPrice = variant?.calculated_price?.original_amount || price
+
+          const productCardData = {
+            id: index + 1, // ProductCard expects number id
+            medusaId: product.id, // Keep Medusa ID for wishlist operations
+            name: product.title,
+            brand: product.subtitle || 'HAIR LAB',
+            slug: product.handle,
+            price: Math.round(price),
+            oldPrice: originalPrice > price ? Math.round(originalPrice) : undefined,
+            discount: originalPrice > price
+              ? Math.round(((originalPrice - price) / originalPrice) * 100)
+              : undefined,
+            imageUrl: product.thumbnail || '/placeholder-product.jpg',
+            rating: 4.5,
+            reviewCount: 0,
+            variantId: variant?.id,
+          }
+
+          return (
+            <ProductCard key={product.id} product={productCardData} />
+          )
+        })}
+      </div>
     </div>
   )
 }
