@@ -65,31 +65,59 @@ export default function CheckoutPage() {
 
   // Auto-populate contact data from customer profile
   useEffect(() => {
-    if (customer && !checkoutData.contact) {
-      setCheckoutData((prev) => ({
+    if (!customer) return
+
+    setCheckoutData((prev) => {
+      // Only update if we don't have contact data yet
+      if (prev.contact) return prev
+
+      return {
         ...prev,
         contact: {
           email: customer.email,
-          phone: customer.phone || defaultAddress?.phone || '',
+          phone: customer.phone || '',
           firstName: customer.first_name,
           lastName: customer.last_name,
         },
-      }))
-    }
-  }, [customer, defaultAddress, checkoutData.contact])
+      }
+    })
+  }, [customer])
+
+  // Update phone from default address if customer phone is empty
+  useEffect(() => {
+    if (!defaultAddress?.phone) return
+
+    setCheckoutData((prev) => {
+      // Only update if contact exists but phone is empty
+      if (!prev.contact || prev.contact.phone) return prev
+
+      return {
+        ...prev,
+        contact: {
+          ...prev.contact,
+          phone: defaultAddress.phone || '',
+        },
+      }
+    })
+  }, [defaultAddress])
 
   // Auto-populate shipping data from default address
   useEffect(() => {
-    if (defaultAddress && !checkoutData.shipping) {
-      setCheckoutData((prev) => ({
+    if (!defaultAddress) return
+
+    setCheckoutData((prev) => {
+      // Only update if we don't have shipping data yet
+      if (prev.shipping) return prev
+
+      return {
         ...prev,
         shipping: {
           city: defaultAddress.city || '',
           warehouse: defaultAddress.address_1 || '',
         },
-      }))
-    }
-  }, [defaultAddress, checkoutData.shipping])
+      }
+    })
+  }, [defaultAddress])
 
   // Hooks
   const updateCartMutation = useUpdateCart()

@@ -35,6 +35,22 @@ export function ShippingForm({
     warehouse: initialData?.warehouse || '',
   })
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>()
+  const [autoFilled, setAutoFilled] = useState(false)
+
+  // Auto-select default address on first load for authenticated users
+  useEffect(() => {
+    if (autoFilled || !isAuthenticated || addresses.length === 0) return
+
+    const defaultAddr = addresses.find(a => a.is_default_shipping) || addresses[0]
+    if (defaultAddr) {
+      setSelectedAddressId(defaultAddr.id)
+      setFormData({
+        city: defaultAddr.city || '',
+        warehouse: defaultAddr.address_1 || '',
+      })
+      setAutoFilled(true)
+    }
+  }, [addresses, isAuthenticated, autoFilled])
 
   // Update form when initialData changes (e.g., from customer profile)
   useEffect(() => {
