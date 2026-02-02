@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle, Package, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -19,8 +19,10 @@ import {
   useAddShippingMethod,
   useInitiatePaymentSession,
   useCompleteCart,
+  useAddresses,
   type MedusaOrder,
 } from '@/lib/medusa/hooks'
+import { useCustomer } from '@/lib/medusa/hooks/use-customer'
 
 interface ContactData {
   email: string
@@ -56,6 +58,38 @@ export default function CheckoutPage() {
     shipping: null,
     payment: null,
   })
+
+  // Customer & addresses for autofill
+  const { customer, isAuthenticated } = useCustomer()
+  const { addresses, defaultAddress } = useAddresses()
+
+  // Auto-populate contact data from customer profile
+  useEffect(() => {
+    if (customer && !checkoutData.contact) {
+      setCheckoutData((prev) => ({
+        ...prev,
+        contact: {
+          email: customer.email,
+          phone: customer.phone || defaultAddress?.phone || '',
+          firstName: customer.first_name,
+          lastName: customer.last_name,
+        },
+      }))
+    }
+  }, [customer, defaultAddress, checkoutData.contact])
+
+  // Auto-populate shipping data from default address
+  useEffect(() => {
+    if (defaultAddress && !checkoutData.shipping) {
+      setCheckoutData((prev) => ({
+        ...prev,
+        shipping: {
+          city: defaultAddress.city || '',
+          warehouse: defaultAddress.address_1 || '',
+        },
+      }))
+    }
+  }, [defaultAddress, checkoutData.shipping])
 
   // Hooks
   const updateCartMutation = useUpdateCart()
@@ -335,6 +369,8 @@ export default function CheckoutPage() {
                   onBack={() => setCurrentStep('contact')}
                   initialData={checkoutData.shipping || undefined}
                   isLoading={isProcessing}
+                  addresses={addresses}
+                  isAuthenticated={isAuthenticated}
                 />
               )}
 

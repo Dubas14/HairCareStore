@@ -15,11 +15,11 @@
 - [x] `AddressesTab` in dashboard
 - [ ] Integration tests
 
-### Phase 2: Checkout Autofill ⬜ Not Started
-- [ ] `AddressSelect` component
-- [ ] ContactForm autofill integration
-- [ ] ShippingForm address selection
-- [ ] "Save address" checkbox
+### Phase 2: Checkout Autofill ✅ Complete
+- [x] `AddressSelect` component
+- [x] ContactForm autofill integration
+- [x] ShippingForm address selection
+- [ ] "Save address" checkbox (deferred - can be added later)
 
 ### Phase 3: Orders History ⬜ Not Started
 - [ ] `use-orders.ts` hook
@@ -50,6 +50,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 2 | Phase 2 complete: AddressSelect, checkout autofill from customer + addresses |
 | 2026-02-02 | 1 | Phase 1 complete: addresses hook, AddressCard, AddressForm, AddressesTab |
 | 2026-02-02 | - | Initial design document created |
 
