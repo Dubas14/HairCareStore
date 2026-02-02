@@ -3,25 +3,25 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { CategoryHero, Subcategories, PopularProducts, CategoryPromo } from '@/components/categories'
+import { BrandHero, BrandInfo } from '@/components/brands'
 import { FilterSidebar, FilterState } from '@/components/shop/filter-sidebar'
 import { ProductGrid } from '@/components/shop/product-grid'
 import { SortSelect, SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
-import { useProductsByCategory } from '@/lib/medusa/hooks'
+import { useProductsByBrand } from '@/lib/medusa/hooks'
 import { toFrontendProducts } from '@/lib/medusa/adapters'
-import { getCategoryBySlug, Category } from '@/lib/strapi/client'
+import { getBrandBySlug, Brand } from '@/lib/strapi/client'
 
 const PRODUCTS_PER_PAGE = 12
 
-export default function CategoryPage() {
+export default function BrandPage() {
   const params = useParams()
   const slug = params.slug as string
 
-  // Category content from Strapi
-  const [category, setCategory] = useState<Category | null>(null)
-  const [isLoadingCategory, setIsLoadingCategory] = useState(true)
+  // Brand content from Strapi
+  const [brand, setBrand] = useState<Brand | null>(null)
+  const [isLoadingBrand, setIsLoadingBrand] = useState(true)
 
   // Filters and sorting
   const [filters, setFilters] = useState<FilterState>({
@@ -33,27 +33,27 @@ export default function CategoryPage() {
   const [sortBy, setSortBy] = useState<SortOption>('popular')
   const [currentPage, setCurrentPage] = useState(1)
 
-  // Fetch category from Strapi
+  // Fetch brand from Strapi
   useEffect(() => {
-    async function fetchCategory() {
-      setIsLoadingCategory(true)
+    async function fetchBrand() {
+      setIsLoadingBrand(true)
       try {
-        const data = await getCategoryBySlug(slug)
-        setCategory(data)
+        const data = await getBrandBySlug(slug)
+        setBrand(data)
       } catch (error) {
-        console.error('Error fetching category:', error)
+        console.error('Error fetching brand:', error)
       } finally {
-        setIsLoadingCategory(false)
+        setIsLoadingBrand(false)
       }
     }
     if (slug) {
-      fetchCategory()
+      fetchBrand()
     }
   }, [slug])
 
-  // Fetch products from Medusa by category
-  const { data: productsData, isLoading: isLoadingProducts } = useProductsByCategory({
-    categoryHandle: category?.medusaHandle || slug,
+  // Fetch products from Medusa by brand
+  const { data: productsData, isLoading: isLoadingProducts } = useProductsByBrand({
+    brandHandle: brand?.medusaHandle || slug,
     limit: 100,
   })
 
@@ -66,15 +66,6 @@ export default function CategoryPage() {
   // Filter and sort products
   const filteredProducts = useMemo(() => {
     let result = [...allProducts]
-
-    // Apply brand filter
-    if (filters.brands.length > 0) {
-      result = result.filter((product) =>
-        filters.brands.some(
-          (brand) => product.brand.toLowerCase().replace(/\s+/g, '-') === brand
-        )
-      )
-    }
 
     // Apply price filter
     result = result.filter(
@@ -106,13 +97,6 @@ export default function CategoryPage() {
     return result
   }, [allProducts, filters, sortBy])
 
-  // Popular products (first 4 with highest rating)
-  const popularProducts = useMemo(() => {
-    return [...allProducts]
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, 4)
-  }, [allProducts])
-
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
   const paginatedProducts = filteredProducts.slice(
@@ -132,7 +116,7 @@ export default function CategoryPage() {
   }
 
   // Loading state
-  if (isLoadingCategory) {
+  if (isLoadingBrand) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -140,16 +124,16 @@ export default function CategoryPage() {
     )
   }
 
-  // Category not found
-  if (!category) {
+  // Brand not found
+  if (!brand) {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-4">
-            Категорію не знайдено
+            Бренд не знайдено
           </h1>
           <p className="text-muted-foreground">
-            На жаль, категорія &quot;{slug}&quot; не існує або була видалена.
+            На жаль, бренд &quot;{slug}&quot; не існує або був видалений.
           </p>
         </div>
       </main>
@@ -159,39 +143,17 @@ export default function CategoryPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Hero Banner */}
-      <CategoryHero category={category} />
+      <BrandHero brand={brand} />
 
-      {/* Subcategories */}
-      {category.subcategories && category.subcategories.length > 0 && (
-        <Subcategories
-          subcategories={category.subcategories}
-          parentColor={category.accentColor}
-        />
-      )}
+      {/* Brand Info (History & Benefits) */}
+      <BrandInfo brand={brand} />
 
-      {/* Popular Products */}
-      {popularProducts.length > 0 && (
-        <PopularProducts
-          products={popularProducts}
-          title={`Популярні ${category.name.toLowerCase()}`}
-          accentColor={category.accentColor}
-        />
-      )}
-
-      {/* Promo Block */}
-      {category.promoBlock && (
-        <CategoryPromo
-          promoBlock={category.promoBlock}
-          accentColor={category.accentColor}
-        />
-      )}
-
-      {/* All Products Section */}
+      {/* Products Section */}
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           <ScrollReveal variant="fade-up" duration={500}>
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">
-              Всі товари
+              Товари {brand.name}
             </h2>
           </ScrollReveal>
 
@@ -203,6 +165,7 @@ export default function CategoryPage() {
                 onFiltersChange={handleFiltersChange}
                 maxPrice={5000}
                 className="w-full lg:w-64 flex-shrink-0"
+                hideBrandFilter
               />
             </ScrollReveal>
 

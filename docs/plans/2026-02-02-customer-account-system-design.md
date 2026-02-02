@@ -8,11 +8,11 @@
 
 ## Implementation Progress
 
-### Phase 1: Addresses ⬜ Not Started
-- [ ] `use-addresses.ts` hook
-- [ ] `AddressCard` component
-- [ ] `AddressForm` modal component
-- [ ] `AddressesTab` in dashboard
+### Phase 1: Addresses ✅ Complete
+- [x] `use-addresses.ts` hook
+- [x] `AddressCard` component
+- [x] `AddressForm` modal component
+- [x] `AddressesTab` in dashboard
 - [ ] Integration tests
 
 ### Phase 2: Checkout Autofill ⬜ Not Started
@@ -50,6 +50,7 @@
 
 | Date | Phase | Changes |
 |------|-------|---------|
+| 2026-02-02 | 1 | Phase 1 complete: addresses hook, AddressCard, AddressForm, AddressesTab |
 | 2026-02-02 | - | Initial design document created |
 
 ---
