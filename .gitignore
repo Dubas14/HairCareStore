@@ -39,8 +39,10 @@ out/
 postgres_data/
 redis_data/
 
-# Medusa
-.medusa/
+# Payload CMS uploaded media
+frontend/media/
+
+# Cache
 .cache/
 
 # Logs
@@ -54,10 +56,10 @@ yarn-error.log*
 .turbo
 .vercel
 .claude/
-.worktrees/
+.mcp.json
 
 # OS
 Thumbs.db
 
 # Git worktrees
-.worktrees/
+.worktrees
