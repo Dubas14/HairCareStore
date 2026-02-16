@@ -4,24 +4,24 @@ import Link from 'next/link'
 import { ChevronRight, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
-  type Order,
+  type PayloadOrder,
   getOrderStatusLabel,
   getOrderStatusColor,
-} from '@/lib/medusa/hooks/use-orders'
+} from '@/lib/hooks/use-orders'
 
 interface OrderCardProps {
-  order: Order
+  order: PayloadOrder
 }
 
 export function OrderCard({ order }: OrderCardProps) {
-  const formattedDate = new Date(order.created_at).toLocaleDateString('uk-UA', {
+  const formattedDate = new Date(order.createdAt).toLocaleDateString('uk-UA', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
 
   const itemCount = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
-  const firstItemImage = order.items?.[0]?.thumbnail || order.items?.[0]?.variant?.product?.thumbnail
+  const firstItemImage = order.items?.[0]?.thumbnail
 
   return (
     <Link
@@ -46,7 +46,7 @@ export function OrderCard({ order }: OrderCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold">Замовлення #{order.display_id}</p>
+              <p className="font-semibold">Замовлення #{order.displayId}</p>
               <p className="text-sm text-muted-foreground">{formattedDate}</p>
             </div>
             <Badge className={getOrderStatusColor(order.status)}>

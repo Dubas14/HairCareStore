@@ -59,7 +59,7 @@ function RichTextBlock({ block, index }: { block: RichTextBlock; index: number }
       6: "text-sm font-semibold mt-4 mb-2 uppercase tracking-wide text-neutral-500",
     }
 
-    const Tag = `h${level}` as keyof JSX.IntrinsicElements
+    const Tag = `h${level}` as keyof React.JSX.IntrinsicElements
 
     return (
       <ScrollReveal variant="fade-up" delay={delay}>

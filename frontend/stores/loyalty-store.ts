@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 
 export interface LoyaltySummary {
-  id: string
-  customerId: string
+  id: number | string
+  customerId: number | string
   pointsBalance: number
   totalEarned: number
   totalSpent: number
@@ -13,6 +13,7 @@ export interface LoyaltySummary {
   nextLevel: 'silver' | 'gold' | null
   pointsToNextLevel: number
   progressPercent: number
+  isEnabled: boolean
 }
 
 export interface LoyaltyTransaction {

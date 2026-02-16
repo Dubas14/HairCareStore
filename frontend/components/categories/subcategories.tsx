@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Category, getStrapiImageUrl } from '@/lib/strapi/client'
+import { Category, getImageUrl } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 interface SubcategoriesProps {
@@ -26,7 +26,7 @@ export function Subcategories({ subcategories, parentColor }: SubcategoriesProps
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {subcategories.map((subcategory, index) => {
-            const iconUrl = getStrapiImageUrl(subcategory.icon)
+            const iconUrl = getImageUrl(subcategory.icon)
 
             return (
               <ScrollReveal

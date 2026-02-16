@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useRequestPasswordReset } from '@/lib/medusa/hooks/use-password'
+import { useRequestPasswordReset } from '@/lib/hooks/use-password'
 import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 
 interface FormErrors {

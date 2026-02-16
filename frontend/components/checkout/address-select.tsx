@@ -1,7 +1,7 @@
 'use client'
 
 import { MapPin, ChevronDown } from 'lucide-react'
-import type { Address } from '@/lib/medusa/hooks/use-addresses'
+import type { Address } from '@/lib/hooks/use-addresses'
 
 interface AddressSelectProps {
   addresses: Address[]
@@ -31,9 +31,9 @@ export function AddressSelect({ addresses, onSelect, selectedId }: AddressSelect
           {addresses.map((address) => {
             const label = [
               address.city,
-              address.address_1,
+              address.address1,
             ].filter(Boolean).join(', ')
-            const isDefault = address.is_default_shipping
+            const isDefault = address.isDefaultShipping
 
             return (
               <option key={address.id} value={address.id}>

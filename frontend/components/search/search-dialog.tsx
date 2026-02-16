@@ -5,7 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Search, X, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
-import { useSearchProducts, getProductPrice, formatPrice } from '@/lib/medusa/hooks'
+import { useSearchProducts } from '@/lib/hooks/use-products'
+import { getImageUrl } from '@/lib/payload/types'
 import { cn } from '@/lib/utils'
 
 const popularSearches = [
@@ -30,7 +31,7 @@ export function SearchDialog() {
     return () => clearTimeout(timer)
   }, [query])
 
-  // Search via Medusa API
+  // Search via Payload CMS
   const { data, isLoading } = useSearchProducts(debouncedQuery)
   const results = data?.products || []
 
@@ -135,7 +136,8 @@ export function SearchDialog() {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {results.slice(0, 8).map((product) => {
-                        const price = getProductPrice(product)
+                        const price = product.variants?.[0]?.price || 0
+                        const thumbnailUrl = getImageUrl(product.thumbnail)
                         return (
                           <Link
                             key={product.id}
@@ -144,9 +146,9 @@ export function SearchDialog() {
                             className="flex gap-4 p-3 rounded-lg hover:bg-muted transition-colors group"
                           >
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                              {product.thumbnail ? (
+                              {thumbnailUrl ? (
                                 <Image
-                                  src={product.thumbnail}
+                                  src={thumbnailUrl}
                                   alt={product.title}
                                   width={64}
                                   height={64}
@@ -166,7 +168,7 @@ export function SearchDialog() {
                                 {product.title}
                               </h4>
                               <p className="text-sm font-semibold mt-1">
-                                {formatPrice(price)}
+                                {Math.round(price) + ' \u20B4'}
                               </p>
                             </div>
                           </Link>

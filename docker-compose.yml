@@ -2,12 +2,11 @@
 # HAIR LAB Docker Compose
 # ============================
 # Docker тільки для баз даних!
-# Backend і Frontend запускаються ЛОКАЛЬНО
+# Frontend запускається ЛОКАЛЬНО: cd frontend && npm run dev
 # ============================
 # Порти:
 # - PostgreSQL: 5450
 # - Redis: 6390
-# - Backend (локально): 9000
 # - Frontend (локально): 3200
 # ============================
 
@@ -20,7 +19,7 @@ services:
     container_name: beauty-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-medusa}
+      POSTGRES_DB: ${DB_NAME:-payload}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
     ports:
@@ -28,7 +27,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-medusa}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-payload}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,30 +53,6 @@ services:
       retries: 5
     networks:
       - beauty-network
-
-  # ============================
-  # Medusa Backend (DISABLED - run locally)
-  # ============================
-  # Vite HMR не працює в Docker, тому backend запускається локально:
-  # cd backend && npm run dev
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: beauty-backend
-  #   ...
-
-  # ============================
-  # Next.js Frontend (DISABLED - run locally)
-  # ============================
-  # cd frontend && npm run dev
-
-  # ============================
-  # Strapi CMS (DISABLED - run locally)
-  # ============================
-  # cd cms && npm run develop
-  # strapi:
-  #   ...
 
 networks:
   beauty-network:

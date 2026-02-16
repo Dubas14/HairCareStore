@@ -1,7 +1,7 @@
 /**
  * Price Formatting Utilities
  *
- * CRITICAL: Medusa stores prices AS-IS (not in cents like Stripe)
+ * CRITICAL: Prices are stored AS-IS (not in cents like Stripe)
  * DO NOT divide by 100!
  */
 

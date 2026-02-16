@@ -13,44 +13,28 @@ const FREE_SHIPPING_THRESHOLD = 1000 // UAH
 
 interface CartItemCardProps {
   item: {
-    id: string
-    title: string
+    id?: string
+    productTitle?: string
+    productThumbnail?: string
+    variantTitle?: string
     quantity: number
-    unit_price: number
-    subtotal: number
-    thumbnail: string | null
-    variant: {
-      id: string
-      title: string
-      product: {
-        id: string
-        title: string
-        subtitle: string | null
-        thumbnail: string | null
-      }
-    }
+    unitPrice: number
   }
-  onUpdateQuantity: (itemId: string, quantity: number) => void
-  onRemove: (itemId: string) => void
+  index: number
+  onUpdateQuantity: (index: number, quantity: number) => void
+  onRemove: (index: number) => void
   isUpdating: boolean
 }
 
-const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
-
 function getImageUrl(url: string | null | undefined): string | null {
   if (!url) return null
-  // If URL is absolute (starts with http), return as is
-  if (url.startsWith('http')) return url
-  // Otherwise, prepend Medusa backend URL
-  return `${MEDUSA_BACKEND_URL}${url}`
+  return url
 }
 
-function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItemCardProps) {
-  const rawThumbnail = item.thumbnail || item.variant?.product?.thumbnail
-  const thumbnail = getImageUrl(rawThumbnail)
-  const brand = item.variant?.product?.subtitle || ''
-  const productTitle = item.variant?.product?.title || item.title
-  const variantTitle = item.variant?.title || ''
+function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: CartItemCardProps) {
+  const thumbnail = getImageUrl(item.productThumbnail)
+  const productTitle = item.productTitle || 'Товар'
+  const variantTitle = item.variantTitle || ''
 
   return (
     <div className="flex gap-4 py-4">
@@ -72,9 +56,6 @@ function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItem
 
       {/* Details */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide">
-          {brand}
-        </p>
         <h4 className="text-sm font-medium text-foreground line-clamp-2">
           {productTitle}
         </h4>
@@ -84,7 +65,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItem
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center border rounded">
             <button
-              onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+              onClick={() => onUpdateQuantity(index, item.quantity - 1)}
               disabled={isUpdating}
               className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Зменшити кількість"
@@ -93,7 +74,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItem
             </button>
             <span className="w-8 text-center text-sm">{item.quantity}</span>
             <button
-              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+              onClick={() => onUpdateQuantity(index, item.quantity + 1)}
               disabled={isUpdating}
               className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Збільшити кількість"
@@ -104,10 +85,10 @@ function CartItemCard({ item, onUpdateQuantity, onRemove, isUpdating }: CartItem
 
           <div className="flex items-center gap-2">
             <span className="font-semibold">
-              {Math.round(item.unit_price * item.quantity)} ₴
+              {Math.round(item.unitPrice * item.quantity)} ₴
             </span>
             <button
-              onClick={() => onRemove(item.id)}
+              onClick={() => onRemove(index)}
               disabled={isUpdating}
               className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
               aria-label="Видалити товар"
@@ -202,12 +183,12 @@ export function CartDrawer() {
 
   if (!isCartOpen) return null
 
-  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
-    await updateQuantity(itemId, quantity)
+  const handleUpdateQuantity = async (index: number, quantity: number) => {
+    await updateQuantity(index, quantity)
   }
 
-  const handleRemoveItem = async (itemId: string) => {
-    await removeItem(itemId)
+  const handleRemoveItem = async (index: number) => {
+    await removeItem(index)
   }
 
   return (
@@ -290,10 +271,11 @@ export function CartDrawer() {
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-6">
               <div className="divide-y divide-border">
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <CartItemCard
-                    key={item.id}
+                    key={item.id || index}
                     item={item}
+                    index={index}
                     onUpdateQuantity={handleUpdateQuantity}
                     onRemove={handleRemoveItem}
                     isUpdating={isLoading}
@@ -310,11 +292,11 @@ export function CartDrawer() {
                   <span className="text-muted-foreground">Підсумок</span>
                   <span className="font-medium">{Math.round(subtotal)} ₴</span>
                 </div>
-                {cart?.discount_total && cart.discount_total > 0 && (
+                {cart?.discountTotal && cart.discountTotal > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-[#606C38] font-medium">Знижка</span>
                     <span className="text-[#606C38] font-medium">
-                      -{Math.round(cart.discount_total)} ₴
+                      -{Math.round(cart.discountTotal)} ₴
                     </span>
                   </div>
                 )}

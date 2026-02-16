@@ -9,7 +9,7 @@ import {
   useApplyReferralCode,
   getLevelDisplayName,
   getLevelGradient,
-} from '@/lib/medusa/hooks/use-loyalty'
+} from '@/lib/hooks/use-loyalty'
 import {
   Gift,
   Copy,
@@ -98,19 +98,32 @@ export function LoyaltyTab() {
     )
   }
 
-  if (error || !summary) {
+  if (error) {
     return (
       <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
           <Gift className="w-10 h-10 text-muted-foreground" />
         </div>
         <h3 className="text-xl font-semibold mb-2">Програма лояльності</h3>
-        <p className="text-muted-foreground mb-6">
-          {error || 'Не вдалося завантажити дані. Спробуйте пізніше.'}
-        </p>
+        <p className="text-muted-foreground mb-6">{error}</p>
         <Button onClick={() => refetch()} className="rounded-full bg-[#2A9D8F] hover:bg-[#238B7E]">
           Спробувати ще
         </Button>
+      </div>
+    )
+  }
+
+  // Loyalty is disabled for this customer
+  if (!summary) {
+    return (
+      <div className="bg-card rounded-2xl p-8 shadow-soft text-center animate-fadeInUp">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+          <Gift className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">Програма лояльності</h3>
+        <p className="text-muted-foreground">
+          Бонусна програма поки що недоступна для вашого акаунту.
+        </p>
       </div>
     )
   }

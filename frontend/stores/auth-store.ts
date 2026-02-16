@@ -7,9 +7,11 @@ export interface Customer {
   first_name: string
   last_name: string
   phone?: string
-  has_account?: boolean
-  created_at: string
+  addresses?: any[]
+  wishlist?: any[]
   metadata?: Record<string, unknown>
+  created_at: string
+  updated_at?: string
 }
 
 interface AuthState {
@@ -28,18 +30,10 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
       setCustomer: (customer) =>
-        set({
-          customer,
-          isAuthenticated: !!customer,
-          isLoading: false,
-        }),
+        set({ customer, isAuthenticated: !!customer, isLoading: false }),
       setLoading: (isLoading) => set({ isLoading }),
       logout: () =>
-        set({
-          customer: null,
-          isAuthenticated: false,
-          isLoading: false,
-        }),
+        set({ customer: null, isAuthenticated: false, isLoading: false }),
     }),
     {
       name: 'hair-lab-auth',

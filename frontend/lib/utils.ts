@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Format price for display
- * Note: Medusa v2 stores prices in major units (e.g., hryvnias, dollars)
+ * Note: Prices are stored in major units (e.g., hryvnias, dollars)
  * No division by 100 needed
  */
 export function formatPrice(amount: number, currencyCode: string = "UAH"): string {

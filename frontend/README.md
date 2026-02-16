@@ -1,73 +1,82 @@
-# Beauty Hair Store Frontend
+# HAIR LAB Frontend
 
-Next.js 15 storefront for professional hair care products.
+Next.js 15 + React 19 + Payload CMS v3 — storefront та CMS для інтернет-магазину HAIR LAB.
 
-## Features
-
-- **Next.js 15 App Router**: Modern React framework with server components
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **Shadcn/ui**: High-quality UI components
-- **Medusa Integration**: E-commerce functionality
-- **MDX Blog**: Content management with MDX
-
-## Development
+## Запуск
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
+npm install --legacy-peer-deps
+npm run dev          # Development (port 3200)
+npm run build        # Production build
+npm run lint         # ESLint
+npm run type-check   # TypeScript check
 ```
 
-## Project Structure
+## Структура
 
 ```
-app/                    # Next.js App Router
-├── (shop)/            # Shop pages (products, cart, checkout)
-├── (account)/         # User account pages
-├── (content)/         # Content pages (blog, brands, quiz)
-├── layout.tsx         # Root layout
-└── page.tsx           # Home page
+app/
+├── layout.tsx              # Root layout
+├── actions/                # Server Actions (newsletter, loyalty-admin)
+├── (frontend)/             # Storefront route group
+│   ├── layout.tsx          # Header + Footer + Providers
+│   ├── page.tsx            # Головна
+│   ├── account/            # Auth та кабінет
+│   ├── brands/             # Бренди
+│   ├── categories/         # Категорії
+│   ├── checkout/           # Оформлення замовлення
+│   ├── pages/              # CMS сторінки
+│   ├── products/           # Картки товарів
+│   └── shop/               # Каталог з фільтрами
+└── (payload)/              # Payload CMS route group
+    ├── admin/              # Admin панель
+    └── api/                # Payload REST API
 
-components/            # React components
-├── ui/               # Shadcn/ui components
-├── layout/           # Layout components (header, footer)
-├── products/         # Product components
-└── cart/             # Cart components
+components/
+├── ui/                     # Radix UI / shadcn
+├── payload/                # Payload CMS components
+│   ├── loyalty/            # Loyalty admin views (Dashboard, Settings, Customers, Transactions)
+│   ├── Dashboard.tsx       # CMS dashboard
+│   ├── LoyaltyNavLink.tsx  # Sidebar nav link
+│   └── ...
+├── home/                   # Секції головної
+├── products/               # Компоненти товарів
+└── ...
 
-lib/                  # Utilities
-├── medusa/          # Medusa client and API calls
-├── utils.ts         # Helper functions
-└── constants.ts     # App constants
+lib/
+├── medusa/
+│   ├── client.ts           # Medusa SDK (session auth)
+│   ├── admin-api.ts        # Medusa Admin API proxy (server-only)
+│   ├── hooks/              # React hooks для Medusa
+│   └── adapters.ts         # Конвертери
+├── payload/
+│   ├── types.ts            # Типи (client-safe)
+│   ├── client.ts           # Server-only Local API
+│   └── actions.ts          # Server Actions
+└── ...
 
-hooks/               # Custom React hooks
-content/blog/        # MDX blog posts
-public/              # Static assets
+stores/                     # Zustand stores
+collections/                # Payload CMS collection definitions
 ```
 
-## Environment Variables
+## Payload CMS
 
-Create `.env.local`:
-```env
-NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9100
-NEXT_PUBLIC_STORE_URL=http://localhost:3100
-```
+Admin панель: http://localhost:3200/admin
 
-## Available Routes
+**Колекції**: Media, Users, Banners, Pages, PromoBlocks, Brands, Categories, BlogPosts, Reviews
 
-- `/` - Home page
-- `/products` - Product catalog
-- `/products/[handle]` - Product detail
-- `/cart` - Shopping cart
-- `/checkout` - Checkout
-- `/account` - User account
-- `/blog` - Blog
-- `/quiz` - Product quiz
+**Кастомні views**:
+- `/admin/loyalty` — Дашборд програми лояльності
+- `/admin/loyalty/settings` — Налаштування
+- `/admin/loyalty/customers` — Список клієнтів
+- `/admin/loyalty/customers/:id` — Деталі клієнта
+- `/admin/loyalty/transactions` — Історія транзакцій
+
+## State Management
+
+- **Server state**: TanStack React Query v5
+- **Client state**: Zustand (auth, cart, wishlist, loyalty, recently-viewed, ui)
+
+## Змінні оточення
+
+Див. `.env.example`.

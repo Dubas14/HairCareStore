@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useResetPassword } from '@/lib/medusa/hooks/use-password'
+import { useResetPassword } from '@/lib/hooks/use-password'
 import { Loader2, Lock, Eye, EyeOff, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface FormData {
@@ -77,7 +77,6 @@ export function ResetPasswordForm() {
     try {
       await resetPassword.mutateAsync({
         token,
-        email,
         password: formData.password,
       })
       setIsSuccess(true)

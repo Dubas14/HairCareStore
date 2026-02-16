@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Gift, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useLoyalty, useCalculateLoyaltyPoints, getLevelDisplayName } from '@/lib/medusa/hooks/use-loyalty'
+import { useLoyalty, useCalculateLoyaltyPoints, getLevelDisplayName } from '@/lib/hooks/use-loyalty'
 import { useLoyaltyStore } from '@/stores/loyalty-store'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -25,7 +25,7 @@ export function LoyaltyPointsSection({ orderTotal, onPointsChange }: LoyaltyPoin
   // Calculate on load and when order total changes
   useEffect(() => {
     if (summary && orderTotal > 0 && !initialCalcDone.current) {
-      calculatePoints.mutate({ orderTotal, pointsToSpend: 0 })
+      calculatePoints.mutate({ orderTotal, pointsToSpend: 0, currentBalance: summary.pointsBalance, level: summary.level })
       initialCalcDone.current = true
     }
   }, [summary, orderTotal])
@@ -33,7 +33,7 @@ export function LoyaltyPointsSection({ orderTotal, onPointsChange }: LoyaltyPoin
   // Recalculate when points slider changes
   useEffect(() => {
     if (summary && orderTotal > 0 && initialCalcDone.current) {
-      calculatePoints.mutate({ orderTotal, pointsToSpend })
+      calculatePoints.mutate({ orderTotal, pointsToSpend, currentBalance: summary.pointsBalance, level: summary.level })
     }
   }, [pointsToSpend])
 

@@ -1,139 +1,129 @@
-# HAIR LAB - Project Documentation
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Architecture
 
+Single Next.js application with embedded Payload CMS:
+
 ```
 HairCareStore/
-├── backend/          # Medusa 2.x (e-commerce engine)
-├── frontend/         # Next.js 15 (storefront)
-├── cms/              # Strapi 5 (content management)
-└── docker-compose.yml
+├── frontend/   # Next.js 15 + React 19 + Payload CMS v3 (storefront + CMS, port 3200)
+└── docker-compose.yml  # PostgreSQL (5450) + Redis (6390) only
 ```
 
-## Ports
+PostgreSQL at `localhost:5450`, database `payload`.
 
-| Service    | Port |
-|------------|------|
-| Frontend   | 3200 |
-| Backend    | 9000 |
-| Strapi CMS | 1337 |
-| PostgreSQL | 5450 |
-| Redis      | 6390 |
+## Commands
 
-**ВАЖЛИВО**: Backend запускається ЛОКАЛЬНО (не Docker) через `cd backend && npm run dev`
-
-## Strapi CMS
-
-### Content Types
-
-- **Banner** - Hero banners with image/video support
-- **PromoBlock** - Promotional blocks
-- **Page** - Static pages (About, Delivery, etc.)
-
-### Media Field - Video Support
-
-Strapi `Media` field supports both images and videos automatically:
-
-1. In Content-Type Builder → Edit field → **Advanced Settings**
-2. **Select allowed types of media**: Enable `videos (MPEG, MP4, Quicktime, WMV, AVI, FLV)`
-3. Upload video file to media field
-4. Frontend checks `mime` type to render `<video>` or `<img>`
-
-```typescript
-// lib/strapi/client.ts
-export function isVideoMedia(media?: StrapiMedia): boolean {
-  return media?.mime?.startsWith('video/') ?? false
-}
-```
-
-### API Access
-
-Public API endpoints (after configuring permissions):
-- `GET /api/banners?populate=*` - All banners with media
-- `GET /api/promo-blocks?populate=*` - Promo blocks
-- `GET /api/pages?filters[slug][$eq]=about` - Page by slug
-
-### Permissions Setup
-
-Settings → Users & Permissions → Roles → Public:
-- Banner: `find`, `findOne`
-- PromoBlock: `find`, `findOne`
-- Page: `find`, `findOne`
-
-## Medusa Backend
-
-### Admin Access
-
-- URL: `http://localhost:9000/app`
-- Create user: `npx medusa user -e email@example.com -p password`
-
-### Scripts
+### Starting the project
 
 ```bash
-cd backend
-
-# Setup categories and collections
-npx medusa exec ./src/scripts/setup-categories-collections.ts
-
-# Setup product variants (250ml, 500ml, 1000ml)
-npx medusa exec ./src/scripts/setup-product-variants.ts
-
-# Setup pricing and promotions
-npx medusa exec ./src/scripts/setup-pricing-promotions.ts
-```
-
-### Promo Codes
-
-| Code       | Discount | Description              |
-|------------|----------|--------------------------|
-| WELCOME15  | 15%      | New customers            |
-| SALE10     | 10%      | All orders               |
-| HAIRCARE20 | 20%      | Hair care products       |
-| FREESHIP   | 100%     | Free shipping            |
-
-### Admin UI Customization
-
-Font size override via widget injection:
-- `backend/src/admin/widgets/test-widget.tsx`
-- `backend/src/admin/utils/inject-font-styles.ts`
-
-## Frontend
-
-### Environment Variables
-
-```env
-NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-```
-
-### Strapi Integration
-
-```typescript
-// Fetch banners for homepage
-import { getBanners } from '@/lib/strapi/client'
-const banners = await getBanners('home')
-```
-
-## Development
-
-### Start Services
-
-```bash
-# Start databases (Docker)
+# 1. Start databases
 docker-compose up -d postgres redis
 
-# Start Medusa backend
-cd backend && npm run dev
-
-# Start Strapi CMS
-cd cms && npm run develop
-
-# Start Frontend
+# 2. Start frontend (includes Payload CMS admin at /admin)
 cd frontend && npm run dev
 ```
 
-### Database
+### Frontend (Next.js + Payload CMS)
 
-- Medusa: `postgres://postgres:postgres123@localhost:5450/medusa`
-- Strapi: `postgres://postgres:postgres123@localhost:5450/strapi`
+```bash
+cd frontend
+npm run dev                    # Development server (port 3200) — includes Payload admin at /admin
+npm run build                  # Production build
+npm run lint                   # ESLint (next/core-web-vitals)
+npm run type-check             # TypeScript checking
+```
+
+## Frontend Architecture (Next.js 15 + Payload CMS v3)
+
+### App Router Structure (Route Groups)
+
+```
+app/
+├── layout.tsx              # Root layout (html/body, fonts, globals.css)
+├── actions/                # Server actions (newsletter, loyalty-admin, etc.)
+├── (frontend)/             # Storefront route group
+│   ├── layout.tsx          # Frontend layout (Header, Footer, Providers)
+│   ├── page.tsx            # Home page
+│   ├── account/            # Auth & customer dashboard
+│   ├── brands/             # Brand pages
+│   ├── categories/         # Category pages
+│   ├── checkout/           # Checkout flow
+│   ├── pages/              # CMS dynamic pages
+│   ├── products/           # Product detail pages
+│   └── shop/               # Product catalog with filters
+└── (payload)/              # Payload CMS route group
+    ├── layout.tsx          # Payload admin layout
+    ├── custom.scss         # Admin custom styles
+    ├── admin/              # Admin panel UI
+    │   ├── [[...segments]]/page.tsx
+    │   └── importMap.js
+    └── api/                # Payload REST API
+        └── [...slug]/route.ts
+```
+
+### Payload CMS (embedded)
+
+- **Config**: `frontend/payload.config.ts` — PostgreSQL adapter, Lexical editor, sharp
+- **Database**: `postgres://localhost:5450/payload`
+- **Admin panel**: `http://localhost:3200/admin`
+- **Collections**: Media, Users, Banners, Pages, PromoBlocks, Brands, Categories, BlogPosts, Reviews, Products, Orders, Customers
+- **Collection definitions**: `frontend/collections/` directory
+
+#### CMS Data Layer (3 files)
+
+- `lib/payload/types.ts` — Shared types & utilities (safe for client components)
+  - Types: `Banner`, `PromoBlock`, `Page`, `Category`, `Brand`, `BenefitItem`, etc.
+  - Helpers: `getImageUrl()`, `isVideoMedia()`
+- `lib/payload/client.ts` — Server-only data fetching via Payload Local API
+  - Functions: `getBanners()`, `getPromoBlocks()`, `getPageBySlug()`, `getPages()`, `getCategoryBySlug()`, `getCategories()`, `getBrandBySlug()`, `getBrands()`
+- `lib/payload/actions.ts` — Server Actions wrapping client.ts for use in `'use client'` components
+
+#### Import patterns:
+- **Server Components**: import from `@/lib/payload/client` (types + functions + utilities)
+- **Client Components** (types/utilities): import from `@/lib/payload/types`
+- **Client Components** (data fetching): import from `@/lib/payload/actions`
+
+### State Management
+
+Two-layer approach:
+1. **Server state** — TanStack React Query v5 (`lib/query-client.ts` defines query keys factory, 5min stale time)
+2. **Client state** — Zustand stores with localStorage persistence:
+   - `auth-store` — customer object + isAuthenticated
+   - `cart-store` — cartId + local items + drawer state
+   - `wishlist-store` — product IDs
+   - `loyalty-store` — points summary + transactions (NOT persisted)
+   - `recently-viewed-store` — browsing history
+   - `ui-store` — global UI state
+
+### Key Patterns
+
+- **Auth flow**: Payload Customers collection with auth. `CustomerInitializer` component loads customer on app start. Auth checks are client-side in components.
+- **Cart flow**: `CartProvider` context wraps app → auto-creates cart → hooks for add/update/remove/complete
+- **Checkout**: Contact → Shipping Address → Shipping Method → Payment (COD) → Optional loyalty points → Complete
+- **Price formatting**: Prices are in major currency units (not cents). Use `formatPrice()` from `lib/utils/format-price.ts`
+- **Path aliases**: `@/*` → root, `@/components/*`, `@/lib/*`, `@/hooks/*`, `@payload-config` → `./payload.config.ts`
+
+### UI Stack
+
+- Tailwind CSS 3.4 with custom design tokens in `styles/globals.css` (HSL color variables)
+- Radix UI primitives in `components/ui/` (shadcn/ui pattern)
+- Fonts: Inter (body), Playfair Display (headings), JetBrains Mono (data)
+- Icons: Lucide React
+- Carousel: Embla Carousel
+
+## Environment Variables
+
+### Frontend (.env.local)
+
+```
+NEXT_PUBLIC_BASE_URL=http://localhost:3200
+PAYLOAD_DATABASE_URL=postgres://postgres:postgres123@localhost:5450/payload
+PAYLOAD_SECRET=your-secret-key-at-least-32-chars
+```
+
+## Language
+
+The storefront is Ukrainian-language (uk locale). All user-facing text, loyalty descriptions, and content are in Ukrainian.

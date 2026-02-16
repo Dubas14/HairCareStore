@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { Brand, getStrapiImageUrl, isVideoMedia } from '@/lib/strapi/client'
+import { Brand, getImageUrl, isVideoMedia } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 interface BrandHeroProps {
@@ -11,8 +11,8 @@ interface BrandHeroProps {
 }
 
 export function BrandHero({ brand }: BrandHeroProps) {
-  const bannerUrl = getStrapiImageUrl(brand.banner)
-  const logoUrl = getStrapiImageUrl(brand.logo)
+  const bannerUrl = getImageUrl(brand.banner)
+  const logoUrl = getImageUrl(brand.logo)
   const isVideo = isVideoMedia(brand.banner)
 
   return (

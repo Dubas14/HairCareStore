@@ -7,8 +7,7 @@ import { ProductCard } from '@/components/products/product-card'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useProducts } from '@/lib/medusa/hooks'
-import { toFrontendProducts } from '@/lib/medusa/adapters'
+import { useProducts, transformProducts } from '@/lib/hooks/use-products'
 
 type Tab = 'bestsellers' | 'new' | 'sale'
 
@@ -25,14 +24,14 @@ export function FeaturedProducts() {
     threshold: 0.1
   })
 
-  // Завантажуємо товари з Medusa
+  // Завантажуємо товари з Payload CMS
   const { data: productsData, isLoading } = useProducts({ limit: 12 })
 
   // Фільтруємо товари за табами
   const products = useMemo(() => {
     if (!productsData?.products) return []
 
-    const frontendProducts = toFrontendProducts(productsData.products)
+    const frontendProducts = transformProducts(productsData.products)
 
     // Для демо повертаємо перші 4 товари для кожного табу
     // В продакшені тут буде реальна логіка фільтрації
@@ -95,7 +94,7 @@ export function FeaturedProducts() {
           >
             {products.map((product, index) => (
               <div
-                key={product.medusaId || product.id}
+                key={product.productId || product.id}
                 className={inView ? 'animate-fadeInUp' : 'opacity-0'}
                 style={{ animationDelay: `${index * 100}ms` }}
               >

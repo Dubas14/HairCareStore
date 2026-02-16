@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, MapPin, Phone, User } from 'lucide-react'
-import type { Address, AddressInput } from '@/lib/medusa/hooks/use-addresses'
+import type { Address, AddressInput } from '@/lib/hooks/use-addresses'
 
 interface AddressFormProps {
   open: boolean
@@ -22,20 +22,20 @@ interface AddressFormProps {
 }
 
 interface FormData {
-  first_name: string
-  last_name: string
+  firstName: string
+  lastName: string
   phone: string
   city: string
-  address_1: string
-  is_default_shipping: boolean
+  address1: string
+  isDefaultShipping: boolean
 }
 
 interface FormErrors {
-  first_name?: string
-  last_name?: string
+  firstName?: string
+  lastName?: string
   phone?: string
   city?: string
-  address_1?: string
+  address1?: string
 }
 
 export function AddressForm({
@@ -48,12 +48,12 @@ export function AddressForm({
   const isEditMode = !!address
 
   const [formData, setFormData] = useState<FormData>({
-    first_name: '',
-    last_name: '',
+    firstName: '',
+    lastName: '',
     phone: '',
     city: '',
-    address_1: '',
-    is_default_shipping: false,
+    address1: '',
+    isDefaultShipping: false,
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -62,21 +62,21 @@ export function AddressForm({
   useEffect(() => {
     if (address) {
       setFormData({
-        first_name: address.first_name || '',
-        last_name: address.last_name || '',
+        firstName: address.firstName || '',
+        lastName: address.lastName || '',
         phone: address.phone || '',
         city: address.city || '',
-        address_1: address.address_1 || '',
-        is_default_shipping: address.is_default_shipping || false,
+        address1: address.address1 || '',
+        isDefaultShipping: address.isDefaultShipping || false,
       })
     } else {
       setFormData({
-        first_name: '',
-        last_name: '',
+        firstName: '',
+        lastName: '',
         phone: '',
         city: '',
-        address_1: '',
-        is_default_shipping: false,
+        address1: '',
+        isDefaultShipping: false,
       })
     }
     setErrors({})
@@ -93,12 +93,12 @@ export function AddressForm({
   const validate = (): boolean => {
     const newErrors: FormErrors = {}
 
-    if (!formData.first_name.trim()) {
-      newErrors.first_name = "Обов'язкове поле"
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "Обов'язкове поле"
     }
 
-    if (!formData.last_name.trim()) {
-      newErrors.last_name = "Обов'язкове поле"
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Обов'язкове поле"
     }
 
     if (!formData.phone.trim()) {
@@ -111,8 +111,8 @@ export function AddressForm({
       newErrors.city = "Обов'язкове поле"
     }
 
-    if (!formData.address_1.trim()) {
-      newErrors.address_1 = "Обов'язкове поле"
+    if (!formData.address1.trim()) {
+      newErrors.address1 = "Обов'язкове поле"
     }
 
     setErrors(newErrors)
@@ -125,12 +125,12 @@ export function AddressForm({
 
     try {
       await onSubmit({
-        first_name: formData.first_name.trim(),
-        last_name: formData.last_name.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         phone: formData.phone.trim(),
         city: formData.city.trim(),
-        address_1: formData.address_1.trim(),
-        is_default_shipping: formData.is_default_shipping,
+        address1: formData.address1.trim(),
+        isDefaultShipping: formData.isDefaultShipping,
       })
       onOpenChange(false)
     } catch (error) {
@@ -151,47 +151,47 @@ export function AddressForm({
           {/* Name fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="first_name" className="text-sm font-medium flex items-center gap-2">
+              <label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
                 Ім&apos;я <span className="text-destructive">*</span>
               </label>
               <Input
-                id="first_name"
-                name="first_name"
-                value={formData.first_name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
                 placeholder="Ваше ім'я"
                 className={`h-11 rounded-xl ${
-                  errors.first_name
+                  errors.firstName
                     ? 'border-destructive focus-visible:ring-destructive'
                     : 'focus-visible:ring-[#2A9D8F]'
                 }`}
                 disabled={isLoading}
               />
-              {errors.first_name && (
-                <p className="text-sm text-destructive">{errors.first_name}</p>
+              {errors.firstName && (
+                <p className="text-sm text-destructive">{errors.firstName}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="last_name" className="text-sm font-medium">
+              <label htmlFor="lastName" className="text-sm font-medium">
                 Прізвище <span className="text-destructive">*</span>
               </label>
               <Input
-                id="last_name"
-                name="last_name"
-                value={formData.last_name}
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
                 onChange={handleChange}
                 placeholder="Ваше прізвище"
                 className={`h-11 rounded-xl ${
-                  errors.last_name
+                  errors.lastName
                     ? 'border-destructive focus-visible:ring-destructive'
                     : 'focus-visible:ring-[#2A9D8F]'
                 }`}
                 disabled={isLoading}
               />
-              {errors.last_name && (
-                <p className="text-sm text-destructive">{errors.last_name}</p>
+              {errors.lastName && (
+                <p className="text-sm text-destructive">{errors.lastName}</p>
               )}
             </div>
           </div>
@@ -247,24 +247,24 @@ export function AddressForm({
 
           {/* Nova Poshta Warehouse */}
           <div className="space-y-2">
-            <label htmlFor="address_1" className="text-sm font-medium">
+            <label htmlFor="address1" className="text-sm font-medium">
               Відділення / Поштомат НП <span className="text-destructive">*</span>
             </label>
             <Input
-              id="address_1"
-              name="address_1"
-              value={formData.address_1}
+              id="address1"
+              name="address1"
+              value={formData.address1}
               onChange={handleChange}
               placeholder="Номер або адреса відділення"
               className={`h-11 rounded-xl ${
-                errors.address_1
+                errors.address1
                   ? 'border-destructive focus-visible:ring-destructive'
                   : 'focus-visible:ring-[#2A9D8F]'
               }`}
               disabled={isLoading}
             />
-            {errors.address_1 && (
-              <p className="text-sm text-destructive">{errors.address_1}</p>
+            {errors.address1 && (
+              <p className="text-sm text-destructive">{errors.address1}</p>
             )}
             <p className="text-xs text-muted-foreground">
               Наприклад: Відділення №5, вул. Шевченка, 10
@@ -273,10 +273,10 @@ export function AddressForm({
 
           {/* Default shipping checkbox */}
           <Checkbox
-            id="is_default_shipping"
-            checked={formData.is_default_shipping}
+            id="isDefaultShipping"
+            checked={formData.isDefaultShipping}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, is_default_shipping: e.target.checked }))
+              setFormData((prev) => ({ ...prev, isDefaultShipping: e.target.checked }))
             }
             disabled={isLoading}
             label="Зробити основною адресою"

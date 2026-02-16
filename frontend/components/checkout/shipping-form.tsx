@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AddressSelect } from './address-select'
-import type { Address } from '@/lib/medusa/hooks/use-addresses'
+import type { Address } from '@/lib/hooks/use-addresses'
 
 interface ShippingFormData {
   city: string
@@ -41,12 +41,12 @@ export function ShippingForm({
   useEffect(() => {
     if (autoFilled || !isAuthenticated || addresses.length === 0) return
 
-    const defaultAddr = addresses.find(a => a.is_default_shipping) || addresses[0]
+    const defaultAddr = addresses.find(a => a.isDefaultShipping) || addresses[0]
     if (defaultAddr) {
       setSelectedAddressId(defaultAddr.id)
       setFormData({
         city: defaultAddr.city || '',
-        warehouse: defaultAddr.address_1 || '',
+        warehouse: defaultAddr.address1 || '',
       })
       setAutoFilled(true)
     }
@@ -66,7 +66,7 @@ export function ShippingForm({
     setSelectedAddressId(address.id)
     setFormData({
       city: address.city || '',
-      warehouse: address.address_1 || '',
+      warehouse: address.address1 || '',
     })
   }
 

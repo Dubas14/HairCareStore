@@ -1,6 +1,6 @@
 'use client'
 
-import { Brand, BenefitItem } from '@/lib/strapi/client'
+import { Brand, BenefitItem } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { ExternalLink } from 'lucide-react'
 

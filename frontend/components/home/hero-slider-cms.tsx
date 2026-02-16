@@ -6,7 +6,7 @@ import Autoplay from 'embla-carousel-autoplay'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Banner, getStrapiImageUrl, isVideoMedia } from '@/lib/strapi/client'
+import { Banner, getImageUrl, isVideoMedia } from '@/lib/payload/types'
 import { heroSlides } from '@/lib/constants/home-data'
 
 interface HeroSliderCMSProps {
@@ -114,7 +114,7 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full flex">
           {banners.map((banner) => {
-            const mediaUrl = getStrapiImageUrl(banner.image)
+            const mediaUrl = getImageUrl(banner.image)
             const isVideo = isVideoMedia(banner.image)
             return (
               <div key={banner.id} className="embla__slide relative flex-[0_0_100%] min-w-0">

@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Edit3, Trash2, Star, Loader2, MapPin, Phone, User } from 'lucide-react'
-import type { Address } from '@/lib/medusa/hooks/use-addresses'
+import type { Address } from '@/lib/hooks/use-addresses'
 
 interface AddressCardProps {
   address: Address
@@ -36,12 +36,12 @@ export function AddressCard({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleDelete = async () => {
-    await onDelete(address.id)
+    if (address.id) await onDelete(address.id)
     setShowDeleteDialog(false)
   }
 
-  const fullName = [address.first_name, address.last_name].filter(Boolean).join(' ')
-  const isDefault = address.is_default_shipping
+  const fullName = [address.firstName, address.lastName].filter(Boolean).join(' ')
+  const isDefault = address.isDefaultShipping
 
   return (
     <>
@@ -67,7 +67,7 @@ export function AddressCard({
               <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <p className="text-sm">
                 {address.city}
-                {address.address_1 && `, ${address.address_1}`}
+                {address.address1 && `, ${address.address1}`}
               </p>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function AddressCard({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onSetDefault(address.id)}
+              onClick={() => address.id && onSetDefault(address.id)}
               disabled={isSettingDefault}
               className="text-[#2A9D8F] hover:text-[#2A9D8F] hover:bg-[#2A9D8F]/10 ml-auto"
             >

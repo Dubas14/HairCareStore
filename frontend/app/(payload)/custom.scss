@@ -1,0 +1,206 @@
+/* HAIR LAB CMS — Custom Admin Theme */
+/* Payload v3 class names */
+
+:root {
+  --theme-success-500: #2a9d8f;
+  --theme-success-400: #48cae4;
+}
+
+/* ===== Global ===== */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ===== Login page ===== */
+.template-default.template-default--has-bg {
+  background: linear-gradient(135deg, #f8fffe 0%, #f0faf8 50%, #eef7fb 100%);
+}
+
+/* Login form button */
+.login .btn {
+  background: linear-gradient(135deg, #2a9d8f, #3ab5a6) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease !important;
+
+  &:hover {
+    background: linear-gradient(135deg, #238b7e, #2a9d8f) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+  }
+}
+
+/* ===== Hide collapsed nav ===== */
+aside.nav[inert] {
+  display: none !important;
+}
+
+/* ===== Sidebar / Nav (only when open) ===== */
+aside.nav:not([inert]) {
+  background: #141414 !important;
+
+  .nav__header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 16px 20px;
+  }
+
+  .nav-group__toggle {
+    color: rgba(255, 255, 255, 0.45) !important;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .nav-group__label {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .nav__link {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-radius: 6px;
+    margin: 1px 8px;
+    padding: 8px 12px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #fff !important;
+      background: rgba(42, 157, 143, 0.12) !important;
+    }
+
+    &.active {
+      color: #fff !important;
+      background: rgba(42, 157, 143, 0.2) !important;
+    }
+  }
+
+  .nav__link-label {
+    color: inherit !important;
+  }
+
+  .nav__log-out {
+    color: rgba(255, 255, 255, 0.5) !important;
+
+    &:hover {
+      color: #fff !important;
+    }
+
+    svg {
+      color: inherit !important;
+    }
+  }
+
+  .nav__controls {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Logo text override for dark bg */
+  span[style*="color: #1A1A1A"],
+  span[style*="color: rgb(26, 26, 26)"] {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+  }
+}
+
+/* ===== Accent overrides ===== */
+/* Primary buttons */
+.btn.btn--style-primary,
+.btn--style-primary {
+  background: #2a9d8f !important;
+  border-color: #2a9d8f !important;
+
+  &:hover {
+    background: #238b7e !important;
+    border-color: #238b7e !important;
+  }
+}
+
+/* Secondary buttons */
+.btn.btn--style-secondary,
+.btn--style-secondary {
+  color: #2a9d8f !important;
+  border-color: #2a9d8f !important;
+
+  &:hover {
+    background: rgba(42, 157, 143, 0.08) !important;
+  }
+}
+
+/* Pill buttons */
+.btn.btn--style-pill,
+.pill {
+  &.active,
+  &--active {
+    background: #2a9d8f !important;
+    border-color: #2a9d8f !important;
+  }
+}
+
+/* Tabs active */
+.tabs-field__tab-button--active {
+  color: #2a9d8f !important;
+  border-color: #2a9d8f !important;
+}
+
+/* Checkbox & toggle switches */
+input[type='checkbox']:checked {
+  background-color: #2a9d8f !important;
+  border-color: #2a9d8f !important;
+}
+
+/* ===== App Header ===== */
+.app-header {
+  .step-nav__home {
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .step-nav a:hover {
+    color: #2a9d8f !important;
+  }
+}
+
+/* ===== Dashboard ===== */
+.modular-dashboard {
+  .card-brands {
+    border-radius: 8px;
+  }
+}
+
+/* ===== Collection list ===== */
+.collection-list .collection-list__header h2 {
+  font-weight: 700;
+}
+
+/* ===== Document header ===== */
+.doc-header .doc-header__title .render-title {
+  font-weight: 700;
+}
+
+/* ===== Input focus ===== */
+.field-type input:focus,
+.field-type textarea:focus,
+.field-type select:focus {
+  border-color: #2a9d8f !important;
+}
+
+.search-filter__input:focus {
+  border-color: #2a9d8f !important;
+  box-shadow: 0 0 0 1px #2a9d8f;
+}
+
+/* ===== Scrollbar (Webkit) ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(42, 157, 143, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(42, 157, 143, 0.5);
+}

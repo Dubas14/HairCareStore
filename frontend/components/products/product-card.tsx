@@ -6,7 +6,7 @@ import { Heart, Star, Loader2 } from 'lucide-react'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { ShimmerBadge } from '@/components/ui/shimmer-badge'
 import { useCartContext } from '@/components/providers/cart-provider'
-import { useWishlist, useToggleWishlist } from '@/lib/medusa/hooks/use-wishlist'
+import { useWishlist, useToggleWishlist } from '@/lib/hooks/use-wishlist'
 import { useAuthStore } from '@/stores/auth-store'
 import type { Product } from '@/lib/constants/home-data'
 
@@ -24,9 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { isInWishlist } = useWishlist()
   const toggleWishlist = useToggleWishlist()
 
-  // IMPORTANT: Always use Medusa ID for wishlist to ensure consistency
-  // across all pages (catalog, homepage, product detail)
-  const wishlistProductId = product.medusaId
+  const wishlistProductId = product.productId
   const isWishlisted = wishlistProductId ? isInWishlist(wishlistProductId) : false
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
@@ -40,7 +38,7 @@ export function ProductCard({ product }: ProductCardProps) {
     }
 
     if (!wishlistProductId) {
-      console.error('Cannot add to wishlist: missing medusaId for product', product)
+      console.error('Cannot add to wishlist: missing productId for product', product)
       return
     }
 

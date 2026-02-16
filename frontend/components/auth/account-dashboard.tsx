@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useCustomer, useLogout, useUpdateCustomer } from '@/lib/medusa/hooks/use-customer'
+import { useCustomer, useLogout, useUpdateCustomer } from '@/lib/hooks/use-customer'
 import {
   useAddresses,
   useAddAddress,
@@ -14,15 +14,15 @@ import {
   useSetDefaultAddress,
   type Address,
   type AddressInput,
-} from '@/lib/medusa/hooks/use-addresses'
+} from '@/lib/hooks/use-addresses'
 import { AddressCard } from './address-card'
 import { AddressForm } from './address-form'
 import { OrderCard } from './order-card'
 import { LoyaltyTab } from './loyalty-tab'
-import { useOrders } from '@/lib/medusa/hooks/use-orders'
-import { useWishlist, useRemoveFromWishlist } from '@/lib/medusa/hooks/use-wishlist'
-import { useRequestPasswordReset } from '@/lib/medusa/hooks/use-password'
-import { useLoyalty } from '@/lib/medusa/hooks/use-loyalty'
+import { useOrders } from '@/lib/hooks/use-orders'
+import { useWishlist, useRemoveFromWishlist } from '@/lib/hooks/use-wishlist'
+import { useRequestPasswordReset } from '@/lib/hooks/use-password'
+import { useLoyalty } from '@/lib/hooks/use-loyalty'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ProductCard } from '@/components/products/product-card'
-import { getImageUrl } from '@/lib/medusa/adapters'
+import { getImageUrl } from '@/lib/payload/types'
 import {
   User,
   Package,
@@ -73,8 +73,8 @@ function OverviewTab() {
   const updateCustomer = useUpdateCustomer()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    first_name: customer?.first_name || '',
-    last_name: customer?.last_name || '',
+    firstName: customer?.first_name || '',
+    lastName: customer?.last_name || '',
     phone: customer?.phone || '',
   })
 
@@ -163,16 +163,16 @@ function OverviewTab() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Ім&apos;я</label>
               <Input
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 className="h-11 rounded-xl"
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Прізвище</label>
               <Input
-                value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 className="h-11 rounded-xl"
               />
             </div>
@@ -357,14 +357,14 @@ function WishlistTab() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((product, index) => {
-          // Transform Medusa product to ProductCard format
+          // Transform Payload product to ProductCard format
           const variant = product.variants?.[0]
-          const price = variant?.calculated_price?.calculated_amount || 0
-          const originalPrice = variant?.calculated_price?.original_amount || price
+          const price = variant?.price || 0
+          const originalPrice = variant?.compareAtPrice || price
 
           const productCardData = {
-            id: index + 1, // ProductCard expects number id
-            medusaId: product.id, // Keep Medusa ID for wishlist operations
+            id: typeof product.id === 'string' ? index + 1 : (product.id as number),
+            productId: String(product.id),
             name: product.title,
             brand: product.subtitle || 'HAIR LAB',
             slug: product.handle,
@@ -373,7 +373,7 @@ function WishlistTab() {
             discount: originalPrice > price
               ? Math.round(((originalPrice - price) / originalPrice) * 100)
               : undefined,
-            imageUrl: getImageUrl(product.thumbnail),
+            imageUrl: getImageUrl(product.thumbnail as any) || '',
             rating: 4.5,
             reviewCount: 0,
             variantId: variant?.id,
@@ -397,27 +397,35 @@ function AddressesTab() {
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
+  const [editingIndex, setEditingIndex] = useState<number>(-1)
 
   const handleAddAddress = async (data: AddressInput) => {
     await addAddress.mutateAsync(data)
   }
 
   const handleUpdateAddress = async (data: AddressInput) => {
-    if (!editingAddress) return
-    await updateAddress.mutateAsync({ id: editingAddress.id, data })
+    if (!editingAddress || editingIndex < 0) return
+    await updateAddress.mutateAsync({ index: editingIndex, data })
     setEditingAddress(null)
+    setEditingIndex(-1)
   }
 
   const handleDeleteAddress = async (addressId: string) => {
-    await deleteAddress.mutateAsync(addressId)
+    const index = addresses.findIndex((a: Address) => a.id === addressId)
+    if (index < 0) return
+    await deleteAddress.mutateAsync(index)
   }
 
   const handleSetDefault = async (addressId: string) => {
-    await setDefaultAddress.mutateAsync(addressId)
+    const index = addresses.findIndex((a: Address) => a.id === addressId)
+    if (index < 0) return
+    await setDefaultAddress.mutateAsync(index)
   }
 
   const handleEdit = (address: Address) => {
+    const index = addresses.findIndex((a: Address) => a.id === address.id)
     setEditingAddress(address)
+    setEditingIndex(index)
     setIsFormOpen(true)
   }
 
@@ -487,7 +495,7 @@ function AddressesTab() {
 
         {/* Address cards */}
         <div className="grid gap-4">
-          {addresses.map((address) => (
+          {addresses.map((address: Address) => (
             <AddressCard
               key={address.id}
               address={address}

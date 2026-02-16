@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useLogin, useCustomer } from '@/lib/medusa/hooks/use-customer'
+import { useLogin, useCustomer } from '@/lib/hooks/use-customer'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 
 interface FormData {

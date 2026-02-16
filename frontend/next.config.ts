@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { withPayload } from '@payloadcms/next/withPayload'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -9,6 +10,11 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
         port: '9100',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3200',
+      },
     ],
   },
   experimental: {
@@ -18,4 +24,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withPayload(nextConfig)

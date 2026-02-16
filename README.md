@@ -1,88 +1,60 @@
-# Beauty Hair Store 🛍️
+# HAIR LAB — Інтернет-магазин професійної косметики для волосся
 
-Інтернет-магазин професійної косметики для волосся з системою підбору продуктів на основі типу волосся та потреб.
+## Архітектура
 
-## 🚀 Технології
+```
+HairCareStore/
+├── frontend/   # Next.js 15 + React 19 + Payload CMS v3 (storefront + CMS, port 3200)
+└── docker-compose.yml  # PostgreSQL (5450) + Redis (6390)
+```
 
-- **Frontend**: Next.js 15 + TypeScript + Tailwind CSS + Shadcn/ui
-- **Backend**: Medusa 2.0 (E-commerce Framework)
-- **База даних**: PostgreSQL 15
+| Сервіс | Порт | URL |
+|--------|------|-----|
+| PostgreSQL | 5450 | — |
+| Redis | 6390 | — |
+| Frontend (Next.js) | 3200 | http://localhost:3200 |
+| Payload CMS Admin | 3200 | http://localhost:3200/admin |
+
+## Швидкий старт
+
+```bash
+# 1. Запустити бази даних
+docker-compose up -d postgres redis
+
+# 2. Запустити frontend (+ Payload CMS admin)
+cd frontend && npm install --legacy-peer-deps && npm run dev
+```
+
+## Технології
+
+- **Frontend**: Next.js 15.4, React 19, Tailwind CSS 3.4, Radix UI
+- **CMS**: Payload CMS v3 (вбудований в Next.js)
+- **БД**: PostgreSQL 15 (database: `payload`)
 - **Кеш**: Redis 7
-- **Контейнеризація**: Docker + Docker Compose
-- **Блог**: MDX в Next.js
+- **Шрифти**: Inter, Playfair Display, JetBrains Mono
+- **Іконки**: Lucide React
 
-## 🏗️ Архітектура
+## CMS (Payload v3)
 
+Payload CMS вбудований у Next.js frontend. Admin панель: http://localhost:3200/admin
+
+**Колекції**: Media, Users, Banners, Pages, PromoBlocks, Brands, Categories, BlogPosts, Reviews, Products, Orders, Customers
+
+**Кастомні views**: Loyalty Dashboard, Settings, Customers, Transactions
+
+## Змінні оточення
+
+### Frontend (`frontend/.env.local`)
 ```
-├── backend/          # Medusa 2.0 E-commerce Backend
-├── frontend/         # Next.js 15 Storefront
-└── scripts/          # Утиліти та seed скрипти
-```
-
-## 🔌 Порти
-
-| Сервіс | Порт |
-|--------|------|
-| PostgreSQL | 5450 |
-| Redis | 6390 |
-| Medusa Backend | 9100 |
-| Medusa Admin | 9100/app |
-| Next.js Frontend | 3100 |
-
-## 📦 Швидкий старт
-
-### 1. Клонувати репозиторій
-```bash
-git clone <repository-url>
-cd beauty-hair-store
+NEXT_PUBLIC_BASE_URL=http://localhost:3200
+PAYLOAD_DATABASE_URL=postgres://postgres:postgres123@localhost:5450/payload
+PAYLOAD_SECRET=your-secret-key
 ```
 
-### 2. Налаштувати середовище
-```bash
-cp .env.example .env
-# Відредагуйте .env файл з вашими налаштуваннями
-```
+## Мова
 
-### 3. Запустити через Docker
-```bash
-docker-compose up -d
-```
+Інтерфейс магазину — українською мовою. Всі UI-тексти, описи бонусної програми та контент — українською.
 
-### 4. Відкрити в браузері
-- 🛍️ Магазин: http://localhost:3100
-- 🎨 Medusa Admin: http://localhost:9100/app
-- 📡 API: http://localhost:9100
-
-## 🛠️ Розробка
-
-### Backend (Medusa)
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-### Frontend (Next.js)
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## ✨ Основні функції
-
-- 🔍 Розширені фільтри по типу волосся, бренду, проблемах
-- 🎯 Квіз для підбору продуктів
-- 💳 Оформлення замовлень з інтеграцією доставки
-- 👤 Особистий кабінет користувача
-- ⭐ Система відгуків та рейтингів
-- 📝 Блог про догляд за волоссям (MDX)
-- 🔐 Безпечна автентифікація
-
-## 📚 Документація
-
-Детальна специфікація проекту: [2026-01-29-beauty-hair-store-design.md](./2026-01-29-beauty-hair-store-design.md)
-
-## 📄 Ліцензія
+## Ліцензія
 
 MIT

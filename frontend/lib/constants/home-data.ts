@@ -22,8 +22,8 @@ export interface Category {
 
 export interface Product {
   id: number
-  medusaId?: string // Medusa product ID (required for wishlist)
-  variantId?: string // Medusa variant ID (required for cart)
+  productId?: string | number // Product ID (required for wishlist)
+  variantId?: string // Variant ID (required for cart)
   name: string
   brand: string
   slug: string
@@ -134,9 +134,8 @@ export const categories: Category[] = [
   }
 ]
 
-// Featured Products (DEPRECATED - використовуйте useProducts() з Medusa)
-// Залишено для зворотної сумісності, але компоненти мають завантажувати
-// реальні товари з Medusa API через хук useProducts()
+// Featured Products (fallback data)
+// Компоненти мають завантажувати реальні товари з Payload CMS
 export const featuredProducts = {
   bestsellers: [
     {

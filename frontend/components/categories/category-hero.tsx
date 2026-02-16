@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { Category, getStrapiImageUrl, isVideoMedia } from '@/lib/strapi/client'
+import { Category, getImageUrl, isVideoMedia } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 interface CategoryHeroProps {
@@ -11,8 +11,8 @@ interface CategoryHeroProps {
 }
 
 export function CategoryHero({ category }: CategoryHeroProps) {
-  const bannerUrl = getStrapiImageUrl(category.banner)
-  const iconUrl = getStrapiImageUrl(category.icon)
+  const bannerUrl = getImageUrl(category.banner)
+  const iconUrl = getImageUrl(category.icon)
   const isVideo = isVideoMedia(category.banner)
 
   return (

@@ -20,6 +20,7 @@ interface FilterSidebarProps {
   onFiltersChange: (filters: FilterState) => void
   maxPrice?: number
   className?: string
+  hideBrandFilter?: boolean
 }
 
 const concerns = [

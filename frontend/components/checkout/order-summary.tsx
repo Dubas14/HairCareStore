@@ -1,31 +1,40 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { MedusaCart, MedusaCartItem } from '@/lib/medusa/hooks'
 import { LoyaltyPointsSection } from './loyalty-points-section'
 
 const FREE_SHIPPING_THRESHOLD = 1000
-const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000'
 
 function getImageUrl(url: string | null | undefined): string {
   if (!url) return '/placeholder-product.jpg'
-  // If URL is absolute (starts with http), return as is
-  if (url.startsWith('http')) return url
-  // Otherwise, prepend Medusa backend URL
-  return `${MEDUSA_BACKEND_URL}${url}`
+  return url
+}
+
+interface CartLike {
+  items: Array<{
+    id?: string | number
+    productTitle?: string
+    productThumbnail?: string
+    variantTitle?: string
+    quantity: number
+    unitPrice: number
+  }>
+  subtotal: number
+  shippingTotal: number
+  discountTotal: number
+  total: number
 }
 
 interface OrderSummaryProps {
-  cart: MedusaCart | null
+  cart: CartLike | null
   showItems?: boolean
 }
 
-function OrderItem({ item }: { item: MedusaCartItem }) {
-  const productName = item.variant?.product?.title || item.title
-  const brand = item.variant?.product?.subtitle || 'HAIR LAB'
-  const variantName = item.variant?.title || 'Стандартний'
-  const imageUrl = getImageUrl(item.thumbnail || item.variant?.product?.thumbnail)
-  const price = item.unit_price
+function OrderItem({ item }: { item: CartLike['items'][number] }) {
+  const productName = item.productTitle || 'Товар'
+  const variantName = item.variantTitle || 'Стандартний'
+  const imageUrl = getImageUrl(item.productThumbnail)
+  const price = item.unitPrice
 
   return (
     <div className="flex gap-3 py-3">
@@ -40,7 +49,6 @@ function OrderItem({ item }: { item: MedusaCartItem }) {
         </span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground">{brand}</p>
         <h4 className="text-sm font-medium line-clamp-1">{productName}</h4>
         <p className="text-xs text-muted-foreground">{variantName}</p>
       </div>
@@ -54,14 +62,14 @@ function OrderItem({ item }: { item: MedusaCartItem }) {
 export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
   const items = cart?.items || []
   const subtotal = cart ? cart.subtotal : 0
-  const shippingTotal = cart ? cart.shipping_total : 0
+  const shippingTotal = cart ? cart.shippingTotal : 0
   const cartTotal = cart ? cart.total : 0
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
 
   // Loyalty points state
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0)
 
-  const handleLoyaltyPointsChange = useCallback((points: number, discount: number) => {
+  const handleLoyaltyPointsChange = useCallback((_points: number, discount: number) => {
     setLoyaltyDiscount(discount)
   }, [])
 
@@ -74,8 +82,8 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
       {/* Items */}
       {showItems && items.length > 0 && (
         <div className="divide-y divide-border mb-4 max-h-[300px] overflow-y-auto">
-          {items.map((item) => (
-            <OrderItem key={item.id} item={item} />
+          {items.map((item, index) => (
+            <OrderItem key={item.id ?? index} item={item} />
           ))}
         </div>
       )}
@@ -96,10 +104,10 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
               : 'За тарифами НП'}
           </span>
         </div>
-        {cart?.discount_total && cart.discount_total > 0 && (
+        {cart?.discountTotal && cart.discountTotal > 0 && (
           <div className="flex justify-between text-sm text-success">
             <span>Знижка</span>
-            <span>-{Math.round(cart.discount_total)} ₴</span>
+            <span>-{Math.round(cart.discountTotal)} ₴</span>
           </div>
         )}
         {loyaltyDiscount > 0 && (

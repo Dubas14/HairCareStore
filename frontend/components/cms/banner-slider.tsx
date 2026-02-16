@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Banner, getStrapiImageUrl } from '@/lib/strapi/client'
+import { Banner, getImageUrl } from '@/lib/payload/types'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface BannerSliderProps {
@@ -42,7 +42,7 @@ export function BannerSlider({
   }
 
   const currentBanner = banners[currentIndex]
-  const imageUrl = getStrapiImageUrl(currentBanner.image)
+  const imageUrl = getImageUrl(currentBanner.image)
 
   return (
     <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden bg-neutral-900">

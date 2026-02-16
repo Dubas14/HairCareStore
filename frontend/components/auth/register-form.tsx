@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useRegister } from '@/lib/medusa/hooks/use-customer'
+import { useRegister } from '@/lib/hooks/use-customer'
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Check } from 'lucide-react'
 
 interface FormData {
@@ -135,8 +135,8 @@ export function RegisterForm() {
       await register.mutateAsync({
         email: formData.email,
         password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
       })
 
       // Show success message before redirect

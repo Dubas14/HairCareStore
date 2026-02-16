@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { CategoryPromoBlock, getStrapiImageUrl } from '@/lib/strapi/client'
+import { CategoryPromoBlock, getImageUrl } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { Button } from '@/components/ui/button'
 
@@ -13,7 +13,7 @@ interface CategoryPromoProps {
 }
 
 export function CategoryPromo({ promoBlock, accentColor }: CategoryPromoProps) {
-  const imageUrl = getStrapiImageUrl(promoBlock.image)
+  const imageUrl = getImageUrl(promoBlock.image)
 
   return (
     <section className="py-8 md:py-12">
@@ -57,7 +57,7 @@ export function CategoryPromo({ promoBlock, accentColor }: CategoryPromoProps) {
                 <div className="relative w-full md:w-1/3 h-[200px] md:h-[250px]">
                   <Image
                     src={imageUrl}
-                    alt={promoBlock.title}
+                    alt={promoBlock.title || ''}
                     fill
                     className="object-contain object-center md:object-right"
                   />
