@@ -25,6 +25,7 @@ import { ShippingConfig } from './globals/ShippingConfig'
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
 
+
   db: postgresAdapter({
     pool: {
       connectionString: process.env.PAYLOAD_DATABASE_URL || 'postgres://postgres:postgres123@localhost:5450/payload',
@@ -63,6 +64,7 @@ export default buildConfig({
       titleSuffix: ' - HAIR LAB CMS',
     },
     components: {
+      providers: ['/components/payload/NavProvider'],
       graphics: {
         Logo: '/components/payload/Logo',
         Icon: '/components/payload/Icon',

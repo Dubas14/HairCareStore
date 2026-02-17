@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
+  labels: { singular: 'Категорія', plural: 'Категорії' },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'order', 'isActive'],
-    group: 'Catalog',
+    group: 'Каталог',
   },
   access: {
     read: () => true,

@@ -2,8 +2,9 @@ import type { GlobalConfig } from 'payload'
 
 export const LoyaltySettings: GlobalConfig = {
   slug: 'loyalty-settings',
+  label: 'Налаштування лояльності',
   admin: {
-    group: 'Loyalty',
+    group: 'Лояльність',
   },
   access: {
     read: () => true,

@@ -9,10 +9,11 @@ export const Customers: CollectionConfig = {
       secure: process.env.NODE_ENV === 'production',
     },
   },
+  labels: { singular: 'Клієнт', plural: 'Клієнти' },
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'firstName', 'lastName', 'createdAt'],
-    group: 'Shop',
+    group: 'Магазин',
   },
   access: {
     create: () => true, // Public registration

@@ -12,10 +12,11 @@ const addressFields = [
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
+  labels: { singular: 'Замовлення', plural: 'Замовлення' },
   admin: {
     useAsTitle: 'displayId',
     defaultColumns: ['displayId', 'email', 'status', 'total', 'createdAt'],
-    group: 'Shop',
+    group: 'Магазин',
   },
   access: {
     read: ({ req }) => {
@@ -38,11 +39,11 @@ export const Orders: CollectionConfig = {
       type: 'select',
       defaultValue: 'pending',
       options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Completed', value: 'completed' },
-        { label: 'Canceled', value: 'canceled' },
-        { label: 'Requires Action', value: 'requires_action' },
-        { label: 'Archived', value: 'archived' },
+        { label: 'В обробці', value: 'pending' },
+        { label: 'Виконано', value: 'completed' },
+        { label: 'Скасовано', value: 'canceled' },
+        { label: 'Потребує дій', value: 'requires_action' },
+        { label: 'Архів', value: 'archived' },
       ],
       admin: { position: 'sidebar' },
     },
@@ -51,9 +52,9 @@ export const Orders: CollectionConfig = {
       type: 'select',
       defaultValue: 'awaiting',
       options: [
-        { label: 'Awaiting', value: 'awaiting' },
-        { label: 'Paid', value: 'paid' },
-        { label: 'Refunded', value: 'refunded' },
+        { label: 'Очікує', value: 'awaiting' },
+        { label: 'Оплачено', value: 'paid' },
+        { label: 'Повернено', value: 'refunded' },
       ],
       admin: { position: 'sidebar' },
     },
@@ -62,9 +63,9 @@ export const Orders: CollectionConfig = {
       type: 'select',
       defaultValue: 'not_fulfilled',
       options: [
-        { label: 'Not Fulfilled', value: 'not_fulfilled' },
-        { label: 'Shipped', value: 'shipped' },
-        { label: 'Delivered', value: 'delivered' },
+        { label: 'Не виконано', value: 'not_fulfilled' },
+        { label: 'Відправлено', value: 'shipped' },
+        { label: 'Доставлено', value: 'delivered' },
       ],
       admin: { position: 'sidebar' },
     },

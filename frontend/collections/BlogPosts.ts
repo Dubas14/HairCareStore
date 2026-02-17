@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const BlogPosts: CollectionConfig = {
   slug: 'blog-posts',
+  labels: { singular: 'Стаття', plural: 'Блог' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'status', 'publishedAt'],
-    group: 'Content',
+    group: 'Контент',
   },
   access: {
     read: () => true,
@@ -69,8 +70,8 @@ export const BlogPosts: CollectionConfig = {
       type: 'select',
       defaultValue: 'draft',
       options: [
-        { label: 'Draft', value: 'draft' },
-        { label: 'Published', value: 'published' },
+        { label: 'Чернетка', value: 'draft' },
+        { label: 'Опублікований', value: 'published' },
       ],
       admin: {
         position: 'sidebar',

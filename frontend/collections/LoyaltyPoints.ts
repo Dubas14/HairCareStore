@@ -2,10 +2,12 @@ import type { CollectionConfig } from 'payload'
 
 export const LoyaltyPoints: CollectionConfig = {
   slug: 'loyalty-points',
+  labels: { singular: 'Бали лояльності', plural: 'Бали лояльності' },
   admin: {
     useAsTitle: 'customer',
     defaultColumns: ['customer', 'pointsBalance', 'level', 'isEnabled'],
-    group: 'Loyalty',
+    group: 'Лояльність',
+    hidden: true,
   },
   access: {
     read: ({ req }) => {
@@ -26,9 +28,9 @@ export const LoyaltyPoints: CollectionConfig = {
       type: 'select',
       defaultValue: 'bronze',
       options: [
-        { label: 'Bronze', value: 'bronze' },
-        { label: 'Silver', value: 'silver' },
-        { label: 'Gold', value: 'gold' },
+        { label: 'Бронза', value: 'bronze' },
+        { label: 'Срібло', value: 'silver' },
+        { label: 'Золото', value: 'gold' },
       ],
     },
     { name: 'referralCode', type: 'text', unique: true },

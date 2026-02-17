@@ -2,9 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const LoyaltyTransactions: CollectionConfig = {
   slug: 'loyalty-transactions',
+  labels: { singular: 'Транзакція', plural: 'Транзакції лояльності' },
   admin: {
     defaultColumns: ['customer', 'transactionType', 'pointsAmount', 'createdAt'],
-    group: 'Loyalty',
+    group: 'Лояльність',
+    hidden: true,
   },
   access: {
     read: ({ req }) => {
@@ -21,12 +23,12 @@ export const LoyaltyTransactions: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
-        { label: 'Earned', value: 'earned' },
-        { label: 'Spent', value: 'spent' },
-        { label: 'Expired', value: 'expired' },
-        { label: 'Welcome', value: 'welcome' },
-        { label: 'Referral', value: 'referral' },
-        { label: 'Adjustment', value: 'adjustment' },
+        { label: 'Нараховано', value: 'earned' },
+        { label: 'Списано', value: 'spent' },
+        { label: 'Протерміновано', value: 'expired' },
+        { label: 'Вітальний бонус', value: 'welcome' },
+        { label: 'Реферал', value: 'referral' },
+        { label: 'Коригування', value: 'adjustment' },
       ],
     },
     { name: 'pointsAmount', type: 'number', required: true },

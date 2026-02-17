@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const Banners: CollectionConfig = {
   slug: 'banners',
+  labels: { singular: 'Банер', plural: 'Банери' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'position', 'order', 'isActive'],
-    group: 'Content',
+    group: 'Контент',
   },
   access: {
     read: () => true,
@@ -31,9 +32,9 @@ export const Banners: CollectionConfig = {
       required: true,
       defaultValue: 'home',
       options: [
-        { label: 'Home', value: 'home' },
-        { label: 'Category', value: 'category' },
-        { label: 'Promo', value: 'promo' },
+        { label: 'Головна', value: 'home' },
+        { label: 'Категорія', value: 'category' },
+        { label: 'Промо', value: 'promo' },
       ],
     },
     {
@@ -50,8 +51,8 @@ export const Banners: CollectionConfig = {
       name: 'mediaType',
       type: 'select',
       options: [
-        { label: 'Image', value: 'image' },
-        { label: 'Video', value: 'video' },
+        { label: 'Зображення', value: 'image' },
+        { label: 'Відео', value: 'video' },
       ],
       defaultValue: 'image',
     },

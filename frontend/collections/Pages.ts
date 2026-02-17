@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  labels: { singular: 'Сторінка', plural: 'Сторінки' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'isPublished'],
-    group: 'Content',
+    group: 'Контент',
   },
   access: {
     read: () => true,

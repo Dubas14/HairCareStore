@@ -2,8 +2,9 @@ import type { GlobalConfig } from 'payload'
 
 export const ShippingConfig: GlobalConfig = {
   slug: 'shipping-config',
+  label: 'Доставка',
   admin: {
-    group: 'Shop',
+    group: 'Магазин',
   },
   access: {
     read: () => true,

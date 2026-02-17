@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const PromoBlocks: CollectionConfig = {
   slug: 'promo-blocks',
+  labels: { singular: 'Промо-блок', plural: 'Промо-блоки' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'isActive'],
-    group: 'Content',
+    group: 'Контент',
   },
   access: {
     read: () => true,

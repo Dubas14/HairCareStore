@@ -2,10 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 export const Products: CollectionConfig = {
   slug: 'products',
+  labels: { singular: 'Товар', plural: 'Товари' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'handle', 'status', 'updatedAt'],
-    group: 'Shop',
+    group: 'Магазин',
   },
   access: {
     read: () => true,
@@ -55,9 +56,9 @@ export const Products: CollectionConfig = {
       type: 'select',
       defaultValue: 'draft',
       options: [
-        { label: 'Draft', value: 'draft' },
-        { label: 'Active', value: 'active' },
-        { label: 'Archived', value: 'archived' },
+        { label: 'Чернетка', value: 'draft' },
+        { label: 'Активний', value: 'active' },
+        { label: 'В архіві', value: 'archived' },
       ],
       admin: { position: 'sidebar' },
     },

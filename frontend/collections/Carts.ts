@@ -12,10 +12,12 @@ const addressFields = [
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
+  labels: { singular: 'Кошик', plural: 'Кошики' },
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'status', 'total', 'updatedAt'],
-    group: 'Shop',
+    group: 'Магазин',
+    hidden: true,
   },
   access: {
     read: () => true,
@@ -52,9 +54,9 @@ export const Carts: CollectionConfig = {
       type: 'select',
       defaultValue: 'active',
       options: [
-        { label: 'Active', value: 'active' },
-        { label: 'Completed', value: 'completed' },
-        { label: 'Abandoned', value: 'abandoned' },
+        { label: 'Активний', value: 'active' },
+        { label: 'Завершений', value: 'completed' },
+        { label: 'Покинутий', value: 'abandoned' },
       ],
       admin: { position: 'sidebar' },
     },
