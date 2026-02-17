@@ -3,7 +3,9 @@ import type { CollectionConfig } from 'payload'
 export const Users: CollectionConfig = {
   slug: 'users',
   labels: { singular: 'Адміністратор', plural: 'Адміністратори' },
-  auth: true,
+  auth: {
+    maxLoginAttempts: 5,
+  },
   admin: {
     useAsTitle: 'email',
     group: 'Система',

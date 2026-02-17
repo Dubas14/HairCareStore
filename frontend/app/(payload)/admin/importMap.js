@@ -29,6 +29,7 @@ import { default as default_c81e05de9047729fd3c28fbbffa7b1e3 } from '../../../co
 import { default as default_3f6afdc7021b79eaf72ff30cbdb2c6ff } from '../../../components/payload/views/products/ProductsListView'
 import { default as default_6f64da3861999de587a3ed586829047d } from '../../../components/payload/Icon'
 import { default as default_c6fe5946efe4ec376b0411c30a8f0d79 } from '../../../components/payload/Logo'
+import { default as default_e52e6b4fb317d83f3750ef04532260f8 } from '../../../components/payload/AfterLogin'
 import { default as default_3e17da0469b41e5593432ff346c4a18b } from '../../../components/payload/LoyaltyNavLink'
 import { default as default_bfe3dda99be101306e18d134ca8bfe68 } from '../../../components/payload/Dashboard'
 import { default as default_b1d996ed647a83e541c82d414f320b6a } from '../../../components/payload/BeforeLogin'
@@ -67,6 +68,7 @@ export const importMap = {
   "/components/payload/views/products/ProductsListView#default": default_3f6afdc7021b79eaf72ff30cbdb2c6ff,
   "/components/payload/Icon#default": default_6f64da3861999de587a3ed586829047d,
   "/components/payload/Logo#default": default_c6fe5946efe4ec376b0411c30a8f0d79,
+  "/components/payload/AfterLogin#default": default_e52e6b4fb317d83f3750ef04532260f8,
   "/components/payload/LoyaltyNavLink#default": default_3e17da0469b41e5593432ff346c4a18b,
   "/components/payload/Dashboard#default": default_bfe3dda99be101306e18d134ca8bfe68,
   "/components/payload/BeforeLogin#default": default_b1d996ed647a83e541c82d414f320b6a,

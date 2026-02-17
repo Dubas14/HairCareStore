@@ -72,6 +72,7 @@ export default buildConfig({
       },
       beforeDashboard: ['/components/payload/Dashboard'],
       beforeLogin: ['/components/payload/BeforeLogin'],
+      afterLogin: ['/components/payload/AfterLogin'],
       afterNavLinks: ['/components/payload/LoyaltyNavLink'],
     },
   },
