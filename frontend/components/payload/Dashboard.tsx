@@ -21,7 +21,6 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
-import './Dashboard.scss'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -90,13 +89,8 @@ const quickActions = [
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SkeletonBlock({ w, h, radius = 6 }: { w?: string; h?: string; radius?: number }) {
-  return (
-    <span
-      className="hl-skel"
-      style={{ width: w ?? '100%', height: h ?? '16px', borderRadius: radius }}
-    />
-  )
+function Skeleton({ className = '' }: { className?: string }) {
+  return <span className={`inline-block animate-pulse bg-gray-200 rounded-md ${className}`} />
 }
 
 function KpiCard({
@@ -117,68 +111,98 @@ function KpiCard({
   secondary?: string
 }) {
   const inner = (
-    <div className="hl-kpi__inner">
-      <div className="hl-kpi__icon-wrap" style={{ '--kpi-color': color } as React.CSSProperties}>
-        <Icon size={22} />
-      </div>
-      <div className="hl-kpi__body">
-        {loading ? (
-          <>
-            <SkeletonBlock w="80px" h="32px" radius={8} />
-            <SkeletonBlock w="100px" h="13px" />
-          </>
-        ) : (
-          <>
-            <span className="hl-kpi__value">{value}</span>
-            <span className="hl-kpi__label">{label}</span>
-            {secondary && <span className="hl-kpi__secondary">{secondary}</span>}
-          </>
+    <>
+      <div
+        className="absolute inset-x-0 top-0 h-[3px] rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ background: color }}
+      />
+      <div className="flex items-start gap-4 p-5 relative">
+        <div
+          className="w-[52px] h-[52px] rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: `${color}1a`, color }}
+        >
+          <Icon size={22} />
+        </div>
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          {loading ? (
+            <>
+              <Skeleton className="w-20 h-8" />
+              <Skeleton className="w-24 h-3.5" />
+            </>
+          ) : (
+            <>
+              <span className="text-[28px] font-bold leading-none tracking-tight text-gray-900 truncate">
+                {value}
+              </span>
+              <span className="text-[13px] text-gray-500 mt-0.5">{label}</span>
+              {secondary && (
+                <span className="text-[11.5px] text-gray-400 mt-1 font-mono">{secondary}</span>
+              )}
+            </>
+          )}
+        </div>
+        {href && !loading && (
+          <ArrowUpRight
+            size={14}
+            className="absolute top-5 right-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-px group-hover:-translate-y-px"
+          />
         )}
       </div>
-      {href && !loading && (
-        <ArrowUpRight size={14} className="hl-kpi__arrow" />
-      )}
-    </div>
+    </>
   )
+
+  const cls =
+    'group relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5'
 
   if (href) {
     return (
-      <a href={href} className="hl-kpi hl-kpi--link" style={{ '--kpi-color': color } as React.CSSProperties}>
+      <a href={href} className={`${cls} block no-underline text-inherit cursor-pointer`}>
         {inner}
       </a>
     )
   }
-  return (
-    <div className="hl-kpi" style={{ '--kpi-color': color } as React.CSSProperties}>
-      {inner}
-    </div>
-  )
+  return <div className={cls}>{inner}</div>
+}
+
+const badgeVariants: Record<string, string> = {
+  success: 'bg-emerald-500/10 text-emerald-800 before:bg-emerald-500',
+  warning: 'bg-amber-500/10 text-amber-800 before:bg-amber-500',
+  danger:  'bg-red-500/10 text-red-800 before:bg-red-500',
+  neutral: 'bg-gray-500/10 text-gray-700 before:bg-gray-400',
 }
 
 function Badge({ variant, children }: { variant: string; children: React.ReactNode }) {
-  return <span className={`hl-badge hl-badge--${variant}`}>{children}</span>
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11.5px] font-semibold whitespace-nowrap before:content-[''] before:w-[5px] before:h-[5px] before:rounded-full before:flex-shrink-0 ${badgeVariants[variant] ?? badgeVariants.neutral}`}
+    >
+      {children}
+    </span>
+  )
 }
+
+const thCls = 'px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wider text-gray-400 text-left whitespace-nowrap'
 
 function OrdersTableSkeleton() {
   return (
-    <div className="hl-orders__table-wrap">
-      <table className="hl-orders__table">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+      <table className="w-full border-collapse text-[13px] min-w-[600px]">
         <thead>
-          <tr>
+          <tr className="bg-gray-50 border-b border-gray-200">
             {['Номер', 'Клієнт', 'Сума', 'Статус', 'Оплата', 'Дата'].map((h) => (
-              <th key={h}>{h}</th>
+              <th key={h} className={thCls}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {Array.from({ length: 4 }).map((_, i) => (
-            <tr key={i}>
-              <td><SkeletonBlock w="48px" h="14px" /></td>
-              <td><SkeletonBlock w="160px" h="14px" /></td>
-              <td><SkeletonBlock w="80px" h="14px" /></td>
-              <td><SkeletonBlock w="90px" h="22px" radius={6} /></td>
-              <td><SkeletonBlock w="80px" h="22px" radius={6} /></td>
-              <td><SkeletonBlock w="70px" h="14px" /></td>
+            <tr key={i} className="border-b border-gray-100 last:border-b-0">
+              <td className="px-4 py-3"><Skeleton className="w-12 h-3.5" /></td>
+              <td className="px-4 py-3"><Skeleton className="w-40 h-3.5" /></td>
+              <td className="px-4 py-3"><Skeleton className="w-20 h-3.5" /></td>
+              <td className="px-4 py-3"><Skeleton className="w-[90px] h-[22px]" /></td>
+              <td className="px-4 py-3"><Skeleton className="w-20 h-[22px]" /></td>
+              <td className="px-4 py-3"><Skeleton className="w-[70px] h-3.5" /></td>
             </tr>
           ))}
         </tbody>
@@ -195,30 +219,35 @@ function NavGroupCard({
   items: typeof sections.shop
 }) {
   return (
-    <div className="hl-nav-group">
-      <div className="hl-nav-group__header">
-        <span className="hl-nav-group__title">{title}</span>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="px-[18px] pt-3.5 pb-3 border-b border-gray-100">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{title}</span>
       </div>
-      <ul className="hl-nav-group__list">
+      <ul className="list-none m-0 py-1.5">
         {items.map((item) => {
           const Icon = item.icon
           return (
             <li key={item.slug}>
               <a
                 href={`/admin/collections/${item.slug}`}
-                className="hl-nav-row"
+                className="group/row flex items-center gap-3 px-[18px] py-2.5 no-underline text-inherit transition-colors hover:bg-[#f8fffe] focus-visible:outline-2 focus-visible:outline-teal-500 focus-visible:outline-offset-[-2px]"
               >
                 <span
-                  className="hl-nav-row__icon"
-                  style={{ '--nav-color': item.color } as React.CSSProperties}
+                  className="w-[34px] h-[34px] rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${item.color}1a`, color: item.color }}
                 >
                   <Icon size={16} />
                 </span>
-                <span className="hl-nav-row__text">
-                  <span className="hl-nav-row__label">{item.label}</span>
-                  <span className="hl-nav-row__desc">{item.desc}</span>
+                <span className="flex flex-col min-w-0 flex-1 gap-px">
+                  <span className="text-[13.5px] font-semibold text-gray-900 group-hover/row:text-teal-600 transition-colors truncate">
+                    {item.label}
+                  </span>
+                  <span className="text-[11.5px] text-gray-400 truncate">{item.desc}</span>
                 </span>
-                <ChevronRight size={14} className="hl-nav-row__chevron" />
+                <ChevronRight
+                  size={14}
+                  className="flex-shrink-0 text-gray-300 opacity-0 group-hover/row:opacity-100 group-hover/row:text-teal-500 group-hover/row:translate-x-0.5 transition-all"
+                />
               </a>
             </li>
           )
@@ -242,29 +271,35 @@ const Dashboard: React.FC = () => {
   }, [])
 
   return (
-    <div className="hl-dash">
+    <div className="font-sans max-w-screen-xl pb-14 text-gray-900">
 
       {/* ── Header ── */}
-      <header className="hl-dash__header">
-        <div className="hl-dash__heading">
-          <h1 className="hl-dash__title">Панель управління</h1>
-          <p className="hl-dash__subtitle">HAIR LAB — професійна косметика</p>
+      <header className="flex items-center justify-between gap-5 flex-wrap mb-8 pb-6 border-b border-gray-200">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[22px] font-bold tracking-tight text-gray-900 m-0 leading-tight">
+            Панель управління
+          </h1>
+          <p className="text-[13px] text-gray-500 m-0">HAIR LAB — професійна косметика</p>
         </div>
-        <nav className="hl-dash__quick-actions" aria-label="Швидкі дії">
-          {quickActions.map((action) => {
-            const Icon = action.icon
-            return (
-              <a key={action.href} href={action.href} className="hl-dash__qa-btn">
-                <Plus size={13} />
-                {action.label}
-              </a>
-            )
-          })}
+        <nav className="flex items-center gap-2 flex-wrap" aria-label="Швидкі дії">
+          {quickActions.map((action) => (
+            <a
+              key={action.href}
+              href={action.href}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12.5px] font-medium text-teal-600 bg-teal-500/[0.08] border border-teal-500/[0.22] rounded-full no-underline whitespace-nowrap transition-all hover:bg-teal-500/[0.14] hover:border-teal-500/40 hover:-translate-y-px hover:shadow-[0_3px_10px_rgba(42,157,143,0.12)] active:translate-y-0"
+            >
+              <Plus size={13} />
+              {action.label}
+            </a>
+          ))}
         </nav>
       </header>
 
       {/* ── KPI Row ── */}
-      <section className="hl-dash__kpis" aria-label="Ключові показники">
+      <section
+        className="grid grid-cols-4 gap-3.5 mb-9 max-[900px]:grid-cols-2 max-[480px]:grid-cols-1"
+        aria-label="Ключові показники"
+      >
         <KpiCard
           icon={Package}
           label="Активні товари"
@@ -300,10 +335,15 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* ── Recent Orders ── */}
-      <section className="hl-dash__section" aria-label="Останні замовлення">
-        <div className="hl-dash__section-head">
-          <h2 className="hl-dash__section-title">Останні замовлення</h2>
-          <a href="/admin/collections/orders" className="hl-dash__see-all">
+      <section className="mb-9" aria-label="Останні замовлення">
+        <div className="flex items-center justify-between mb-3.5">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-gray-400 m-0">
+            Останні замовлення
+          </h2>
+          <a
+            href="/admin/collections/orders"
+            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-teal-600 no-underline hover:text-teal-700 transition-colors"
+          >
             Всі замовлення
             <ArrowUpRight size={13} />
           </a>
@@ -312,16 +352,16 @@ const Dashboard: React.FC = () => {
         {loading ? (
           <OrdersTableSkeleton />
         ) : stats?.recentOrders && stats.recentOrders.length > 0 ? (
-          <div className="hl-orders__table-wrap">
-            <table className="hl-orders__table">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+            <table className="w-full border-collapse text-[13px] min-w-[600px]">
               <thead>
-                <tr>
-                  <th>Номер</th>
-                  <th>Клієнт</th>
-                  <th>Сума</th>
-                  <th>Статус</th>
-                  <th>Оплата</th>
-                  <th>Дата</th>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className={thCls}>Номер</th>
+                  <th className={thCls}>Клієнт</th>
+                  <th className={`${thCls} !text-right`}>Сума</th>
+                  <th className={thCls}>Статус</th>
+                  <th className={thCls}>Оплата</th>
+                  <th className={thCls}>Дата</th>
                 </tr>
               </thead>
               <tbody>
@@ -331,7 +371,7 @@ const Dashboard: React.FC = () => {
                   return (
                     <tr
                       key={order.id}
-                      className="hl-orders__row"
+                      className="border-b border-gray-100 last:border-b-0 cursor-pointer transition-colors hover:bg-[#f8fffe] focus-visible:outline-2 focus-visible:outline-teal-500 focus-visible:outline-offset-[-2px]"
                       onClick={() => { window.location.href = `/admin/collections/orders/${order.id}` }}
                       tabIndex={0}
                       onKeyDown={(e) => {
@@ -342,23 +382,23 @@ const Dashboard: React.FC = () => {
                       role="link"
                       aria-label={`Замовлення #${order.displayId}`}
                     >
-                      <td>
-                        <span className="hl-orders__id">#{order.displayId}</span>
+                      <td className="px-4 py-3 align-middle">
+                        <span className="font-mono text-xs font-semibold text-teal-600">#{order.displayId}</span>
                       </td>
-                      <td>
-                        <span className="hl-orders__email">{order.email}</span>
+                      <td className="px-4 py-3 align-middle">
+                        <span className="text-gray-500 max-w-[220px] block truncate">{order.email}</span>
                       </td>
-                      <td>
-                        <span className="hl-orders__total">{formatPrice(order.total)}</span>
+                      <td className="px-4 py-3 align-middle text-right">
+                        <span className="font-mono font-semibold text-[13px] text-gray-900">{formatPrice(order.total)}</span>
                       </td>
-                      <td>
+                      <td className="px-4 py-3 align-middle">
                         <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                       </td>
-                      <td>
+                      <td className="px-4 py-3 align-middle">
                         <Badge variant={paymentInfo.variant}>{paymentInfo.label}</Badge>
                       </td>
-                      <td>
-                        <span className="hl-orders__date">{formatDate(order.createdAt)}</span>
+                      <td className="px-4 py-3 align-middle">
+                        <span className="text-gray-400 text-xs whitespace-nowrap">{formatDate(order.createdAt)}</span>
                       </td>
                     </tr>
                   )
@@ -367,16 +407,18 @@ const Dashboard: React.FC = () => {
             </table>
           </div>
         ) : (
-          <div className="hl-orders__empty">Замовлень поки немає</div>
+          <div className="bg-white border border-gray-200 rounded-xl py-10 px-6 text-center text-gray-400 text-sm">
+            Замовлень поки немає
+          </div>
         )}
       </section>
 
       {/* ── Quick Navigation ── */}
-      <section className="hl-dash__section" aria-label="Навігація">
-        <div className="hl-dash__section-head">
-          <h2 className="hl-dash__section-title">Розділи</h2>
+      <section className="mb-9" aria-label="Навігація">
+        <div className="flex items-center justify-between mb-3.5">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-gray-400 m-0">Розділи</h2>
         </div>
-        <div className="hl-nav-grid">
+        <div className="grid grid-cols-2 gap-3.5 max-[640px]:grid-cols-1">
           <NavGroupCard title="Магазин"  items={sections.shop}    />
           <NavGroupCard title="Контент"  items={sections.content} />
           <NavGroupCard title="Каталог"  items={sections.catalog} />

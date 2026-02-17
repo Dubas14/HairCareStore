@@ -16,6 +16,7 @@
   --hl-radius-lg:       12px;
   --hl-radius-xl:       16px;
   --hl-transition:      0.2s ease;
+  --hl-field-border:    var(--theme-elevation-150, #e2e8f0);
 
   /* Override Payload success colour with teal */
   --theme-success-500:  #2a9d8f;
@@ -58,6 +59,18 @@ body {
 .dashboard .collections,
 .dashboard__card-list {
   display: none !important;
+}
+
+/* Global: all tables fill container */
+.template-default table {
+  width: 100% !important;
+}
+
+/* Global: all elements should respect box-sizing */
+.template-default *,
+.template-default *::before,
+.template-default *::after {
+  box-sizing: border-box;
 }
 
 
@@ -105,10 +118,9 @@ body {
   }
 }
 
-/* Extra centre-left accent orb via a nested element (if Payload renders one) */
 .template-default.template-default--has-bg .template__wrap {
   position: relative;
-  z-index:  1; /* sit above the pseudo-element orbs */
+  z-index:  1;
 }
 
 
@@ -116,7 +128,6 @@ body {
    LOGIN PAGE — FORM CARD
    ═══════════════════════════════════════════════════════════════ */
 
-/* Card wrapper */
 .login {
   background:    #ffffff !important;
   border-radius: 20px !important;
@@ -129,7 +140,6 @@ body {
   width:     100% !important;
 }
 
-/* Input fields on the login form */
 .login .field-type input,
 .login .form-field input {
   height:        48px !important;
@@ -146,13 +156,13 @@ body {
   }
 }
 
-/* Login submit button */
 .login .btn,
 .login .form-submit .btn {
   width:         100% !important;
   height:        48px !important;
   border-radius: var(--hl-radius-lg) !important;
   background:    var(--hl-accent) !important;
+  color:         #ffffff !important;
   border:        none !important;
   font-size:     15px !important;
   font-weight:   600 !important;
@@ -179,7 +189,6 @@ body {
 
 /* ── Desktop: permanent left sidebar ── */
 @media (min-width: 1024px) {
-  /* Force sidebar always visible */
   aside.nav,
   aside.nav[inert] {
     display:        flex !important;
@@ -189,20 +198,22 @@ body {
     top:            0 !important;
     bottom:         0 !important;
     width:          260px !important;
+    min-width:      260px !important;
+    max-width:      260px !important;
+    box-sizing:     border-box !important;
     z-index:        200 !important;
     transform:      none !important;
     opacity:        1 !important;
     visibility:     visible !important;
     pointer-events: auto !important;
     overflow-y:     auto !important;
+    overflow-x:     hidden !important;
   }
 
-  /* Push main content to the right */
   .template-default__wrap {
     margin-left: 260px !important;
   }
 
-  /* Hide hamburger toggler on desktop */
   .template-default__nav-toggler-container,
   .template-default__nav-toggler-wrapper,
   .template-default__nav-toggler,
@@ -210,7 +221,6 @@ body {
     display: none !important;
   }
 
-  /* Hide close/collapse buttons inside sidebar */
   .nav__mobile-close,
   .nav__controls {
     display: none !important;
@@ -229,21 +239,24 @@ aside.nav {
   background:   var(--hl-sidebar-bg) !important;
   border-right: 1px solid var(--hl-sidebar-border) !important;
 
-  /* Force vertical layout for all nav elements */
   .nav__scroll {
     display:        flex !important;
     flex-direction: column !important;
     flex:           1 1 auto;
     overflow-y:     auto;
+    overflow-x:     hidden;
     height:         100%;
+    box-sizing:     border-box;
+    padding:        0 !important;
   }
 
-  /* Move header/logo ABOVE navigation */
+  /* FIX: nav header — keep horizontal padding for branding */
   .nav__header {
     order:          -1 !important;
     border-bottom:  1px solid var(--hl-sidebar-border);
     padding:        0 !important;
     flex-shrink:    0;
+    min-height:     auto;
   }
 
   .nav__header-content {
@@ -256,6 +269,8 @@ aside.nav {
     flex-direction: column !important;
     flex:           1 1 auto;
     padding:        8px 0;
+    min-width:      0;
+    overflow-x:     hidden;
   }
 
   .nav-group__content a,
@@ -314,7 +329,7 @@ aside.nav {
     line-height: 1.2;
   }
 
-  /* ── Group labels ── */
+  /* ── Group labels — FIX: explicit padding ── */
   .nav-group__toggle,
   .nav-group__label {
     color:          rgba(255, 255, 255, 0.35) !important;
@@ -322,28 +337,31 @@ aside.nav {
     font-weight:    600;
     text-transform: uppercase;
     letter-spacing: 0.11em;
+    padding:        10px 20px 6px !important;
   }
 
-  /* Group toggle icon (chevron) */
   .nav-group__indicator svg {
     color: rgba(255, 255, 255, 0.25) !important;
   }
 
-  /* ── Nav links ── */
+  /* ── Nav links — FIX: robust padding to prevent clipping at any DPI ── */
   .nav__link {
     position:      relative;
     color:         rgba(255, 255, 255, 0.62) !important;
     border-radius: var(--hl-radius-sm);
-    margin:        1px 8px;
-    padding:       8px 12px;
+    margin:        1px 10px !important;
+    padding:       8px 12px 8px 16px !important;
     transition:    background var(--hl-transition), color var(--hl-transition);
+    white-space:   nowrap;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    min-width:     0;
 
     &:hover {
       color:      #ffffff !important;
       background: rgba(255, 255, 255, 0.07) !important;
     }
 
-    /* Active state — teal left border + tinted background */
     &.active {
       color:      #ffffff !important;
       background: rgba(42, 157, 143, 0.14) !important;
@@ -370,7 +388,6 @@ aside.nav {
     color: inherit !important;
   }
 
-  /* ── Logout link ── */
   .nav__log-out {
     color:      rgba(255, 255, 255, 0.4) !important;
     transition: color var(--hl-transition);
@@ -384,7 +401,6 @@ aside.nav {
     }
   }
 
-  /* ── Separator lines inside sidebar ── */
   hr,
   .nav-group + .nav-group {
     border-color: var(--hl-sidebar-border);
@@ -393,17 +409,60 @@ aside.nav {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   BUTTONS
+   STEP-NAV / BREADCRUMBS — hide Payload icon, keep HL badge
    ═══════════════════════════════════════════════════════════════ */
 
-/* Primary */
+/* Hide step-nav popups */
+.step-nav .popup {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.step-nav .popup-button {
+  pointer-events: none;
+
+  .popup-button__content {
+    pointer-events: auto;
+  }
+
+  svg {
+    display: none !important;
+  }
+}
+
+/* Hide Dashboard breadcrumb dropdown (react-select) — redundant with custom dashboard header */
+.dashboard-breadcrumb-select,
+.step-nav__last .dashboard-breadcrumb-select {
+  display: none !important;
+}
+
+/* On dashboard page, hide entire step-nav last item since we have custom header */
+.dashboard ~ .step-nav .step-nav__last,
+.step-nav .step-nav__last:has(.dashboard-breadcrumb-select) {
+  display: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTONS — FIX: explicit text color for primary buttons
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Primary — MUST have white text */
 .btn.btn--style-primary,
 .btn--style-primary {
   background:    var(--hl-accent) !important;
+  color:         #ffffff !important;
   border-color:  var(--hl-accent) !important;
   border-radius: var(--hl-radius-md) !important;
   font-weight:   500;
   transition:    all var(--hl-transition) !important;
+
+  .btn__label,
+  .btn__content,
+  span {
+    color: #ffffff !important;
+  }
 
   &:hover {
     background:  var(--hl-accent-hover) !important;
@@ -422,9 +481,15 @@ aside.nav {
 .btn.btn--style-secondary,
 .btn--style-secondary {
   color:         var(--hl-accent) !important;
-  border-color:  var(--hl-accent-border) !important;
+  border:        1px solid var(--hl-accent-border) !important;
   border-radius: var(--hl-radius-md) !important;
   transition:    all var(--hl-transition) !important;
+
+  .btn__label,
+  .btn__content,
+  span {
+    color: var(--hl-accent) !important;
+  }
 
   &:hover {
     background:   var(--hl-accent-light) !important;
@@ -432,27 +497,162 @@ aside.nav {
   }
 }
 
-/* Pills */
-.btn.btn--style-pill,
-.pill {
+/* Pill-style button (Create New in header) */
+.btn--style-pill {
   border-radius: 20px !important;
+}
 
-  &.active,
-  &--active {
-    background:   var(--hl-accent) !important;
-    border-color: var(--hl-accent) !important;
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH FIELDS — Change Password / Force Unlock spacing
+   ═══════════════════════════════════════════════════════════════ */
+
+.auth-fields__controls {
+  display: flex !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RADIO BUTTONS — Custom visual radio (Payload hides native)
+   ═══════════════════════════════════════════════════════════════ */
+
+.radio-input {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer;
+  position: relative;
+  padding: 4px 0 !important;
+
+  /* Custom radio circle */
+  &::before {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--theme-elevation-250, #cbd5e1);
+    background: #ffffff;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  /* Selected state */
+  &.radio-input--is-selected::before {
+    border-color: var(--hl-accent);
+    background: var(--hl-accent);
+    box-shadow: inset 0 0 0 3px #ffffff;
+  }
+
+  /* Hide the native (opacity:0) radio so it doesn't interfere */
+  input[type='radio'] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+}
+
+/* Radio group horizontal layout */
+.radio-group--layout-horizontal {
+  .radio-group__options {
+    display: flex !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
   }
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   FORM INPUTS
+   PILLS / CHIPS — Column Selector & general
    ═══════════════════════════════════════════════════════════════ */
 
-/* General field inputs */
+.pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 16px !important;
+  border: 1px solid #e0e4e8 !important;
+  background: #f4f5f7 !important;
+  color: #4b5563 !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  line-height: 1.4 !important;
+
+  &:hover {
+    border-color: rgba(42, 157, 143, 0.4) !important;
+    background: rgba(42, 157, 143, 0.06) !important;
+    color: var(--hl-accent) !important;
+  }
+
+  /* Active pill with × (currently shown column) */
+  &--has-x,
+  &--draggable,
+  &.active,
+  &--active {
+    background: rgba(42, 157, 143, 0.1) !important;
+    border-color: rgba(42, 157, 143, 0.3) !important;
+    color: var(--hl-accent) !important;
+
+    &:hover {
+      background: rgba(42, 157, 143, 0.16) !important;
+      border-color: rgba(42, 157, 143, 0.5) !important;
+    }
+  }
+
+  /* Available pill with + (currently hidden column) */
+  &--has-action:not(.pill--has-x) {
+    background: #ffffff !important;
+    border: 1px dashed #d1d5db !important;
+    color: #6b7280 !important;
+
+    &:hover {
+      border-style: solid !important;
+      border-color: rgba(42, 157, 143, 0.4) !important;
+      color: var(--hl-accent) !important;
+      background: rgba(42, 157, 143, 0.04) !important;
+    }
+  }
+
+  /* × button inside pill */
+  .pill__x {
+    opacity: 0.6;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+/* Column selector container spacing */
+.column-selector {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  padding: 8px 0 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FORM INPUTS — FIX: add visible borders
+   ═══════════════════════════════════════════════════════════════ */
+
 .field-type input:not([type='checkbox']):not([type='radio']),
 .field-type textarea,
 .field-type select {
+  border: 1px solid var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-md) !important;
+  background: #ffffff !important;
   transition: border-color var(--hl-transition), box-shadow var(--hl-transition) !important;
 
   &:focus {
@@ -460,10 +660,24 @@ aside.nav {
     box-shadow:   0 0 0 2px rgba(42, 157, 143, 0.12) !important;
     outline:      none !important;
   }
+
+  &:disabled {
+    background: var(--theme-elevation-50, #f9fafb) !important;
+    color: var(--theme-elevation-600, #4b5563) !important;
+  }
 }
 
-/* Search / filter input */
+/* Number / spinner inputs */
+.field-type input[type='number'] {
+  border: 1px solid var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-md) !important;
+  background: #ffffff !important;
+}
+
+/* Search filter input */
 .search-filter__input {
+  border: 1px solid var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-md) !important;
   transition: border-color var(--hl-transition), box-shadow var(--hl-transition) !important;
 
   &:focus {
@@ -473,10 +687,74 @@ aside.nav {
   }
 }
 
-/* Checkbox */
+/* Textarea specific */
+.field-type textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Checkbox checked state */
 input[type='checkbox']:checked {
   background-color: var(--hl-accent) !important;
   border-color:     var(--hl-accent) !important;
+}
+
+/* Select / relationship field wrapper */
+.rs__control,
+.value-container,
+.react-select .rs__control {
+  border: 1px solid var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-md) !important;
+  background: #ffffff !important;
+  min-height: 40px !important;
+
+  &:hover {
+    border-color: var(--theme-elevation-300, #94a3b8) !important;
+  }
+}
+
+.rs__control--is-focused,
+.react-select .rs__control--is-focused {
+  border-color: var(--hl-accent) !important;
+  box-shadow:   0 0 0 2px rgba(42, 157, 143, 0.12) !important;
+}
+
+/* Upload field drag area */
+.upload__dropzone,
+.file-field__upload {
+  border: 2px dashed var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-lg) !important;
+  padding: 24px !important;
+  background: var(--theme-elevation-50, #f9fafb) !important;
+  transition: border-color var(--hl-transition), background var(--hl-transition) !important;
+
+  &:hover {
+    border-color: var(--hl-accent) !important;
+    background: rgba(42, 157, 143, 0.04) !important;
+  }
+}
+
+/* Rich text editor container */
+.rich-text-lexical {
+  border: 1px solid var(--hl-field-border) !important;
+  border-radius: var(--hl-radius-md) !important;
+  overflow: hidden;
+
+  .ContentEditable__root {
+    min-height: 120px;
+    padding: 12px 16px;
+
+    &:focus {
+      border-color: var(--hl-accent) !important;
+      box-shadow:   0 0 0 2px rgba(42, 157, 143, 0.12) !important;
+      outline:      none !important;
+    }
+  }
+
+  /* Toolbar */
+  .toolbar {
+    border-bottom: 1px solid var(--hl-field-border);
+  }
 }
 
 
@@ -506,9 +784,90 @@ input[type='checkbox']:checked {
   }
 }
 
+/* Metadata row (Last Modified / Created) */
+.collection-edit .list-info-drawer,
+.collection-edit .doc-controls__meta,
+.collection-edit .meta {
+  li {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  li + li {
+    margin-left: 16px;
+  }
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
-   COLLECTION LIST TABLE
+   COLLECTION LIST — HEADER & CONTROLS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Header: ensure spacing between title and Create New */
+.list-header__title-and-actions {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Create New button in header */
+.list-create-new-doc__create-new-button {
+  background: var(--hl-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--hl-accent) !important;
+  border-radius: var(--hl-radius-md) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 6px 16px !important;
+  transition: all var(--hl-transition) !important;
+
+  &:hover {
+    background: var(--hl-accent-hover) !important;
+    border-color: var(--hl-accent-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(42, 157, 143, 0.25);
+  }
+
+  span,
+  .btn__label,
+  .btn__content {
+    color: #ffffff !important;
+  }
+}
+
+/* Pill style light — Columns / Filters buttons */
+.pill--style-light {
+  background: #ffffff !important;
+  border: 1px solid #e0e4e8 !important;
+  color: #4b5563 !important;
+  border-radius: var(--hl-radius-md) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+  transition: all 0.15s ease !important;
+  gap: 5px !important;
+
+  &:hover {
+    border-color: var(--hl-accent) !important;
+    color: var(--hl-accent) !important;
+    background: var(--hl-accent-light) !important;
+  }
+
+  span {
+    color: inherit !important;
+  }
+}
+
+/* List controls row spacing */
+.list-controls {
+  margin-top: 12px;
+  gap: 8px !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   COLLECTION LIST TABLE — full width, styled
    ═══════════════════════════════════════════════════════════════ */
 
 .collection-list {
@@ -517,12 +876,17 @@ input[type='checkbox']:checked {
     letter-spacing: -0.015em;
   }
 
+  /* Force table to fill available width */
+  table,
+  .table {
+    width: 100% !important;
+  }
+
   .table {
     border-radius: var(--hl-radius-lg);
     overflow:      hidden;
     border:        1px solid var(--theme-elevation-150, #e5e7eb);
 
-    /* Table row hover */
     tr {
       transition: background-color 0.12s ease;
     }
@@ -531,10 +895,90 @@ input[type='checkbox']:checked {
       background: var(--theme-elevation-100, #f9fafb);
     }
 
-    /* Bold header cells */
     thead th {
-      font-weight:    700;
-      letter-spacing: 0.01em;
+      font-weight:    600;
+      font-size:      12px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color:          var(--theme-elevation-450, #6b7280);
+      padding:        10px 16px;
+      white-space:    nowrap;
+      border-bottom:  1px solid var(--theme-elevation-150, #e5e7eb);
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--theme-elevation-100, #f3f4f6);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NO RESULTS / EMPTY STATE — FIX: button text visible
+   ═══════════════════════════════════════════════════════════════ */
+
+.no-results,
+.collection-list__no-results {
+  padding: 48px 24px !important;
+  text-align: center !important;
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  background: #fafbfc !important;
+  border-radius: var(--hl-radius-lg) !important;
+  border: 1px dashed #e0e4e8 !important;
+  margin-top: 16px !important;
+
+  p {
+    margin-bottom: 16px !important;
+  }
+
+  /* Button inside no-results — override primary btn to ensure white text */
+  a.btn,
+  .btn {
+    color: #ffffff !important;
+    background: var(--hl-accent) !important;
+    border: none !important;
+    border-radius: var(--hl-radius-md) !important;
+    padding: 8px 20px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    transition: all var(--hl-transition) !important;
+    cursor: pointer;
+
+    .btn__label,
+    .btn__content,
+    span {
+      color: #ffffff !important;
+    }
+
+    &:hover {
+      background: var(--hl-accent-hover) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(42, 157, 143, 0.25);
+    }
+  }
+
+  /* Non-button links (plain text links) */
+  a:not(.btn) {
+    color: var(--hl-accent) !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+
+    &:hover {
+      text-decoration: underline !important;
     }
   }
 }
@@ -548,6 +992,136 @@ input[type='checkbox']:checked {
   .doc-header__title .render-title {
     font-weight:    700;
     letter-spacing: -0.02em;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DOCUMENT EDIT & GLOBAL EDIT PAGES
+   ═══════════════════════════════════════════════════════════════ */
+
+.collection-edit,
+.global-edit {
+  /* Field labels */
+  .field-type > label,
+  .field-type > .field-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--theme-elevation-800, #374151);
+    margin-bottom: 6px;
+  }
+
+  /* Field descriptions */
+  .field-description {
+    font-size: 12px;
+    color: var(--theme-elevation-400, #9ca3af);
+  }
+
+  /* Field wrapper spacing */
+  .render-fields > .field-type {
+    margin-bottom: 20px;
+  }
+
+  /* Tabs styling */
+  .tabs-field {
+    border-radius: var(--hl-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--theme-elevation-150, #e5e7eb);
+  }
+
+  .tabs-field__tabs {
+    border-bottom: 1px solid var(--theme-elevation-150, #e5e7eb);
+  }
+
+  .tabs-field__tab-button {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.15s;
+
+    &:hover {
+      color: var(--hl-accent);
+    }
+  }
+
+  /* Save button area */
+  .form-submit {
+    padding-top: 24px;
+    margin-top: 24px;
+    border-top: 1px solid var(--theme-elevation-100, #f3f4f6);
+  }
+}
+
+/* ── Document sidebar panel (right column: Slug, Order, etc.) ── */
+.document-fields__sidebar-wrap {
+  border-left: 1px solid var(--theme-elevation-150, #e5e7eb) !important;
+  padding-left: 24px !important;
+}
+
+.document-fields__sidebar {
+  position: sticky;
+  top: 80px;
+}
+
+.document-fields__sidebar-fields {
+  padding: 16px 0 !important;
+
+  .field-type {
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Global pages — heading area */
+.global-edit {
+  .doc-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--theme-elevation-150, #e5e7eb);
+  }
+}
+
+/* ── Doc controls (Save button row) ── */
+.doc-controls {
+  .btn.btn--style-primary {
+    min-width: 80px;
+  }
+}
+
+/* ── Relationship / Upload field buttons ── */
+.relationship-add-new,
+.upload__toggler,
+.upload__actions {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   GROUP FIELDS (collapsible sections like "Promo Block", "SEO")
+   ═══════════════════════════════════════════════════════════════ */
+
+.group-field {
+  border: 1px solid var(--theme-elevation-150, #e5e7eb) !important;
+  border-radius: var(--hl-radius-lg) !important;
+  margin-top: 8px !important;
+  overflow: hidden;
+
+  .group-field__header {
+    background: var(--theme-elevation-50, #f9fafb);
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--theme-elevation-150, #e5e7eb);
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  .group-field__wrap {
+    padding: 16px !important;
   }
 }
 
@@ -578,12 +1152,46 @@ input[type='checkbox']:checked {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   PAGINATION
+   PAGINATION & PAGE CONTROLS
    ═══════════════════════════════════════════════════════════════ */
 
 .paginator .paginator__page--is-current {
   background:   var(--hl-accent) !important;
   border-color: var(--hl-accent) !important;
+}
+
+/* Page controls row (e.g. "1-10 of 42  Per Page: 10") */
+.page-controls {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 12px 0 !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+}
+
+.page-controls__page-info {
+  font-size: 13px;
+  color: var(--theme-elevation-500, #6b7280);
+  white-space: nowrap;
+}
+
+.per-page {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px;
+  white-space: nowrap;
+
+  .per-page__label {
+    color: var(--theme-elevation-500, #6b7280);
+  }
+
+  .popup-button {
+    font-weight: 600;
+    color: var(--hl-accent);
+  }
 }
 
 
@@ -601,16 +1209,79 @@ input[type='checkbox']:checked {
   }
 }
 
+/* Upload field buttons ("Create New" / "Choose from existing") — add gap + style */
+.upload__dropzoneContent__buttons,
+.upload__dropzone-content__buttons {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
 
-/* ═══════════════════════════════════════════════════════════════
-   RICH TEXT EDITOR (Lexical)
-   ═══════════════════════════════════════════════════════════════ */
+  /* Style the upload toggle buttons as visible pill buttons */
+  .btn.upload__createNewToggler,
+  .btn.upload__listToggler {
+    border: 1px solid var(--hl-accent-border) !important;
+    background: #ffffff !important;
+    color: var(--hl-accent) !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
 
-.rich-text-lexical {
-  .ContentEditable__root:focus {
+    .btn__label,
+    .btn__content,
+    span {
+      color: var(--hl-accent) !important;
+    }
+
+    &:hover {
+      background: var(--hl-accent-light) !important;
+      border-color: var(--hl-accent) !important;
+    }
+  }
+
+  /* "Or" separator */
+  .upload__dropzoneContent__orText,
+  > span:not(.btn__label):not(.btn__content) {
+    color: var(--theme-elevation-400, #9ca3af) !important;
+    font-size: 12px !important;
+  }
+}
+
+/* "or drag and drop a file" text */
+.upload__dropzoneContent__dragAndDropText {
+  color: var(--theme-elevation-400, #9ca3af) !important;
+  font-size: 13px !important;
+}
+
+/* Relationship "Add New" / "Choose Existing" buttons spacing */
+.relationship--multi-value-field__add-button-wrap,
+.relationship-add-new__wrap {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+/* Style all "without-border" icon buttons in field contexts as outlined pills */
+.field-type .btn--icon-style-without-border.btn--style-pill {
+  border: 1px solid var(--hl-accent-border) !important;
+  background: #ffffff !important;
+  color: var(--hl-accent) !important;
+  padding: 5px 12px !important;
+  font-size: 13px !important;
+  transition: all 0.15s ease !important;
+
+  .btn__label,
+  .btn__content,
+  span {
+    color: var(--hl-accent) !important;
+  }
+
+  &:hover {
+    background: var(--hl-accent-light) !important;
     border-color: var(--hl-accent) !important;
-    box-shadow:   0 0 0 2px rgba(42, 157, 143, 0.12) !important;
-    outline:      none !important;
   }
 }
 
@@ -621,4 +1292,43 @@ input[type='checkbox']:checked {
 
 .tooltip {
   border-radius: var(--hl-radius-sm);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCOUNT PAGE — specific fixes
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Fix "Last Modified: ... Created: ..." running together */
+.collection-edit .doc-controls__list {
+  display: flex !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+
+  li {
+    display: flex !important;
+    gap: 4px !important;
+  }
+}
+
+/* Payload Settings heading */
+.account h3,
+.collection-edit h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--theme-elevation-100, #f3f4f6);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PREFERENCES / RESET BUTTON
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Reset Preferences button */
+.btn--style-secondary[class*='reset'],
+button.btn--style-secondary {
+  margin-top: 8px;
 }

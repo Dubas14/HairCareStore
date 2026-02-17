@@ -1,0 +1,2 @@
+/* Tailwind utilities only — no base/components to avoid resetting Payload CMS styles */
+@tailwind utilities;

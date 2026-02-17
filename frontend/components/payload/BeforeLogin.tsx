@@ -1,7 +1,5 @@
 import React from 'react'
 
-// Keyframe animation injected once via a <style> tag.
-// Safe here because Payload renders this inside the document body.
 const KEYFRAMES = `
 @keyframes hl-shimmer {
   0%   { background-position: 0% 50%; }
@@ -21,183 +19,82 @@ const KEYFRAMES = `
 const BeforeLogin: React.FC = () => {
   return (
     <>
-      {/* Inject keyframes — scoped by animation name prefix "hl-" */}
       <style dangerouslySetInnerHTML={{ __html: KEYFRAMES }} />
 
       <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingBottom: '40px',
-          animation: 'hl-fade-in 0.5s ease both',
-        }}
+        className="flex flex-col items-center pb-10"
+        style={{ animation: 'hl-fade-in 0.5s ease both' }}
       >
-        {/* ── Decorative dot grid ── */}
+        {/* Decorative dot grid */}
         <div
           aria-hidden="true"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-20 pointer-events-none"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '320px',
-            height: '80px',
             backgroundImage:
               'radial-gradient(circle, rgba(42,157,143,0.18) 1px, transparent 1px)',
             backgroundSize: '20px 20px',
-            maskImage: 'radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)',
+            maskImage:
+              'radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)',
             WebkitMaskImage:
               'radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)',
-            pointerEvents: 'none',
           }}
         />
 
-        {/* ── Badge + wordmark row ── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            marginBottom: '20px',
-            marginTop: '8px',
-          }}
-        >
+        {/* Badge + wordmark row */}
+        <div className="flex items-center gap-4 mb-5 mt-2">
           {/* Badge */}
           <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #2A9D8F 0%, #3BB8A8 45%, #48CAE4 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              animation: 'hl-badge-pulse 3s ease-in-out infinite',
-            }}
+            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2A9D8F] via-[#3BB8A8] to-[#48CAE4] flex items-center justify-center flex-shrink-0"
+            style={{ animation: 'hl-badge-pulse 3s ease-in-out infinite' }}
           >
-            <span
-              style={{
-                fontSize: '20px',
-                fontWeight: 800,
-                color: '#ffffff',
-                letterSpacing: '0.04em',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                lineHeight: 1,
-                userSelect: 'none',
-              }}
-            >
+            <span className="text-xl font-extrabold text-white tracking-wider font-sans leading-none select-none">
               HL
             </span>
           </div>
 
           {/* Wordmark */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'baseline',
-                gap: '7px',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '42px',
-                  fontWeight: 800,
-                  color: '#111827',
-                  letterSpacing: '-0.03em',
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  lineHeight: 1,
-                }}
-              >
+          <div className="flex flex-col gap-px">
+            <div className="inline-flex items-baseline gap-[7px]">
+              <span className="text-[42px] font-extrabold text-gray-900 tracking-tight font-sans leading-none">
                 HAIR
               </span>
-              <span
-                style={{
-                  fontSize: '42px',
-                  fontWeight: 800,
-                  letterSpacing: '-0.03em',
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  lineHeight: 1,
-                  background: 'linear-gradient(135deg, #2A9D8F 0%, #48CAE4 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
+              <span className="text-[42px] font-extrabold tracking-tight font-sans leading-none bg-gradient-to-br from-[#2A9D8F] to-[#48CAE4] bg-clip-text text-transparent">
                 LAB
               </span>
             </div>
-            {/* Thin sub-wordmark label */}
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 600,
-                color: '#9ca3af',
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                paddingLeft: '2px',
-              }}
-            >
+            <span className="text-[10px] font-semibold text-gray-400 tracking-[0.22em] uppercase font-sans pl-0.5">
               Admin Panel
             </span>
           </div>
         </div>
 
-        {/* ── Animated shimmer divider ── */}
+        {/* Animated shimmer divider */}
         <div
           aria-hidden="true"
+          className="w-20 h-[3px] rounded-sm mb-6"
           style={{
-            width: '80px',
-            height: '3px',
-            borderRadius: '2px',
             background:
               'linear-gradient(90deg, #2A9D8F, #48CAE4, #2A9D8F, #48CAE4)',
             backgroundSize: '200% 200%',
             animation: 'hl-shimmer 3s ease infinite',
-            marginBottom: '24px',
           }}
         />
 
-        {/* ── Welcome copy ── */}
-        <h2
-          style={{
-            fontSize: '20px',
-            fontWeight: 700,
-            color: '#111827',
-            letterSpacing: '-0.01em',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            margin: '0 0 8px',
-            textAlign: 'center',
-          }}
-        >
+        {/* Welcome copy */}
+        <h2 className="text-xl font-bold text-gray-900 tracking-tight font-sans m-0 mb-2 text-center">
           Вітаємо в панелі управління
         </h2>
-        <p
-          style={{
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#6b7280',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            margin: 0,
-            textAlign: 'center',
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="text-sm text-gray-500 font-sans m-0 text-center leading-relaxed">
           Введіть свої дані для входу в систему
         </p>
 
-        {/* ── Bottom separator before the Payload form ── */}
+        {/* Bottom separator */}
         <div
           aria-hidden="true"
+          className="w-full h-px mt-8"
           style={{
-            width: '100%',
-            height: '1px',
             background:
               'linear-gradient(90deg, transparent, rgba(42,157,143,0.25) 30%, rgba(72,202,228,0.25) 70%, transparent)',
-            marginTop: '32px',
           }}
         />
       </div>

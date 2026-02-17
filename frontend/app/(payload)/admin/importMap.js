@@ -26,6 +26,7 @@ import { default as default_c6fe5946efe4ec376b0411c30a8f0d79 } from '../../../co
 import { default as default_3e17da0469b41e5593432ff346c4a18b } from '../../../components/payload/LoyaltyNavLink'
 import { default as default_bfe3dda99be101306e18d134ca8bfe68 } from '../../../components/payload/Dashboard'
 import { default as default_b1d996ed647a83e541c82d414f320b6a } from '../../../components/payload/BeforeLogin'
+import { default as default_9a317fe93eb57e9c5ee1719cbdb13109 } from '../../../components/payload/NavProvider'
 import { default as default_05fc08cfb562ff28dff25a80f75cb5b5 } from '../../../components/payload/loyalty/LoyaltyDashboardView'
 import { default as default_d60e744754e455cb7e2a52b53927b42c } from '../../../components/payload/loyalty/LoyaltySettingsView'
 import { default as default_a7f7ca81e61d3d5351413edd93d176f3 } from '../../../components/payload/loyalty/LoyaltyCustomersView'
@@ -62,6 +63,7 @@ export const importMap = {
   "/components/payload/LoyaltyNavLink#default": default_3e17da0469b41e5593432ff346c4a18b,
   "/components/payload/Dashboard#default": default_bfe3dda99be101306e18d134ca8bfe68,
   "/components/payload/BeforeLogin#default": default_b1d996ed647a83e541c82d414f320b6a,
+  "/components/payload/NavProvider#default": default_9a317fe93eb57e9c5ee1719cbdb13109,
   "/components/payload/loyalty/LoyaltyDashboardView#default": default_05fc08cfb562ff28dff25a80f75cb5b5,
   "/components/payload/loyalty/LoyaltySettingsView#default": default_d60e744754e455cb7e2a52b53927b42c,
   "/components/payload/loyalty/LoyaltyCustomersView#default": default_a7f7ca81e61d3d5351413edd93d176f3,
