@@ -181,23 +181,7 @@ function ShopContent() {
             <div>
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <p className="text-sm text-muted-foreground">
-                  {isLoadingProducts ? (
-                    'Завантаження...'
-                  ) : (
-                    <>
-                      Знайдено{' '}
-                      <span className="font-medium text-foreground">
-                        {filteredProducts.length}
-                      </span>{' '}
-                      {filteredProducts.length === 1
-                        ? 'товар'
-                        : filteredProducts.length < 5
-                        ? 'товари'
-                        : 'товарів'}
-                    </>
-                  )}
-                </p>
+                <div />
 
                 <SortSelect value={sortBy} onChange={handleSortChange} />
               </div>

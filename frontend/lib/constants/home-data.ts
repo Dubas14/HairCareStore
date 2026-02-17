@@ -22,8 +22,8 @@ export interface Category {
 
 export interface Product {
   id: number
-  productId?: string | number // Product ID (required for wishlist)
-  variantId?: string // Variant ID (required for cart)
+  productId?: string | number // Product ID (required for wishlist/cart)
+  variantIndex?: number // Variant index (for cart, default 0)
   name: string
   brand: string
   slug: string

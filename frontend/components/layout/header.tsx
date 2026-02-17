@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 const navigation = [
   { name: "Каталог", href: "/shop" },
-  { name: "Бренди", href: "/shop?filter=brands" },
+  { name: "Бренди", href: "/brands" },
   { name: "Блог", href: "/blog" },
   { name: "Про нас", href: "/pages/about" },
   { name: "Доставка", href: "/pages/delivery" },

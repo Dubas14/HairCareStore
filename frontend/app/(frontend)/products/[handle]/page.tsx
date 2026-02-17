@@ -119,7 +119,8 @@ export default function ProductPage() {
 
   const handleAddToCart = async (variantId: string, quantity: number) => {
     try {
-      await addToCart(variantId, quantity)
+      const variantIndex = variants.findIndex(v => v.id === variantId)
+      await addToCart(product.id, variantIndex >= 0 ? variantIndex : 0, quantity)
     } catch (error) {
       console.error('Error adding to cart:', error)
     }

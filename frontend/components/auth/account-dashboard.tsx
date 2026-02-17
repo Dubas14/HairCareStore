@@ -376,7 +376,7 @@ function WishlistTab() {
             imageUrl: getImageUrl(product.thumbnail as any) || '',
             rating: 4.5,
             reviewCount: 0,
-            variantId: variant?.id,
+            variantIndex: 0,
           }
 
           return (

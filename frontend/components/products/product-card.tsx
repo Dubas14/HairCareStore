@@ -52,14 +52,14 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = async () => {
     if (isAdding) return
 
-    if (!product.variantId) {
-      console.error('No variantId for product:', product.name, product)
+    if (!product.productId) {
+      console.error('No productId for product:', product.name, product)
       return
     }
 
     setIsAdding(true)
     try {
-      await addToCart(product.variantId, 1)
+      await addToCart(product.productId, product.variantIndex ?? 0, 1)
     } catch (error) {
       console.error('Error adding to cart:', error)
     } finally {
@@ -186,7 +186,7 @@ export function ProductCard({ product }: ProductCardProps) {
           variant="teal"
           size="sm"
           className="w-full"
-          disabled={!product.variantId || isAdding}
+          disabled={!product.productId || isAdding}
         />
       </div>
     </Link>
