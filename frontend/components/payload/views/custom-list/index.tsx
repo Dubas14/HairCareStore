@@ -131,7 +131,7 @@ function getColumns(slug: string): Column[] {
     key: 'status',
     label: 'Статус',
     width: '130px',
-    render: (val: string) => val ? <StatusBadge status={val} /> : <span style={{ color: '#9aa5ab' }}>—</span>,
+    render: (val: string) => val ? <StatusBadge status={val} /> : <span style={{ color: 'var(--color-base-400)' }}>—</span>,
   }
 
   const dateCol: Column = {
@@ -143,14 +143,14 @@ function getColumns(slug: string): Column[] {
   switch (slug) {
     case 'categories':
       return [
-        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'slug', label: 'Slug', width: '180px' },
         statusCol,
         dateCol,
       ]
     case 'brands':
       return [
-        { key: 'name', label: 'Назва', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'name', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'slug', label: 'Slug', width: '180px' },
         { key: 'country', label: 'Країна', width: '120px' },
         statusCol,
@@ -158,7 +158,7 @@ function getColumns(slug: string): Column[] {
       ]
     case 'orders':
       return [
-        { key: 'orderNumber', label: '№ Замовлення', width: '140px', render: (v: string) => <strong style={{ color: '#2d3740' }}>#{v}</strong> },
+        { key: 'orderNumber', label: '№ Замовлення', width: '140px', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>#{v}</strong> },
         { key: 'customer', label: 'Клієнт', render: (v: any) => v?.name || v?.email || '—' },
         { key: 'total', label: 'Сума', width: '110px', render: (v: number) => v != null ? `₴${v.toLocaleString('uk-UA')}` : '—' },
         statusCol,
@@ -166,7 +166,7 @@ function getColumns(slug: string): Column[] {
       ]
     case 'customers':
       return [
-        { key: 'name', label: 'Ім\'я', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'name', label: 'Ім\'я', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'email', label: 'Email' },
         { key: 'phone', label: 'Телефон', width: '140px' },
         dateCol,
@@ -182,27 +182,27 @@ function getColumns(slug: string): Column[] {
     case 'pages':
     case 'blog-posts':
       return [
-        { key: 'title', label: 'Заголовок', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'title', label: 'Заголовок', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'slug', label: 'Slug', width: '180px' },
         statusCol,
         dateCol,
       ]
     case 'users':
       return [
-        { key: 'email', label: 'Email', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'email', label: 'Email', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'name', label: 'Ім\'я' },
         dateCol,
       ]
     case 'promo-blocks':
       return [
-        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: '#2d3740' }}>{v}</strong> },
+        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'type', label: 'Тип', width: '120px' },
         statusCol,
         dateCol,
       ]
     default:
       return [
-        { key: 'title', label: 'Назва', render: (v: string, doc: any) => <strong style={{ color: '#2d3740' }}>{v || doc.name || doc.email || `ID: ${doc.id}`}</strong> },
+        { key: 'title', label: 'Назва', render: (v: string, doc: any) => <strong style={{ color: 'var(--color-base-700)' }}>{v || doc.name || doc.email || `ID: ${doc.id}`}</strong> },
         statusCol,
         dateCol,
       ]

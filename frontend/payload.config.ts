@@ -60,6 +60,7 @@ export default buildConfig({
 
   admin: {
     user: 'users',
+    theme: 'all',
     meta: {
       titleSuffix: ' - HAIR LAB CMS',
     },

@@ -64,8 +64,8 @@ export const CustomTable: React.FC<CustomTableProps> = ({
   if (!docs.length) {
     return (
       <div style={{
-        padding: '48px 24px', textAlign: 'center', color: '#9aa5ab', fontSize: 14,
-        background: '#fafbfc', borderRadius: 16, border: '1px dashed #e4e8ea', marginTop: 16,
+        padding: '48px 24px', textAlign: 'center', color: 'var(--color-base-400)', fontSize: 14,
+        background: 'var(--color-base-50)', borderRadius: 16, border: '1px dashed var(--color-base-200)', marginTop: 16,
       }}>
         <p style={{ marginBottom: 8 }}>Документів не знайдено</p>
         <p style={{ fontSize: 13 }}>Спробуйте змінити фільтри або створити новий документ</p>

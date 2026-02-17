@@ -78,17 +78,17 @@ interface Toast {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const C = {
-  bgPrimary:    '#fafbfc',
-  bgSecondary:  '#f5f7f8',
-  bgCard:       '#ffffff',
-  border:       '#e4e8ea',
+  bgPrimary:    'var(--color-base-50)',
+  bgSecondary:  'var(--color-base-50)',
+  bgCard:       'var(--color-base-0)',
+  border:       'var(--color-base-200)',
   sea400:       '#7dd3d3',
   sea500:       '#5bc4c4',
   sea600:       '#4a9e9e',
-  textPrimary:  '#2d3740',
-  textSecondary:'#6b7880',
-  textMuted:    '#9aa5ab',
-  labelColor:   '#4a5560',
+  textPrimary:  'var(--color-base-700)',
+  textSecondary:'var(--color-base-500)',
+  textMuted:    'var(--color-base-400)',
+  labelColor:   'var(--color-base-600)',
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -422,7 +422,7 @@ function SkeletonBlock({ width = '100%', height = 40 }: { width?: string | numbe
       style={{
         width,
         height,
-        background: 'linear-gradient(90deg, #f0f2f3 25%, #e4e8ea 50%, #f0f2f3 75%)',
+        background: 'linear-gradient(90deg, var(--color-base-100) 25%, var(--color-base-200) 50%, var(--color-base-100) 75%)',
         backgroundSize: '200% 100%',
         borderRadius: 10,
         animation: 'shimmer 1.4s infinite',
@@ -826,7 +826,7 @@ function ThumbnailZone({
             position:     'absolute',
             top:          8,
             right:        8,
-            background:   '#fff',
+            background:   C.bgCard,
             border:       `1px solid ${C.border}`,
             borderRadius: 8,
             padding:      '4px 10px',
@@ -893,7 +893,7 @@ function ThumbnailZone({
         <button
           type="button"
           style={{
-            background:   '#fff',
+            background:   C.bgCard,
             color:        C.sea600,
             border:       `1px solid ${C.sea400}`,
             borderRadius: 10,
@@ -1719,7 +1719,7 @@ export default function ProductEditView() {
                       marginBottom:   10,
                       borderRadius:   10,
                       border:         `1px solid ${C.sea400}`,
-                      background:     dupBtnHovered ? `${C.sea400}18` : '#fff',
+                      background:     dupBtnHovered ? `${C.sea400}18` : C.bgCard,
                       color:          C.sea600,
                       fontSize:       13,
                       fontWeight:     600,
@@ -1748,7 +1748,7 @@ export default function ProductEditView() {
                         padding:        '11px 0',
                         borderRadius:   10,
                         border:         `1px solid ${deleteBtnHovered ? '#fca5a5' : '#fee2e2'}`,
-                        background:     deleteBtnHovered ? '#fef2f2' : '#fff',
+                        background:     deleteBtnHovered ? '#fef2f2' : C.bgCard,
                         color:          '#dc2626',
                         fontSize:       13,
                         fontWeight:     600,

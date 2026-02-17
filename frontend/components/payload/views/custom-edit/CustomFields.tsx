@@ -40,7 +40,7 @@ export function StyledInput({ label, value, onChange, type = 'text', placeholder
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        style={disabled ? { background: '#f5f7f8', color: '#9aa5ab' } : undefined}
+        style={disabled ? { background: 'var(--color-base-50)', color: 'var(--color-base-400)' } : undefined}
       />
     </Field>
   )
@@ -109,7 +109,7 @@ export function StyledCheckbox({ label, checked, onChange }: CheckboxProps) {
         checked={checked ?? false}
         onChange={(e) => onChange(e.target.checked)}
       />
-      <span style={{ fontSize: 14, color: '#2d3740' }}>{label}</span>
+      <span style={{ fontSize: 14, color: 'var(--color-base-700)' }}>{label}</span>
     </div>
   )
 }

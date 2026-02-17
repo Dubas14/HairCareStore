@@ -23,16 +23,16 @@ import type { MediaFileItem, MediaViewData, MediaViewStats } from '@/app/actions
 // ─── Color palette ────────────────────────────────────────────────────────────
 
 const C = {
-  bgPrimary:     '#fafbfc',
-  bgSecondary:   '#f5f7f8',
-  bgCard:        '#ffffff',
-  border:        '#e4e8ea',
+  bgPrimary:     'var(--color-base-50)',
+  bgSecondary:   'var(--color-base-50)',
+  bgCard:        'var(--color-base-0)',
+  border:        'var(--color-base-200)',
   sea400:        '#7dd3d3',
   sea500:        '#5bc4c4',
   sea600:        '#4a9e9e',
-  textPrimary:   '#2d3740',
-  textSecondary: '#6b7880',
-  textMuted:     '#9aa5ab',
+  textPrimary:   'var(--color-base-700)',
+  textSecondary: 'var(--color-base-500)',
+  textMuted:     'var(--color-base-400)',
   danger:        '#ef4444',
 } as const
 
@@ -177,7 +177,7 @@ function SkeletonCard() {
       <div
         style={{
           aspectRatio: '1/1',
-          background: `linear-gradient(90deg, ${C.bgSecondary} 25%, #edf0f2 50%, ${C.bgSecondary} 75%)`,
+          background: `linear-gradient(90deg, ${C.bgSecondary} 25%, var(--color-base-100) 50%, ${C.bgSecondary} 75%)`,
           backgroundSize: '200% 100%',
           animation: 'shimmer 1.5s infinite',
         }}
@@ -305,7 +305,7 @@ function MediaCard({ file, selected, viewMode, onToggleSelect, onDelete }: Media
         style={{
           width: small ? size : '100%',
           height: small ? size : '100%',
-          background: `linear-gradient(135deg, ${C.bgSecondary}, #e8ecee)`,
+          background: `linear-gradient(135deg, ${C.bgSecondary}, var(--color-base-200))`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1240,7 +1240,7 @@ export default function MediaLibraryView() {
                       style={{
                         height: 64,
                         borderRadius: 12,
-                        background: `linear-gradient(90deg, ${C.bgSecondary} 25%, #edf0f2 50%, ${C.bgSecondary} 75%)`,
+                        background: `linear-gradient(90deg, ${C.bgSecondary} 25%, var(--color-base-100) 50%, ${C.bgSecondary} 75%)`,
                         backgroundSize: '200% 100%',
                         animation: 'shimmer 1.5s infinite',
                       }}

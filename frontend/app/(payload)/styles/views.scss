@@ -46,7 +46,7 @@
 }
 
 .hl-stats-card {
-  background: #ffffff;
+  background: var(--color-base-0);
   border: 1px solid var(--color-base-200);
   border-radius: var(--hl-radius-lg);
   padding: 18px 20px;
@@ -129,7 +129,7 @@
   padding: 7px 14px;
   border-radius: 20px;
   border: 1px solid var(--color-base-200);
-  background: #ffffff;
+  background: var(--color-base-0);
   color: var(--color-base-500);
   font-size: 13px;
   font-weight: 500;
@@ -198,7 +198,7 @@
   border-radius: var(--hl-radius-md);
   font-size: 13px;
   color: var(--color-base-700);
-  background: #ffffff;
+  background: var(--color-base-0);
   transition: all var(--hl-transition);
   outline: none;
 }
@@ -218,7 +218,7 @@
   border-radius: var(--hl-radius-md);
   font-size: 13px;
   color: var(--color-base-600);
-  background: #ffffff;
+  background: var(--color-base-0);
   cursor: pointer;
   outline: none;
   transition: all var(--hl-transition);
@@ -248,7 +248,7 @@
 }
 
 .hl-custom-table tbody tr {
-  background: #ffffff;
+  background: var(--color-base-0);
   border-radius: var(--hl-radius-md);
   transition: all var(--hl-transition);
   cursor: pointer;
@@ -445,7 +445,7 @@
 /* ── Field Group ─────────────────────────────────────────────── */
 
 .hl-field-group {
-  background: #ffffff;
+  background: var(--color-base-0);
   border: 1px solid var(--color-base-200);
   border-radius: var(--hl-radius-lg);
   padding: 24px;
@@ -494,7 +494,7 @@
   border-radius: var(--hl-radius-sm);
   font-size: 14px;
   color: var(--color-base-700);
-  background: #ffffff;
+  background: var(--color-base-0);
   transition: all var(--hl-transition);
   outline: none;
 }
@@ -511,7 +511,7 @@
   border-radius: var(--hl-radius-sm);
   font-size: 14px;
   color: var(--color-base-700);
-  background: #ffffff;
+  background: var(--color-base-0);
   transition: all var(--hl-transition);
   outline: none;
   resize: vertical;
@@ -531,7 +531,7 @@
   border-radius: var(--hl-radius-sm);
   font-size: 14px;
   color: var(--color-base-700);
-  background: #ffffff;
+  background: var(--color-base-0);
   cursor: pointer;
   outline: none;
   transition: all var(--hl-transition);
@@ -559,7 +559,7 @@
 /* ── Sidebar Meta ────────────────────────────────────────────── */
 
 .hl-sidebar-meta {
-  background: #ffffff;
+  background: var(--color-base-0);
   border: 1px solid var(--color-base-200);
   border-radius: var(--hl-radius-lg);
   padding: 20px;
@@ -689,7 +689,7 @@
   padding: 6px 12px;
   border: 1px solid var(--color-base-200);
   border-radius: var(--hl-radius-sm);
-  background: #ffffff;
+  background: var(--color-base-0);
   color: var(--color-base-500);
   font-size: 12px;
   cursor: pointer;
@@ -734,7 +734,7 @@
 }
 
 .hl-btn--secondary {
-  background: #ffffff;
+  background: var(--color-base-0);
   color: var(--color-base-600);
   border: 1px solid var(--color-base-200);
 }
@@ -746,7 +746,7 @@
 }
 
 .hl-btn--danger {
-  background: #ffffff;
+  background: var(--color-base-0);
   color: var(--color-error);
   border: 1px solid var(--color-base-200);
 }
@@ -773,7 +773,7 @@
 .hl-skeleton {
   display: inline-block;
   border-radius: var(--hl-radius-sm);
-  background: linear-gradient(90deg, #eef0f2 25%, #e4e7ea 50%, #eef0f2 75%);
+  background: linear-gradient(90deg, var(--color-base-100) 25%, var(--color-base-200) 50%, var(--color-base-100) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite linear;
 }
@@ -835,7 +835,7 @@
   align-items: center;
   gap: 16px;
   padding: 12px;
-  background: #ffffff;
+  background: var(--color-base-0);
   border: 1px solid var(--color-base-200);
   border-radius: var(--hl-radius-md);
 }

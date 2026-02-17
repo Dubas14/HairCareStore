@@ -21,16 +21,16 @@ import type { BannerViewItem, BannersViewData } from '@/app/actions/admin-views'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLORS = {
-  bgPrimary: '#fafbfc',
-  bgSecondary: '#f5f7f8',
-  bgCard: '#ffffff',
-  border: '#e4e8ea',
+  bgPrimary: 'var(--color-base-50)',
+  bgSecondary: 'var(--color-base-50)',
+  bgCard: 'var(--color-base-0)',
+  border: 'var(--color-base-200)',
   sea400: '#7dd3d3',
   sea500: '#5bc4c4',
   sea600: '#4a9e9e',
-  textPrimary: '#2d3740',
-  textSecondary: '#6b7880',
-  textMuted: '#9aa5ab',
+  textPrimary: 'var(--color-base-700)',
+  textSecondary: 'var(--color-base-500)',
+  textMuted: 'var(--color-base-400)',
 } as const
 
 const UK_MONTHS = [
@@ -72,7 +72,7 @@ function getBannerGradient(position: string): string {
     case 'promo':
       return 'linear-gradient(135deg, #f472b6, #e11d48)'
     default:
-      return '#f5f7f8'
+      return 'var(--color-base-50)'
   }
 }
 
@@ -361,7 +361,7 @@ function BannerCard({ banner, onToggle, onEdit, onDelete, toggling }: BannerCard
         style={{
           height: 200,
           position: 'relative',
-          background: hasImage ? '#e4e8ea' : banner.isActive ? gradient : '#f5f7f8',
+          background: hasImage ? 'var(--color-base-200)' : banner.isActive ? gradient : 'var(--color-base-50)',
           overflow: 'hidden',
           flexShrink: 0,
         }}
@@ -873,7 +873,7 @@ function PreviewSection({ firstActiveBanner }: PreviewSectionProps) {
             style={{
               position: 'relative',
               height: device === 'mobile' ? 200 : 280,
-              background: hasImage ? '#e4e8ea' : gradient,
+              background: hasImage ? 'var(--color-base-200)' : gradient,
               overflow: 'hidden',
             }}
           >

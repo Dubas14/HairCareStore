@@ -98,8 +98,8 @@ export default function CustomUpload({ value, onChange, accept = 'image/*', maxS
           {preview.url ? (
             <img src={preview.url} alt={preview.name} className="hl-upload-zone__preview-img" />
           ) : (
-            <div className="hl-upload-zone__preview-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f7f8' }}>
-              <span style={{ fontSize: 11, color: '#9aa5ab' }}>{FORMAT_TAGS[preview.type] || 'FILE'}</span>
+            <div className="hl-upload-zone__preview-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-base-50)' }}>
+              <span style={{ fontSize: 11, color: 'var(--color-base-400)' }}>{FORMAT_TAGS[preview.type] || 'FILE'}</span>
             </div>
           )}
           <div className="hl-upload-zone__preview-info">

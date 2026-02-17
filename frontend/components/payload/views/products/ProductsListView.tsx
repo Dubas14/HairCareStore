@@ -17,16 +17,16 @@ import type { ProductViewItem, ProductsViewData, ProductsViewParams } from '@/ap
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLORS = {
-  bgPrimary: '#fafbfc',
-  bgSecondary: '#f5f7f8',
-  bgCard: '#ffffff',
-  border: '#e4e8ea',
+  bgPrimary: 'var(--color-base-50)',
+  bgSecondary: 'var(--color-base-50)',
+  bgCard: 'var(--color-base-0)',
+  border: 'var(--color-base-200)',
   sea400: '#7dd3d3',
   sea500: '#5bc4c4',
   sea600: '#4a9e9e',
-  textPrimary: '#2d3740',
-  textSecondary: '#6b7880',
-  textMuted: '#9aa5ab',
+  textPrimary: 'var(--color-base-700)',
+  textSecondary: 'var(--color-base-500)',
+  textMuted: 'var(--color-base-400)',
 } as const
 
 const AVATAR_GRADIENTS = [
@@ -274,15 +274,15 @@ function StatusBadge({ status }: { status: string }) {
       label = 'Чернетка'
       break
     case 'archived':
-      bg = '#f5f7f8'
-      color = '#9aa5ab'
-      dotColor = '#9aa5ab'
+      bg = 'var(--color-base-50)'
+      color = 'var(--color-base-400)'
+      dotColor = 'var(--color-base-400)'
       label = 'Архів'
       break
     default:
-      bg = '#f5f7f8'
-      color = '#9aa5ab'
-      dotColor = '#9aa5ab'
+      bg = 'var(--color-base-50)'
+      color = 'var(--color-base-400)'
+      dotColor = 'var(--color-base-400)'
       label = status
   }
 
@@ -1007,9 +1007,9 @@ export default function ProductsListView() {
               label="Архів"
               value={loading ? 0 : stats.archived}
               iconBg="rgba(154,165,171,0.12)"
-              iconColor="#9aa5ab"
+              iconColor="var(--color-base-400)"
               icon={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa5ab" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-base-400)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
                 </svg>
               }
