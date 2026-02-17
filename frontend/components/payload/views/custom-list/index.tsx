@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCollectionListData, deleteCollectionDoc } from '@/app/actions/admin-views'
+import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
 import { StatsCards, type StatItem } from './StatsCards'
 import { FilterChips, type FilterOption } from './FilterChips'
 import { CustomTable, type Column } from './CustomTable'
@@ -143,9 +144,9 @@ function getColumns(slug: string): Column[] {
   switch (slug) {
     case 'categories':
       return [
-        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'name', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
         { key: 'slug', label: 'Slug', width: '180px' },
-        statusCol,
+        { key: 'isActive', label: 'Статус', width: '130px', render: (val: boolean) => <StatusBadge status={val ? 'active' : 'inactive'} /> },
         dateCol,
       ]
     case 'brands':
@@ -158,9 +159,16 @@ function getColumns(slug: string): Column[] {
       ]
     case 'orders':
       return [
-        { key: 'orderNumber', label: '№ Замовлення', width: '140px', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>#{v}</strong> },
-        { key: 'customer', label: 'Клієнт', render: (v: any) => v?.name || v?.email || '—' },
-        { key: 'total', label: 'Сума', width: '110px', render: (v: number) => v != null ? `₴${v.toLocaleString('uk-UA')}` : '—' },
+        { key: 'displayId', label: '№ Замовлення', width: '140px', render: (v: number) => v != null ? <strong style={{ color: 'var(--color-base-700)' }}>#{v}</strong> : <span style={{ color: 'var(--color-base-400)' }}>—</span> },
+        { key: 'email', label: 'Клієнт', render: (v: string, doc: any) => {
+          const customer = doc.customer
+          if (customer && typeof customer === 'object') {
+            const name = [customer.firstName, customer.lastName].filter(Boolean).join(' ')
+            return name || customer.email || v || '—'
+          }
+          return v || '—'
+        }},
+        { key: 'total', label: 'Сума', width: '110px', render: (v: number) => v != null ? `${Math.round(v).toLocaleString('uk-UA')} ₴` : '—' },
         statusCol,
         dateCol,
       ]
@@ -223,10 +231,80 @@ function buildPages(current: number, total: number): (number | '...')[] {
   return pages
 }
 
+// ─── Per-collection stats & filters ──────────────────────────────────────────
+
+function getStatsAndFilters(
+  slug: string,
+  stats: { total: number; active: number; draft: number; archived: number }
+): { statsItems: StatItem[]; filterOptions: FilterOption[] } {
+  // Categories: isActive true/false
+  if (slug === 'categories') {
+    return {
+      statsItems: [
+        { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+        { label: 'Активні', value: stats.active, color: 'success', icon: <IconCheck /> },
+        { label: 'Неактивні', value: stats.draft, color: 'muted', icon: <IconArchive /> },
+      ],
+      filterOptions: [
+        { value: 'all', label: 'Всі', count: stats.total },
+        { value: 'active', label: 'Активні', count: stats.active },
+        { value: 'inactive', label: 'Неактивні', count: stats.draft },
+      ],
+    }
+  }
+
+  // Orders: pending/completed/canceled
+  if (slug === 'orders') {
+    return {
+      statsItems: [
+        { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+        { label: 'Очікує', value: stats.active, color: 'warning', icon: <IconFile /> },
+        { label: 'Завершені', value: stats.draft, color: 'success', icon: <IconCheck /> },
+        { label: 'Скасовані', value: stats.archived, color: 'muted', icon: <IconArchive /> },
+      ],
+      filterOptions: [
+        { value: 'all', label: 'Всі', count: stats.total },
+        { value: 'pending', label: 'Очікує', count: stats.active },
+        { value: 'completed', label: 'Завершені', count: stats.draft },
+        { value: 'canceled', label: 'Скасовані', count: stats.archived },
+      ],
+    }
+  }
+
+  // Collections without status field
+  if (['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions'].includes(slug)) {
+    return {
+      statsItems: [
+        { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+      ],
+      filterOptions: [
+        { value: 'all', label: 'Всі', count: stats.total },
+      ],
+    }
+  }
+
+  // Default: active/draft/archived
+  return {
+    statsItems: [
+      { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+      { label: 'Активні', value: stats.active, color: 'success', icon: <IconCheck /> },
+      { label: 'Чернетки', value: stats.draft, color: 'warning', icon: <IconFile /> },
+      { label: 'Архів', value: stats.archived, color: 'muted', icon: <IconArchive /> },
+    ],
+    filterOptions: [
+      { value: 'all', label: 'Всі', count: stats.total },
+      { value: 'active', label: 'Активні', count: stats.active },
+      { value: 'draft', label: 'Чернетки', count: stats.draft },
+      { value: 'archived', label: 'Архів', count: stats.archived },
+    ],
+  }
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CustomListView() {
   const router = useRouter()
+  useCleanPayloadUrl()
   const [slug, setSlug] = useState('')
   const [docs, setDocs] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, active: 0, draft: 0, archived: 0 })
@@ -291,19 +369,9 @@ export default function CustomListView() {
   const meta = COLLECTION_LABELS[slug] || { title: slug, singular: 'запис' }
   const columns = getColumns(slug)
 
-  const statsItems: StatItem[] = [
-    { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
-    { label: 'Активні', value: stats.active, color: 'success', icon: <IconCheck /> },
-    { label: 'Чернетки', value: stats.draft, color: 'warning', icon: <IconFile /> },
-    { label: 'Архів', value: stats.archived, color: 'muted', icon: <IconArchive /> },
-  ]
+  // Collection-specific stats and filters
+  const { statsItems, filterOptions } = getStatsAndFilters(slug, stats)
 
-  const filterOptions: FilterOption[] = [
-    { value: 'all', label: 'Всі', count: stats.total },
-    { value: 'active', label: 'Активні', count: stats.active },
-    { value: 'draft', label: 'Чернетки', count: stats.draft },
-    { value: 'archived', label: 'Архів', count: stats.archived },
-  ]
 
   const pages = buildPages(page, totalPages)
 

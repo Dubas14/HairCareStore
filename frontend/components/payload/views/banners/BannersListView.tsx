@@ -17,6 +17,7 @@ import {
   deleteBanner,
 } from '@/app/actions/admin-views'
 import type { BannerViewItem, BannersViewData } from '@/app/actions/admin-views'
+import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -965,6 +966,7 @@ function PreviewSection({ firstActiveBanner }: PreviewSectionProps) {
 
 export default function BannersListView() {
   const router = useRouter()
+  useCleanPayloadUrl()
 
   const [data, setData] = useState<BannersViewData | null>(null)
   const [loading, setLoading] = useState(true)

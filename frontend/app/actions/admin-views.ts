@@ -219,12 +219,19 @@ export interface MediaViewStats {
   others: number
 }
 
+export interface FolderCount {
+  folder: string
+  label: string
+  count: number
+}
+
 export interface MediaViewData {
   files: MediaFileItem[]
   totalDocs: number
   totalPages: number
   page: number
   stats: MediaViewStats
+  folders: FolderCount[]
 }
 
 export interface MediaViewParams {
@@ -233,7 +240,17 @@ export interface MediaViewParams {
   search?: string
   mimeType?: string
   sort?: string
+  folder?: string
 }
+
+const MEDIA_FOLDERS = [
+  { value: 'products', label: 'Товари' },
+  { value: 'banners', label: 'Банери' },
+  { value: 'brands', label: 'Бренди' },
+  { value: 'categories', label: 'Категорії' },
+  { value: 'blog', label: 'Блог' },
+  { value: 'other', label: 'Інше' },
+] as const
 
 export async function getMediaViewData(
   params: MediaViewParams = {}
@@ -244,6 +261,7 @@ export async function getMediaViewData(
     search = '',
     mimeType = '',
     sort = '-createdAt',
+    folder = '',
   } = params
 
   const payload = await getPayload({ config })
@@ -269,11 +287,15 @@ export async function getMediaViewData(
     }
   }
 
+  if (folder.trim()) {
+    filters.push({ folder: { equals: folder.trim() } })
+  }
+
   const where: Record<string, any> =
     filters.length === 0 ? {} : filters.length === 1 ? filters[0] : { and: filters }
 
-  // Fetch paginated files and stats counts in parallel
-  const [result, imagesCount, videosCount, totalCount] = await Promise.all([
+  // Fetch paginated files, stats counts, and folder counts in parallel
+  const [result, imagesCount, videosCount, totalCount, ...folderCounts] = await Promise.all([
     payload.find({
       collection: 'media',
       where,
@@ -291,6 +313,13 @@ export async function getMediaViewData(
       where: { mimeType: { contains: 'video/' } },
     }),
     payload.count({ collection: 'media' }),
+    // Count for each folder
+    ...MEDIA_FOLDERS.map((f) =>
+      payload.count({
+        collection: 'media',
+        where: { folder: { equals: f.value } },
+      })
+    ),
   ])
 
   const files: MediaFileItem[] = result.docs.map((doc: any) => {
@@ -316,6 +345,12 @@ export async function getMediaViewData(
   const others =
     totalCount.totalDocs - imagesCount.totalDocs - videosCount.totalDocs
 
+  const folders: FolderCount[] = MEDIA_FOLDERS.map((f, i) => ({
+    folder: f.value,
+    label: f.label,
+    count: folderCounts[i].totalDocs,
+  }))
+
   return {
     files,
     totalDocs: result.totalDocs,
@@ -327,6 +362,7 @@ export async function getMediaViewData(
       videos: videosCount.totalDocs,
       others: others < 0 ? 0 : others,
     },
+    folders,
   }
 }
 
@@ -528,6 +564,12 @@ export async function deleteMediaFile(id: string | number): Promise<DeleteResult
 
 // ── Generic collection data ──
 
+// Collections that use `isActive` checkbox instead of `status` select
+const CHECKBOX_STATUS_COLLECTIONS = new Set(['categories'])
+
+// Collections without any status/active field (no status filtering)
+const NO_STATUS_COLLECTIONS = new Set(['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions'])
+
 export async function getCollectionListData(
   collectionSlug: string,
   params: {
@@ -548,8 +590,15 @@ export async function getCollectionListData(
       { name: { contains: search } },
     ]
   }
+
+  // Apply status filter based on collection type
   if (status && status !== 'all') {
-    where.status = { equals: status }
+    if (CHECKBOX_STATUS_COLLECTIONS.has(collectionSlug)) {
+      // Categories use isActive checkbox: 'active' → true, 'inactive' → false
+      where.isActive = { equals: status === 'active' }
+    } else if (!NO_STATUS_COLLECTIONS.has(collectionSlug)) {
+      where.status = { equals: status }
+    }
   }
 
   try {
@@ -558,13 +607,35 @@ export async function getCollectionListData(
       page,
       limit,
       sort,
+      depth: 1,
       where: Object.keys(where).length > 0 ? where : undefined,
     })
 
+    // Count stats based on collection type
     let activeCount = 0, draftCount = 0, archivedCount = 0
-    try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
-    try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'draft' } } })).totalDocs } catch {}
-    try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'archived' } } })).totalDocs } catch {}
+
+    if (CHECKBOX_STATUS_COLLECTIONS.has(collectionSlug)) {
+      // For categories: active = isActive:true, draft(inactive) = isActive:false
+      try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { isActive: { equals: true } } })).totalDocs } catch {}
+      try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { isActive: { equals: false } } })).totalDocs } catch {}
+    } else if (!NO_STATUS_COLLECTIONS.has(collectionSlug)) {
+      // For orders: active = pending, draft = completed, archived = canceled
+      // For other collections: standard active/draft/archived
+      if (collectionSlug === 'orders') {
+        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'pending' } } })).totalDocs } catch {}
+        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'completed' } } })).totalDocs } catch {}
+        try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'canceled' } } })).totalDocs } catch {}
+      } else {
+        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
+        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'draft' } } })).totalDocs } catch {}
+        try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'archived' } } })).totalDocs } catch {}
+      }
+    }
+
+    // For stats.total, always use unfiltered count
+    const totalCount = (status && status !== 'all')
+      ? (await payload.count({ collection: collectionSlug as any })).totalDocs
+      : result.totalDocs
 
     return {
       docs: result.docs,
@@ -573,7 +644,7 @@ export async function getCollectionListData(
       page: result.page || 1,
       hasNextPage: result.hasNextPage,
       hasPrevPage: result.hasPrevPage,
-      stats: { total: result.totalDocs, active: activeCount, draft: draftCount, archived: archivedCount },
+      stats: { total: totalCount, active: activeCount, draft: draftCount, archived: archivedCount },
     }
   } catch (error) {
     console.error(`Error fetching ${collectionSlug}:`, error)

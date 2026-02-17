@@ -18,7 +18,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { getMediaViewData, deleteMediaFile } from '@/app/actions/admin-views'
-import type { MediaFileItem, MediaViewData, MediaViewStats } from '@/app/actions/admin-views'
+import type { MediaFileItem, MediaViewData, MediaViewStats, FolderCount } from '@/app/actions/admin-views'
+import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 
@@ -152,14 +153,18 @@ const IconChevronRight = ({ size = 16, color = 'currentColor' }: { size?: number
   </svg>
 )
 
-// ─── Static folder data ────────────────────────────────────────────────────────
+// ─── Folder visual config ────────────────────────────────────────────────────────
 
-const FOLDERS = [
-  { name: 'Товари',  count: 124, color: '#f59e0b', gradientFrom: '#fef3c7', gradientTo: '#fde68a' },
-  { name: 'Банери',  count: 18,  color: '#ec4899', gradientFrom: '#fce7f3', gradientTo: '#fbcfe8' },
-  { name: 'Бренди',  count: 45,  color: '#8b5cf6', gradientFrom: '#ede9fe', gradientTo: '#ddd6fe' },
-  { name: 'Відгуки', count: 67,  color: '#10b981', gradientFrom: '#d1fae5', gradientTo: '#a7f3d0' },
-]
+const FOLDER_STYLES: Record<string, { color: string; gradientFrom: string; gradientTo: string }> = {
+  products:   { color: '#f59e0b', gradientFrom: '#fef3c7', gradientTo: '#fde68a' },
+  banners:    { color: '#ec4899', gradientFrom: '#fce7f3', gradientTo: '#fbcfe8' },
+  brands:     { color: '#8b5cf6', gradientFrom: '#ede9fe', gradientTo: '#ddd6fe' },
+  categories: { color: '#10b981', gradientFrom: '#d1fae5', gradientTo: '#a7f3d0' },
+  blog:       { color: '#3b82f6', gradientFrom: '#dbeafe', gradientTo: '#bfdbfe' },
+  other:      { color: '#6b7280', gradientFrom: '#f3f4f6', gradientTo: '#e5e7eb' },
+}
+
+const DEFAULT_FOLDER_STYLE = { color: '#6b7280', gradientFrom: '#f3f4f6', gradientTo: '#e5e7eb' }
 
 // ─── Loading skeleton ──────────────────────────────────────────────────────────
 
@@ -546,6 +551,7 @@ export default function MediaLibraryView() {
   const [sort, setSort] = useState('-createdAt')
   const [page, setPage] = useState(1)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [activeFolder, setActiveFolder] = useState<string | null>(null)
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set())
@@ -557,6 +563,9 @@ export default function MediaLibraryView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── Clean up Payload's default URL params ────────────────────────────────
+  useCleanPayloadUrl()
 
   // ── Inject keyframes ──────────────────────────────────────────────────────
 
@@ -599,6 +608,7 @@ export default function MediaLibraryView() {
         search,
         mimeType: mimeFilter,
         sort,
+        folder: activeFolder || undefined,
       })
       setData(result)
     } catch (err) {
@@ -607,11 +617,25 @@ export default function MediaLibraryView() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, mimeFilter, sort])
+  }, [page, search, mimeFilter, sort, activeFolder])
 
   useEffect(() => {
     fetchData()
-  }, [page, mimeFilter, sort])
+  }, [page, mimeFilter, sort, activeFolder])
+
+  // ── Folder navigation ───────────────────────────────────────────────────
+
+  const handleFolderClick = (folderValue: string) => {
+    setActiveFolder(folderValue)
+    setPage(1)
+    setSelectedIds(new Set())
+  }
+
+  const handleBackToFolders = () => {
+    setActiveFolder(null)
+    setPage(1)
+    setSelectedIds(new Set())
+  }
 
   // Debounced search
   const handleSearchChange = (value: string) => {
@@ -715,6 +739,8 @@ export default function MediaLibraryView() {
   const totalPages = data?.totalPages ?? 1
   const totalDocs = data?.totalDocs ?? 0
   const files = data?.files ?? []
+  const folders: FolderCount[] = data?.folders ?? []
+  const activeFolderLabel = activeFolder ? folders.find(f => f.folder === activeFolder)?.label ?? activeFolder : null
 
   const usagePercent = stats.totalFiles > 0
     ? Math.min(100, Math.round((stats.images / Math.max(stats.totalFiles, 1)) * 100))
@@ -789,24 +815,6 @@ export default function MediaLibraryView() {
                 Видалити ({selectedIds.size})
               </button>
             )}
-
-            <button
-              onClick={() => {}}
-              style={{
-                height: 38,
-                padding: '0 16px',
-                border: `1px solid ${C.border}`,
-                borderRadius: 10,
-                background: C.bgSecondary,
-                color: C.textSecondary,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-              }}
-            >
-              + Нова папка
-            </button>
 
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -1111,27 +1119,84 @@ export default function MediaLibraryView() {
           </div>
         </div>
 
-        {/* ── Folders Section ────────────────────────────────────────────── */}
-        <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            Папки
-            <span style={{ fontSize: 12, fontWeight: 500, color: C.textMuted, background: C.bgSecondary, padding: '2px 8px', borderRadius: 10 }}>
-              {FOLDERS.length}
-            </span>
-          </h2>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {FOLDERS.map((folder) => (
-              <FolderCard key={folder.name} {...folder} />
-            ))}
+        {/* ── Folders / Breadcrumb Section ──────────────────────────────── */}
+        {activeFolder ? (
+          <div style={{ marginBottom: 20 }}>
+            <button
+              onClick={handleBackToFolders}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                border: `1px solid ${C.border}`,
+                borderRadius: 10,
+                background: C.bgCard,
+                color: C.textSecondary,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <IconChevronLeft size={14} color={C.textSecondary} />
+              Назад до всіх файлів
+            </button>
+            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: `linear-gradient(135deg, ${(FOLDER_STYLES[activeFolder] ?? DEFAULT_FOLDER_STYLE).gradientFrom}, ${(FOLDER_STYLES[activeFolder] ?? DEFAULT_FOLDER_STYLE).gradientTo})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <IconFolder color={(FOLDER_STYLES[activeFolder] ?? DEFAULT_FOLDER_STYLE).color} />
+              </div>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                {activeFolderLabel}
+              </h2>
+              <span style={{ fontSize: 12, fontWeight: 500, color: C.textMuted, background: C.bgSecondary, padding: '2px 8px', borderRadius: 10 }}>
+                {totalDocs}
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ marginBottom: 28 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              Папки
+              <span style={{ fontSize: 12, fontWeight: 500, color: C.textMuted, background: C.bgSecondary, padding: '2px 8px', borderRadius: 10 }}>
+                {folders.length}
+              </span>
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                gap: 12,
+              }}
+            >
+              {folders.map((folder) => {
+                const style = FOLDER_STYLES[folder.folder] ?? DEFAULT_FOLDER_STYLE
+                return (
+                  <FolderCard
+                    key={folder.folder}
+                    name={folder.label}
+                    count={folder.count}
+                    color={style.color}
+                    gradientFrom={style.gradientFrom}
+                    gradientTo={style.gradientTo}
+                    onClick={() => handleFolderClick(folder.folder)}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Error ────────────────────────────────────────────────────────── */}
         {error && (
@@ -1277,7 +1342,7 @@ export default function MediaLibraryView() {
                 Файли не знайдено
               </p>
               <p style={{ fontSize: 13, margin: 0 }}>
-                {search || mimeFilter
+                {search || mimeFilter || activeFolder
                   ? 'Спробуйте змінити параметри пошуку або фільтри'
                   : 'Завантажте перший файл, перетягнувши його вище'}
               </p>
@@ -1368,9 +1433,10 @@ interface FolderCardProps {
   color: string
   gradientFrom: string
   gradientTo: string
+  onClick?: () => void
 }
 
-function FolderCard({ name, count, color, gradientFrom, gradientTo }: FolderCardProps) {
+function FolderCard({ name, count, color, gradientFrom, gradientTo, onClick }: FolderCardProps) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -1390,6 +1456,8 @@ function FolderCard({ name, count, color, gradientFrom, gradientTo }: FolderCard
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' && onClick) onClick() }}
       role="button"
       tabIndex={0}
       aria-label={`Папка ${name} — ${count} файлів`}

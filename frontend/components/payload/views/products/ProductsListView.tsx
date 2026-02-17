@@ -13,6 +13,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getProductsViewData, deleteProduct } from '@/app/actions/admin-views'
 import type { ProductViewItem, ProductsViewData, ProductsViewParams } from '@/app/actions/admin-views'
+import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -759,6 +760,7 @@ const LIMIT = 10
 
 export default function ProductsListView() {
   const router = useRouter()
+  useCleanPayloadUrl()
 
   const [data, setData] = useState<ProductsViewData | null>(null)
   const [loading, setLoading] = useState(true)

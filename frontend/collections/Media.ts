@@ -50,5 +50,18 @@ export const Media: CollectionConfig = {
       name: 'alt',
       type: 'text',
     },
+    {
+      name: 'folder',
+      type: 'select',
+      options: [
+        { label: 'Товари', value: 'products' },
+        { label: 'Банери', value: 'banners' },
+        { label: 'Бренди', value: 'brands' },
+        { label: 'Категорії', value: 'categories' },
+        { label: 'Блог', value: 'blog' },
+        { label: 'Інше', value: 'other' },
+      ],
+      admin: { position: 'sidebar' },
+    },
   ],
 }
