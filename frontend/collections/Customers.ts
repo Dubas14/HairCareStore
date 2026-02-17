@@ -14,6 +14,18 @@ export const Customers: CollectionConfig = {
     useAsTitle: 'email',
     defaultColumns: ['email', 'firstName', 'lastName', 'createdAt'],
     group: 'Магазин',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     create: () => true, // Public registration

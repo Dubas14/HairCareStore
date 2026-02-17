@@ -7,6 +7,18 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     group: 'Система',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   fields: [
     {

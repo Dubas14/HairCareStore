@@ -7,6 +7,18 @@ export const Brands: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'countryOfOrigin', 'isActive'],
     group: 'Каталог',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

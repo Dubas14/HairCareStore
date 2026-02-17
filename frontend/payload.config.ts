@@ -72,32 +72,6 @@ export default buildConfig({
       beforeDashboard: ['/components/payload/Dashboard'],
       beforeLogin: ['/components/payload/BeforeLogin'],
       afterNavLinks: ['/components/payload/LoyaltyNavLink'],
-      views: {
-        loyaltyDashboard: {
-          Component: '/components/payload/loyalty/LoyaltyDashboardView',
-          path: '/loyalty',
-          exact: true,
-        },
-        loyaltySettings: {
-          Component: '/components/payload/loyalty/LoyaltySettingsView',
-          path: '/loyalty/settings',
-          exact: true,
-        },
-        loyaltyCustomers: {
-          Component: '/components/payload/loyalty/LoyaltyCustomersView',
-          path: '/loyalty/customers',
-          exact: true,
-        },
-        loyaltyCustomerDetail: {
-          Component: '/components/payload/loyalty/LoyaltyCustomerDetailView',
-          path: '/loyalty/customers/:id',
-        },
-        loyaltyTransactions: {
-          Component: '/components/payload/loyalty/LoyaltyTransactionsView',
-          path: '/loyalty/transactions',
-          exact: true,
-        },
-      },
     },
   },
 

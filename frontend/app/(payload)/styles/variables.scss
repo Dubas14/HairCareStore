@@ -1,0 +1,52 @@
+/* HAIR LAB — Design System Variables */
+
+:root {
+  --color-base-0:   #fafbfc;
+  --color-base-50:  #f5f7f8;
+  --color-base-100: #eef1f2;
+  --color-base-200: #e4e8ea;
+  --color-base-300: #d1d8db;
+  --color-base-400: #9aa5ab;
+  --color-base-500: #6b7880;
+  --color-base-600: #4a5560;
+  --color-base-700: #2d3740;
+  --color-base-800: #1a2026;
+  --color-base-900: #0d1115;
+  --color-sea-300:  #a8e6e6;
+  --color-sea-400:  #7dd3d3;
+  --color-sea-500:  #5bc4c4;
+  --color-sea-600:  #4a9e9e;
+  --color-sea-700:  #3d7a7a;
+  --color-sand:       #d4a574;
+  --color-sand-light: #e8d4c0;
+  --color-success:    #86c7a6;
+  --color-warning:    #e6b89c;
+  --color-error:      #d4a5a5;
+  --hl-accent:         var(--color-sea-500);
+  --hl-accent-hover:   var(--color-sea-600);
+  --hl-accent-light:   rgba(91, 196, 196, 0.08);
+  --hl-accent-border:  rgba(91, 196, 196, 0.25);
+  --hl-sidebar-bg:     linear-gradient(180deg, #f8fafb 0%, #f0f4f5 100%);
+  --hl-sidebar-border: var(--color-base-200);
+  --hl-radius-sm:  6px;
+  --hl-radius-md:  12px;
+  --hl-radius-lg:  14px;
+  --hl-radius-xl:  16px;
+  --hl-transition: 0.2s ease;
+  --hl-field-border: var(--color-base-200);
+  --hl-shadow-soft:   0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.02);
+  --hl-shadow-hover:  0 8px 30px rgba(91, 196, 196, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --hl-shadow-button: 0 4px 12px rgba(91, 196, 196, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --theme-success-500: var(--color-sea-500);
+  --theme-success-400: var(--color-sea-400);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

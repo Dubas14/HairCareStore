@@ -5,6 +5,18 @@ export const Media: CollectionConfig = {
   labels: { singular: 'Медіафайл', plural: 'Медіа' },
   admin: {
     group: 'Система',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/media/MediaLibraryView',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

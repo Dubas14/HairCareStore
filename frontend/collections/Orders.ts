@@ -17,6 +17,18 @@ export const Orders: CollectionConfig = {
     useAsTitle: 'displayId',
     defaultColumns: ['displayId', 'email', 'status', 'total', 'createdAt'],
     group: 'Магазин',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     read: ({ req }) => {

@@ -7,6 +7,18 @@ export const Reviews: CollectionConfig = {
     useAsTitle: 'customerName',
     defaultColumns: ['customerName', 'rating', 'product', 'isApproved'],
     group: 'Контент',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

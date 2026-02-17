@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getLoyaltyTransactions } from '@/app/actions/loyalty-admin'
 import type { Transaction } from './types'
 import { transactionTypeLabels, transactionTypeColors } from './types'
+import LoyaltyLayout from './LoyaltyLayout'
 import './loyalty-admin.scss'
 
 const LoyaltyTransactionsView: React.FC = () => {
@@ -36,119 +37,121 @@ const LoyaltyTransactionsView: React.FC = () => {
   const currentPage = Math.floor(offset / limit) + 1
 
   return (
-    <div className="loyalty-admin">
-      <div className="loyalty-admin__header">
-        <h1>Історія транзакцій</h1>
-        <p>Всі операції з балами ({count} записів)</p>
-      </div>
+    <LoyaltyLayout>
+      <div className="loyalty-admin">
+        <div className="loyalty-admin__header">
+          <h1>Історія транзакцій</h1>
+          <p>Всі операції з балами ({count} записів)</p>
+        </div>
 
-      <div className="loyalty-admin__table-wrapper">
-        <table className="loyalty-admin__table">
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Клієнт</th>
-              <th>Тип</th>
-              <th>Опис</th>
-              <th className="text-right">Бали</th>
-              <th className="text-right">Баланс після</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="loyalty-admin__table-wrapper">
+          <table className="loyalty-admin__table">
+            <thead>
               <tr>
-                <td colSpan={6} className="loyalty-admin__loading">Завантаження...</td>
+                <th>Дата</th>
+                <th>Клієнт</th>
+                <th>Тип</th>
+                <th>Опис</th>
+                <th className="text-right">Бали</th>
+                <th className="text-right">Баланс після</th>
               </tr>
-            ) : transactions.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="loyalty-admin__empty">Транзакцій не знайдено</td>
-              </tr>
-            ) : (
-              transactions.map((tx) => (
-                <tr key={tx.id}>
-                  <td style={{ fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
-                    {new Date(tx.created_at).toLocaleDateString('uk-UA')}{' '}
-                    <span style={{ color: 'var(--theme-elevation-500, #9ca3af)' }}>
-                      {new Date(tx.created_at).toLocaleTimeString('uk-UA', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </td>
-                  <td>
-                    <Link
-                      href={`/admin/loyalty/customers/${tx.customer_id}`}
-                      style={{ color: 'inherit', textDecoration: 'none' }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div style={{ fontWeight: 500 }}>
-                        {tx.customer?.first_name || ''} {tx.customer?.last_name || ''}
-                        {!tx.customer?.first_name && !tx.customer?.last_name && '—'}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--theme-elevation-500, #9ca3af)' }}>
-                        {tx.customer?.email || tx.customer_id}
-                      </div>
-                    </Link>
-                  </td>
-                  <td>
-                    <span
-                      className="loyalty-admin__type-badge"
-                      style={{
-                        backgroundColor: `${transactionTypeColors[tx.transaction_type] || '#6b7280'}20`,
-                        color: transactionTypeColors[tx.transaction_type] || '#6b7280',
-                      }}
-                    >
-                      {transactionTypeLabels[tx.transaction_type] || tx.transaction_type}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '0.8125rem', color: 'var(--theme-elevation-500, #9ca3af)', maxWidth: '200px' }}>
-                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {tx.description || '—'}
-                    </div>
-                    {tx.order_id && (
-                      <div style={{ fontSize: '0.75rem' }}>
-                        Замовлення: {tx.order_id.slice(0, 12)}...
-                      </div>
-                    )}
-                  </td>
-                  <td
-                    className="text-right"
-                    style={{ fontWeight: 500, color: tx.points_amount > 0 ? '#22c55e' : '#ef4444' }}
-                  >
-                    {tx.points_amount > 0 ? '+' : ''}{tx.points_amount.toLocaleString()}
-                  </td>
-                  <td className="text-right">{tx.balance_after.toLocaleString()}</td>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="loyalty-admin__loading">Завантаження...</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="loyalty-admin__empty">Транзакцій не знайдено</td>
+                </tr>
+              ) : (
+                transactions.map((tx) => (
+                  <tr key={tx.id}>
+                    <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
+                      {new Date(tx.created_at).toLocaleDateString('uk-UA')}{' '}
+                      <span style={{ color: 'var(--color-base-400)' }}>
+                        {new Date(tx.created_at).toLocaleTimeString('uk-UA', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </td>
+                    <td>
+                      <Link
+                        href={`/admin/loyalty/customers/${tx.customer_id}`}
+                        style={{ color: 'inherit', textDecoration: 'none' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div style={{ fontWeight: 500 }}>
+                          {tx.customer?.first_name || ''} {tx.customer?.last_name || ''}
+                          {!tx.customer?.first_name && !tx.customer?.last_name && '—'}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--color-base-400)' }}>
+                          {tx.customer?.email || tx.customer_id}
+                        </div>
+                      </Link>
+                    </td>
+                    <td>
+                      <span
+                        className="loyalty-admin__type-badge"
+                        style={{
+                          backgroundColor: `${transactionTypeColors[tx.transaction_type] || '#6b7280'}20`,
+                          color: transactionTypeColors[tx.transaction_type] || '#6b7280',
+                        }}
+                      >
+                        {transactionTypeLabels[tx.transaction_type] || tx.transaction_type}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 13, color: 'var(--color-base-400)', maxWidth: 200 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {tx.description || '—'}
+                      </div>
+                      {tx.order_id && (
+                        <div style={{ fontSize: 12 }}>
+                          Замовлення: {tx.order_id.slice(0, 12)}...
+                        </div>
+                      )}
+                    </td>
+                    <td
+                      className="text-right"
+                      style={{ fontWeight: 500, color: tx.points_amount > 0 ? '#4a9468' : '#b06060' }}
+                    >
+                      {tx.points_amount > 0 ? '+' : ''}{tx.points_amount.toLocaleString()}
+                    </td>
+                    <td className="text-right">{tx.balance_after.toLocaleString()}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
 
-        {totalPages > 1 && (
-          <div className="loyalty-admin__pagination">
-            <span className="loyalty-admin__pagination-info">
-              Сторінка {currentPage} з {totalPages}
-            </span>
-            <div className="loyalty-admin__pagination-buttons">
-              <button
-                className="loyalty-admin__btn loyalty-admin__btn--secondary"
-                onClick={() => fetchTransactions(Math.max(0, offset - limit))}
-                disabled={offset === 0}
-              >
-                Попередня
-              </button>
-              <button
-                className="loyalty-admin__btn loyalty-admin__btn--secondary"
-                onClick={() => fetchTransactions(offset + limit)}
-                disabled={offset + limit >= count}
-              >
-                Наступна
-              </button>
+          {totalPages > 1 && (
+            <div className="loyalty-admin__pagination">
+              <span className="loyalty-admin__pagination-info">
+                Сторінка {currentPage} з {totalPages}
+              </span>
+              <div className="loyalty-admin__pagination-buttons">
+                <button
+                  className="loyalty-admin__btn loyalty-admin__btn--secondary"
+                  onClick={() => fetchTransactions(Math.max(0, offset - limit))}
+                  disabled={offset === 0}
+                >
+                  Попередня
+                </button>
+                <button
+                  className="loyalty-admin__btn loyalty-admin__btn--secondary"
+                  onClick={() => fetchTransactions(offset + limit)}
+                  disabled={offset + limit >= count}
+                >
+                  Наступна
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </LoyaltyLayout>
   )
 }
 

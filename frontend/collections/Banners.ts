@@ -7,6 +7,18 @@ export const Banners: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'position', 'order', 'isActive'],
     group: 'Контент',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/banners/BannersListView',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

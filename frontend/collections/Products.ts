@@ -7,6 +7,18 @@ export const Products: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'handle', 'status', 'updatedAt'],
     group: 'Магазин',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/products/ProductsListView',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/products/ProductEditView',
+          },
+        },
+      },
+    },
   },
   access: {
     read: () => true,
