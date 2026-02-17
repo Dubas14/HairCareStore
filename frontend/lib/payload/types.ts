@@ -162,7 +162,10 @@ export interface PayloadVariant {
   title: string
   sku?: string
   price: number
+  costPrice?: number
   compareAtPrice?: number
+  supplierCode?: string
+  articleCode?: string
   inStock: boolean
   inventory: number
 }

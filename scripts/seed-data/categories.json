@@ -1,0 +1,185 @@
+[
+  {
+    "name": "Фарба для волосся",
+    "slug": "farba-dlya-volossya",
+    "order": 1,
+    "children": [
+      {
+        "name": "Перманентна фарба",
+        "slug": "permanentna-farba",
+        "order": 1
+      },
+      {
+        "name": "Безаміачна фарба",
+        "slug": "bezamіachna-farba",
+        "order": 2
+      },
+      {
+        "name": "Деміперманентна фарба",
+        "slug": "demipermanentna-farba",
+        "order": 3
+      },
+      {
+        "name": "Тонуючі засоби",
+        "slug": "tonuyuchi-zasoby",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "name": "Окислювачі",
+    "slug": "okyslyuvachi",
+    "order": 2,
+    "children": []
+  },
+  {
+    "name": "Освітлення та знебарвлення",
+    "slug": "osvitlennya-ta-znebarvlennya",
+    "order": 3,
+    "children": []
+  },
+  {
+    "name": "Догляд за волоссям",
+    "slug": "doglyad-za-volossynam",
+    "order": 4,
+    "children": [
+      {
+        "name": "Шампуні",
+        "slug": "shampuni",
+        "order": 1
+      },
+      {
+        "name": "Маски та бальзами",
+        "slug": "masky-ta-balzamy",
+        "order": 2
+      },
+      {
+        "name": "Кондиціонери",
+        "slug": "kondytsionery",
+        "order": 3
+      },
+      {
+        "name": "Незмивні засоби",
+        "slug": "nezmyvni-zasoby",
+        "order": 4
+      },
+      {
+        "name": "Олії та сироватки",
+        "slug": "oliyi-ta-syrovatky",
+        "order": 5
+      },
+      {
+        "name": "Спреї",
+        "slug": "spreyi",
+        "order": 6
+      }
+    ]
+  },
+  {
+    "name": "Стайлінг",
+    "slug": "staylinh",
+    "order": 5,
+    "children": [
+      {
+        "name": "Лаки",
+        "slug": "laky",
+        "order": 1
+      },
+      {
+        "name": "Муси та піни",
+        "slug": "musy-ta-piny",
+        "order": 2
+      },
+      {
+        "name": "Пасти та воски",
+        "slug": "pasty-ta-vosky",
+        "order": 3
+      },
+      {
+        "name": "Термозахист",
+        "slug": "termozakhyst",
+        "order": 4
+      }
+    ]
+  },
+  {
+    "name": "Лікування волосся",
+    "slug": "likuvannya-volossya",
+    "order": 6,
+    "children": [
+      {
+        "name": "Ампули та концентрати",
+        "slug": "ampuly-ta-kontsentraty",
+        "order": 1
+      },
+      {
+        "name": "Кератинові засоби",
+        "slug": "keratynovi-zasoby",
+        "order": 2
+      },
+      {
+        "name": "Ламінування",
+        "slug": "laminuvannya",
+        "order": 3
+      }
+    ]
+  },
+  {
+    "name": "Скальп-догляд",
+    "slug": "skalp-doglyad",
+    "order": 7,
+    "children": [
+      {
+        "name": "Проти лупи",
+        "slug": "proty-lupy",
+        "order": 1
+      },
+      {
+        "name": "Проти випадіння",
+        "slug": "proty-vypadinnya",
+        "order": 2
+      },
+      {
+        "name": "Детокс",
+        "slug": "detoks",
+        "order": 3
+      }
+    ]
+  },
+  {
+    "name": "Для чоловіків",
+    "slug": "dlya-cholovikiv",
+    "order": 8,
+    "children": []
+  },
+  {
+    "name": "Сонцезахист",
+    "slug": "sontsezakhyst",
+    "order": 9,
+    "children": []
+  },
+  {
+    "name": "Хімічна завивка",
+    "slug": "khimichna-zavyvka",
+    "order": 10,
+    "children": []
+  },
+  {
+    "name": "Набори",
+    "slug": "nabory",
+    "order": 11,
+    "children": []
+  },
+  {
+    "name": "Кольорові маски",
+    "slug": "kolorovi-masky",
+    "order": 12,
+    "children": []
+  },
+  {
+    "name": "Догляд за кольором",
+    "slug": "doglyad-za-kolorom",
+    "order": 13,
+    "children": []
+  }
+]
