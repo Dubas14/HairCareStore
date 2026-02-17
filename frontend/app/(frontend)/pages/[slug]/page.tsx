@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
-import { getPageBySlug, getPages } from '@/lib/payload/client'
+import { getPageBySlug, getPages, getSiteSettings } from '@/lib/payload/client'
+import type { SiteSettingsData } from '@/lib/payload/client'
 import { Metadata } from 'next'
 import {
   PageHero,
@@ -24,19 +25,14 @@ interface PageProps {
 
 // Generate static paths for all pages
 export async function generateStaticParams() {
-  // Always include known page slugs
   const knownSlugs = Object.keys(pageConfig)
 
-  // Try to get additional pages from CMS
   try {
     const pages = await getPages()
     const cmsSlugs = pages.map(page => page.slug)
-
-    // Combine and deduplicate
     const allSlugs = [...new Set([...knownSlugs, ...cmsSlugs])]
     return allSlugs.map(slug => ({ slug }))
   } catch {
-    // If CMS is unavailable, use known slugs only
     return knownSlugs.map(slug => ({ slug }))
   }
 }
@@ -47,7 +43,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const page = await getPageBySlug(slug)
   const config = pageConfig[slug]
 
-  // Use CMS data if available, otherwise use fallback
   const title = page?.metaTitle || page?.title || config?.fallbackTitle || slug
 
   return {
@@ -113,74 +108,63 @@ const pageConfig: Record<string, {
   },
 }
 
-// Delivery page content
-function DeliveryContent() {
+// Icon map for delivery methods
+const deliveryIcons = [InfoIcons.truck, InfoIcons.mapPin, InfoIcons.clock, InfoIcons.gift]
+const paymentIcons = [InfoIcons.creditCard, InfoIcons.shield, InfoIcons.gift, InfoIcons.check]
+
+// ─── Delivery page ──────────────────────────────────────────────
+
+function DeliveryContent({ settings }: { settings: SiteSettingsData | null }) {
+  const methods = settings?.delivery?.methods || [
+    { title: 'Нова Пошта', description: 'Доставка 1-3 дні по всій Україні. Безкоштовно від 1500 грн.', isHighlight: true },
+    { title: 'Укрпошта', description: 'Економна доставка 3-7 днів. Доступна для всіх населених пунктів.', isHighlight: false },
+    { title: "Кур'єрська доставка", description: 'Доставка день в день по Києву та області. Замовлення до 14:00.', isHighlight: false },
+  ]
+  const steps = settings?.delivery?.steps || [
+    { title: 'Оформлення', description: 'Залиште заявку на сайті або зателефонуйте нам' },
+    { title: 'Підтвердження', description: "Менеджер зв'яжеться для уточнення деталей" },
+    { title: 'Відправка', description: 'Товар буде надісланий в день замовлення' },
+    { title: 'Отримання', description: "Заберіть замовлення у відділенні або отримайте кур'єром" },
+  ]
+  const faq = settings?.delivery?.faq || [
+    { question: 'Яка вартість доставки?', answer: 'Доставка Новою Поштою безкоштовна при замовленні від 1500 грн. Для замовлень до 1500 грн вартість доставки розраховується за тарифами перевізника.' },
+    { question: 'Як швидко відправляється замовлення?', answer: 'Замовлення, оформлені до 14:00, відправляються того ж дня. Замовлення після 14:00 відправляються наступного робочого дня.' },
+    { question: 'Чи можна змінити адресу доставки?', answer: "Так, ви можете змінити адресу до моменту відправлення замовлення, зв'язавшись з нашим менеджером." },
+    { question: 'Як відстежити моє замовлення?', answer: 'Після відправлення ви отримаєте SMS з номером ТТН для відстеження посилки на сайті перевізника.' },
+  ]
+
   return (
     <>
-      {/* Info cards */}
       <section className="mb-16">
         <InfoCardGrid columns={3}>
-          <InfoCard
-            icon={InfoIcons.truck}
-            title="Нова Пошта"
-            description="Доставка 1-3 дні по всій Україні. Безкоштовно від 1500 грн."
-            variant="highlight"
-            delay={0}
-          />
-          <InfoCard
-            icon={InfoIcons.mapPin}
-            title="Укрпошта"
-            description="Економна доставка 3-7 днів. Доступна для всіх населених пунктів."
-            delay={100}
-          />
-          <InfoCard
-            icon={InfoIcons.clock}
-            title="Кур'єрська доставка"
-            description="Доставка день в день по Києву та області. Замовлення до 14:00."
-            delay={200}
-          />
+          {methods.map((method, i) => (
+            <InfoCard
+              key={i}
+              icon={deliveryIcons[i] || InfoIcons.truck}
+              title={method.title}
+              description={method.description}
+              variant={method.isHighlight ? 'highlight' : undefined}
+              delay={i * 100}
+            />
+          ))}
         </InfoCardGrid>
       </section>
 
-      {/* Process timeline */}
       <section className="mb-16">
         <ProcessTimeline
           title="Як працює доставка"
-          steps={[
-            { number: 1, title: "Оформлення", description: "Залиште заявку на сайті або зателефонуйте нам" },
-            { number: 2, title: "Підтвердження", description: "Менеджер зв'яжеться для уточнення деталей" },
-            { number: 3, title: "Відправка", description: "Товар буде надісланий в день замовлення" },
-            { number: 4, title: "Отримання", description: "Заберіть замовлення у відділенні або отримайте кур'єром" },
-          ]}
+          steps={steps.map((step, i) => ({
+            number: i + 1,
+            title: step.title,
+            description: step.description,
+          }))}
         />
       </section>
 
-      {/* FAQ */}
       <section className="mb-16">
-        <FAQAccordion
-          title="Часті запитання про доставку"
-          items={[
-            {
-              question: "Яка вартість доставки?",
-              answer: "Доставка Новою Поштою безкоштовна при замовленні від 1500 грн. Для замовлень до 1500 грн вартість доставки розраховується за тарифами перевізника.",
-            },
-            {
-              question: "Як швидко відправляється замовлення?",
-              answer: "Замовлення, оформлені до 14:00, відправляються того ж дня. Замовлення після 14:00 відправляються наступного робочого дня.",
-            },
-            {
-              question: "Чи можна змінити адресу доставки?",
-              answer: "Так, ви можете змінити адресу до моменту відправлення замовлення, зв'язавшись з нашим менеджером.",
-            },
-            {
-              question: "Як відстежити моє замовлення?",
-              answer: "Після відправлення ви отримаєте SMS з номером ТТН для відстеження посилки на сайті перевізника.",
-            },
-          ]}
-        />
+        <FAQAccordion title="Часті запитання про доставку" items={faq} />
       </section>
 
-      {/* CTA */}
       <CTASection
         title="Є питання щодо доставки?"
         description="Наші менеджери з радістю допоможуть"
@@ -192,11 +176,25 @@ function DeliveryContent() {
   )
 }
 
-// Payment page content
-function PaymentContent() {
+// ─── Payment page ───────────────────────────────────────────────
+
+function PaymentContent({ settings }: { settings: SiteSettingsData | null }) {
+  const methods = settings?.payment?.methods || [
+    { title: 'Карткою онлайн', description: 'Visa, Mastercard, Apple Pay, Google Pay. Миттєве підтвердження платежу.', isHighlight: true },
+    { title: 'Накладений платіж', description: 'Оплата при отриманні на пошті. Комісія за тарифами перевізника.', isHighlight: false },
+    { title: 'Безготівковий розрахунок', description: 'Для юридичних осіб та ФОП. Виставлення рахунку протягом години.', isHighlight: false },
+    { title: 'Оплата частинами', description: 'Розстрочка від ПриватБанку та Monobank до 4 платежів без переплат.', isHighlight: false },
+  ]
+  const securityText = settings?.payment?.securityText ||
+    'Всі платежі захищені технологією 3D Secure. Ми не зберігаємо дані вашої картки — всі транзакції обробляються через сертифіковані платіжні системи з найвищим рівнем захисту PCI DSS.'
+  const faq = settings?.payment?.faq || [
+    { question: 'Чи безпечно платити карткою на сайті?', answer: 'Так, абсолютно безпечно. Ми використовуємо сертифіковану платіжну систему з захистом 3D Secure та шифруванням SSL.' },
+    { question: 'Коли списуються кошти при онлайн-оплаті?', answer: 'Кошти списуються одразу після підтвердження замовлення. У разі скасування — повернення протягом 1-3 банківських днів.' },
+    { question: 'Чи можна оплатити частинами?', answer: 'Так, доступна оплата частинами від ПриватБанку та Monobank для замовлень від 500 грн. Оберіть цей спосіб при оформленні.' },
+  ]
+
   return (
     <>
-      {/* Payment methods */}
       <section className="mb-16">
         <ScrollReveal variant="fade-up">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">
@@ -206,35 +204,19 @@ function PaymentContent() {
         </ScrollReveal>
 
         <InfoCardGrid columns={2}>
-          <InfoCard
-            icon={InfoIcons.creditCard}
-            title="Карткою онлайн"
-            description="Visa, Mastercard, Apple Pay, Google Pay. Миттєве підтвердження платежу."
-            variant="highlight"
-            delay={0}
-          />
-          <InfoCard
-            icon={InfoIcons.shield}
-            title="Накладений платіж"
-            description="Оплата при отриманні на пошті. Комісія за тарифами перевізника."
-            delay={100}
-          />
-          <InfoCard
-            icon={InfoIcons.gift}
-            title="Безготівковий розрахунок"
-            description="Для юридичних осіб та ФОП. Виставлення рахунку протягом години."
-            delay={200}
-          />
-          <InfoCard
-            icon={InfoIcons.check}
-            title="Оплата частинами"
-            description="Розстрочка від ПриватБанку та Monobank до 4 платежів без переплат."
-            delay={300}
-          />
+          {methods.map((method, i) => (
+            <InfoCard
+              key={i}
+              icon={paymentIcons[i] || InfoIcons.creditCard}
+              title={method.title}
+              description={method.description}
+              variant={method.isHighlight ? 'highlight' : undefined}
+              delay={i * 100}
+            />
+          ))}
         </InfoCardGrid>
       </section>
 
-      {/* Security section */}
       <section className="mb-16 bg-gradient-to-br from-[#2A9D8F]/5 to-[#48CAE4]/5 rounded-3xl p-8 md:p-12">
         <ScrollReveal variant="fade-up">
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -249,37 +231,16 @@ function PaymentContent() {
             </div>
             <div>
               <h3 className="text-xl font-bold mb-2">Безпечні платежі</h3>
-              <p className="text-neutral-600 leading-relaxed">
-                Всі платежі захищені технологією 3D Secure. Ми не зберігаємо дані вашої картки —
-                всі транзакції обробляються через сертифіковані платіжні системи з найвищим рівнем захисту PCI DSS.
-              </p>
+              <p className="text-neutral-600 leading-relaxed">{securityText}</p>
             </div>
           </div>
         </ScrollReveal>
       </section>
 
-      {/* FAQ */}
       <section className="mb-16">
-        <FAQAccordion
-          title="Часті запитання про оплату"
-          items={[
-            {
-              question: "Чи безпечно платити карткою на сайті?",
-              answer: "Так, абсолютно безпечно. Ми використовуємо сертифіковану платіжну систему з захистом 3D Secure та шифруванням SSL.",
-            },
-            {
-              question: "Коли списуються кошти при онлайн-оплаті?",
-              answer: "Кошти списуються одразу після підтвердження замовлення. У разі скасування — повернення протягом 1-3 банківських днів.",
-            },
-            {
-              question: "Чи можна оплатити частинами?",
-              answer: "Так, доступна оплата частинами від ПриватБанку та Monobank для замовлень від 500 грн. Оберіть цей спосіб при оформленні.",
-            },
-          ]}
-        />
+        <FAQAccordion title="Часті запитання про оплату" items={faq} />
       </section>
 
-      {/* CTA */}
       <CTASection
         title="Готові зробити замовлення?"
         description="Оберіть зручний спосіб оплати та отримайте товар вже завтра"
@@ -291,48 +252,50 @@ function PaymentContent() {
   )
 }
 
-// Contacts page content
-function ContactsContent() {
+// ─── Contacts page ──────────────────────────────────────────────
+
+function ContactsContent({ settings }: { settings: SiteSettingsData | null }) {
+  const c = settings?.contacts
+  const s = settings?.social
+
   return (
     <>
-      {/* Contact cards */}
       <section className="mb-16">
         <div className="grid md:grid-cols-2 gap-6">
           <ContactCard
             icon={ContactIcons.phone}
             title="Телефон"
-            value="+38 (067) 123-45-67"
-            link="tel:+380671234567"
-            description="Пн-Пт: 9:00 - 18:00"
+            value={c?.phone || '+38 (067) 123-45-67'}
+            link={c?.phoneLink || 'tel:+380671234567'}
+            description={c?.phoneSchedule || 'Пн-Пт: 9:00 - 18:00'}
             delay={0}
           />
           <ContactCard
             icon={ContactIcons.mail}
             title="Email"
-            value="hello@hairlab.ua"
-            link="mailto:hello@hairlab.ua"
-            description="Відповідаємо протягом 2 годин"
+            value={c?.email || 'hello@hairlab.ua'}
+            link={`mailto:${c?.email || 'hello@hairlab.ua'}`}
+            description={c?.emailDescription || 'Відповідаємо протягом 2 годин'}
             delay={100}
           />
           <ContactCard
             icon={ContactIcons.location}
             title="Адреса"
-            value="м. Київ, вул. Хрещатик, 1"
-            link="https://maps.google.com"
-            description="Шоурум працює з 10:00 до 20:00"
+            value={c?.address || 'м. Київ, вул. Хрещатик, 1'}
+            link={c?.addressLink || 'https://maps.google.com'}
+            description={c?.addressDescription || 'Шоурум працює з 10:00 до 20:00'}
             delay={200}
           />
           <ContactCard
             icon={ContactIcons.clock}
             title="Графік роботи"
-            value="Щодня з 9:00 до 21:00"
-            description="Онлайн-підтримка 24/7"
+            value={c?.schedule || 'Щодня з 9:00 до 21:00'}
+            description={c?.scheduleDescription || 'Онлайн-підтримка 24/7'}
             delay={300}
           />
         </div>
       </section>
 
-      {/* Social links */}
       <section className="mb-16">
         <ScrollReveal variant="fade-up">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">
@@ -346,7 +309,7 @@ function ContactsContent() {
             <SocialLink
               icon={ContactIcons.instagram}
               label="Instagram"
-              href="https://instagram.com/hairlab.ua"
+              href={s?.instagram || 'https://instagram.com/hairlab.ua'}
               color="#E4405F"
             />
           </ScrollReveal>
@@ -354,7 +317,7 @@ function ContactsContent() {
             <SocialLink
               icon={ContactIcons.telegram}
               label="Telegram"
-              href="https://t.me/hairlab_ua"
+              href={s?.telegram || 'https://t.me/hairlab_ua'}
               color="#0088cc"
             />
           </ScrollReveal>
@@ -362,14 +325,13 @@ function ContactsContent() {
             <SocialLink
               icon={ContactIcons.facebook}
               label="Facebook"
-              href="https://facebook.com/hairlab.ua"
+              href={s?.facebook || 'https://facebook.com/hairlab.ua'}
               color="#1877F2"
             />
           </ScrollReveal>
         </div>
       </section>
 
-      {/* Map placeholder */}
       <section className="mb-16">
         <ScrollReveal variant="fade-up">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-100 to-neutral-50 h-80 flex items-center justify-center">
@@ -377,9 +339,9 @@ function ContactsContent() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#2A9D8F] to-[#48CAE4] flex items-center justify-center text-white">
                 {ContactIcons.location}
               </div>
-              <p className="text-neutral-600">м. Київ, вул. Хрещатик, 1</p>
+              <p className="text-neutral-600">{c?.address || 'м. Київ, вул. Хрещатик, 1'}</p>
               <a
-                href="https://maps.google.com"
+                href={c?.addressLink || 'https://maps.google.com'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 mt-4 text-[#2A9D8F] hover:text-[#48CAE4] font-medium transition-colors"
@@ -394,90 +356,74 @@ function ContactsContent() {
         </ScrollReveal>
       </section>
 
-      {/* CTA */}
       <CTASection
         title="Маєте запитання?"
         description="Напишіть нам — відповімо протягом години"
         buttonText="Написати в Telegram"
-        buttonLink="https://t.me/hairlab_ua"
+        buttonLink={s?.telegram || 'https://t.me/hairlab_ua'}
         variant="dark"
       />
     </>
   )
 }
 
-// About page content
-function AboutContent() {
+// ─── About page ─────────────────────────────────────────────────
+
+function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
+  const a = settings?.about
+
+  const intro = a?.intro || 'HAIR LAB — це більше ніж магазин косметики для волосся. Це лабораторія краси, де наука зустрічається з турботою про себе.'
+  const story = a?.story || 'Ми заснували HAIR LAB з простою місією: зробити професійний догляд за волоссям доступним кожному. Наша команда трихологів та стилістів ретельно відбирає кожен продукт, тестує його та перевіряє ефективність інгредієнтів.'
+  const features = a?.features || [
+    { title: 'Тільки оригінали', description: "Працюємо напряму з брендами та офіційними дистриб'юторами" },
+    { title: 'Науковий підхід', description: 'Кожен продукт перевірений трихологами та дерматологами' },
+    { title: 'Натуральні формули', description: 'Пріоритет інгредієнтам природного походження' },
+    { title: 'Eco-friendly', description: 'Підтримуємо бренди з етичним виробництвом' },
+    { title: 'Індивідуальний підбір', description: 'Безкоштовні консультації для підбору догляду' },
+    { title: 'Підтримка 24/7', description: "Завжди на зв'язку для відповіді на ваші запитання" },
+  ]
+  const stats = a?.stats || [
+    { value: '5+', label: 'років досвіду' },
+    { value: '50K+', label: 'задоволених клієнтів' },
+    { value: '200+', label: 'брендів' },
+    { value: '4.9', label: 'рейтинг на Google' },
+  ]
+
+  // Map CMS features to FeatureGrid format with icons
+  const featureIconList = [FeatureIcons.quality, FeatureIcons.science, FeatureIcons.natural, FeatureIcons.eco, FeatureIcons.heart, FeatureIcons.support]
+
   return (
     <>
-      {/* Story section */}
       <section className="mb-16">
         <ScrollReveal variant="fade-up">
           <div className="prose prose-lg max-w-none">
             <p className="text-xl text-neutral-600 leading-relaxed mb-6">
-              <strong className="text-[#1A1A1A]">HAIR LAB</strong> — це більше ніж магазин косметики для волосся.
-              Це лабораторія краси, де наука зустрічається з турботою про себе.
+              <strong className="text-[#1A1A1A]">{intro}</strong>
             </p>
             <p className="text-neutral-600 leading-relaxed">
-              Ми заснували HAIR LAB з простою місією: зробити професійний догляд за волоссям доступним кожному.
-              Наша команда трихологів та стилістів ретельно відбирає кожен продукт, тестує його та перевіряє
-              ефективність інгредієнтів.
+              {story}
             </p>
           </div>
         </ScrollReveal>
       </section>
 
-      {/* Features */}
       <section className="mb-16">
         <FeatureGrid
           title="Чому обирають нас"
           subtitle="Ми поєднуємо наукові дослідження з натуральними інгредієнтами"
-          features={[
-            {
-              icon: FeatureIcons.quality,
-              title: "Тільки оригінали",
-              description: "Працюємо напряму з брендами та офіційними дистриб'юторами",
-            },
-            {
-              icon: FeatureIcons.science,
-              title: "Науковий підхід",
-              description: "Кожен продукт перевірений трихологами та дерматологами",
-            },
-            {
-              icon: FeatureIcons.natural,
-              title: "Натуральні формули",
-              description: "Пріоритет інгредієнтам природного походження",
-            },
-            {
-              icon: FeatureIcons.eco,
-              title: "Eco-friendly",
-              description: "Підтримуємо бренди з етичним виробництвом",
-            },
-            {
-              icon: FeatureIcons.heart,
-              title: "Індивідуальний підбір",
-              description: "Безкоштовні консультації для підбору догляду",
-            },
-            {
-              icon: FeatureIcons.support,
-              title: "Підтримка 24/7",
-              description: "Завжди на зв'язку для відповіді на ваші запитання",
-            },
-          ]}
+          features={features.map((f, i) => ({
+            icon: featureIconList[i] || FeatureIcons.quality,
+            title: f.title,
+            description: f.description,
+          }))}
           columns={3}
         />
       </section>
 
-      {/* Stats */}
       <section className="mb-16">
         <ScrollReveal variant="fade-up">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { value: "5+", label: "років досвіду" },
-              { value: "50K+", label: "задоволених клієнтів" },
-              { value: "200+", label: "брендів" },
-              { value: "4.9", label: "рейтинг на Google" },
-            ].map((stat, index) => (
+            {stats.map((stat, index) => (
               <div
                 key={index}
                 className="text-center p-6 rounded-2xl bg-gradient-to-br from-[#606C38]/5 to-[#8A9A5B]/5"
@@ -492,7 +438,6 @@ function AboutContent() {
         </ScrollReveal>
       </section>
 
-      {/* CTA */}
       <CTASection
         title="Готові до трансформації?"
         description="Знайдіть ідеальний догляд для вашого типу волосся"
@@ -515,17 +460,21 @@ function getPageType(slug: string): 'delivery' | 'payment' | 'contacts' | 'about
 
 export default async function StaticPage({ params }: PageProps) {
   const { slug } = await params
-  const page = await getPageBySlug(slug)
-  const config = pageConfig[slug]
   const pageType = getPageType(slug)
 
-  // For known page types, we can render without CMS data
+  // Fetch CMS data and site settings in parallel
+  const [page, settings] = await Promise.all([
+    getPageBySlug(slug),
+    pageType !== 'generic' ? getSiteSettings() : Promise.resolve(null),
+  ])
+
+  const config = pageConfig[slug]
+
   // For generic pages, we need CMS content
   if (!page && pageType === 'generic') {
     notFound()
   }
 
-  // Use CMS title if available, otherwise use fallback
   const title = page?.title || config?.fallbackTitle || slug
 
   const finalConfig = config || {
@@ -536,7 +485,6 @@ export default async function StaticPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Hero section */}
       <PageHero
         title={title}
         subtitle={finalConfig.subtitle}
@@ -544,15 +492,12 @@ export default async function StaticPage({ params }: PageProps) {
         gradient={finalConfig.gradient}
       />
 
-      {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
-        {/* Render page-specific content */}
-        {pageType === 'delivery' && <DeliveryContent />}
-        {pageType === 'payment' && <PaymentContent />}
-        {pageType === 'contacts' && <ContactsContent />}
-        {pageType === 'about' && <AboutContent />}
+        {pageType === 'delivery' && <DeliveryContent settings={settings} />}
+        {pageType === 'payment' && <PaymentContent settings={settings} />}
+        {pageType === 'contacts' && <ContactsContent settings={settings} />}
+        {pageType === 'about' && <AboutContent settings={settings} />}
 
-        {/* For generic pages, render CMS content */}
         {pageType === 'generic' && page?.content && (
           <RichTextRenderer content={page.content} />
         )}

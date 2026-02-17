@@ -128,6 +128,33 @@ export interface Brand {
   isActive: boolean
 }
 
+// ─── Review types ───────────────────────────────────────────────
+
+export interface Review {
+  id: number | string
+  customerName: string
+  rating: number
+  text: string
+  product?: PayloadProduct | number | string
+  isApproved: boolean
+  publishedAt?: string
+}
+
+// ─── Blog types ─────────────────────────────────────────────────
+
+export interface BlogPost {
+  id: number | string
+  title: string
+  slug: string
+  content?: any
+  excerpt?: string
+  featuredImage?: PayloadMedia
+  author?: string
+  tags?: Array<{ tag: string }>
+  publishedAt?: string
+  status: 'draft' | 'published'
+}
+
 // ─── Product types ──────────────────────────────────────────────
 
 export interface PayloadVariant {

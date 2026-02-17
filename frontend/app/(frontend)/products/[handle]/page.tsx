@@ -8,7 +8,8 @@ import { BuyBox } from '@/components/products/buy-box'
 import { IngredientSpotlight } from '@/components/products/ingredient-spotlight'
 import { HowToUse } from '@/components/products/how-to-use'
 import { RelatedProducts } from '@/components/products/related-products'
-import { useProduct, useProducts } from '@/lib/hooks/use-products'
+import { ProductReviews } from '@/components/products/product-reviews'
+import { useProduct, useProducts, useReviewsByProduct, useProductRating } from '@/lib/hooks/use-products'
 import { useToggleWishlist } from '@/lib/hooks/use-wishlist'
 import { useAuthStore } from '@/stores/auth-store'
 import { getImageUrl, transformProducts } from '@/lib/payload/types'
@@ -32,6 +33,10 @@ export default function ProductPage() {
 
   // Fetch all products for related section
   const { data: allProductsData } = useProducts({ limit: 20 })
+
+  // Fetch reviews and rating from Payload CMS
+  const { data: reviews } = useReviewsByProduct(product?.id || '')
+  const { data: ratingData } = useProductRating(product?.id || '')
 
   // Cart context
   const { addToCart } = useCartContext()
@@ -165,8 +170,8 @@ export default function ProductPage() {
               <BuyBox
                 productName={productName}
                 brand={brand}
-                rating={4.5}
-                reviewCount={0}
+                rating={ratingData?.average || 0}
+                reviewCount={ratingData?.count || 0}
                 variants={variants}
                 badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
                 productImage={images[0]}
@@ -216,6 +221,14 @@ export default function ProductPage() {
               icon: '🚿',
             },
           ]} />
+        </ScrollReveal>
+
+        {/* Divider */}
+        <hr className="my-8 border-border" />
+
+        {/* Reviews */}
+        <ScrollReveal variant="fade-up" duration={700}>
+          <ProductReviews reviews={reviews || []} productId={product.id} />
         </ScrollReveal>
 
         {/* Divider */}

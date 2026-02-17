@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown, X, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Slider } from '@/components/ui/slider'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { getBrands } from '@/lib/payload/actions'
 
 export interface FilterState {
   concerns: string[]
@@ -24,30 +25,26 @@ interface FilterSidebarProps {
 }
 
 const concerns = [
-  { id: 'repair', label: 'Відновлення', count: 45 },
-  { id: 'hydrate', label: 'Зволоження', count: 38 },
-  { id: 'volume', label: "Об'єм", count: 29 },
-  { id: 'color', label: 'Захист кольору', count: 52 },
-  { id: 'oil-control', label: 'Контроль жирності', count: 21 },
-  { id: 'anti-dandruff', label: 'Проти лупи', count: 18 },
-  { id: 'hair-loss', label: 'Проти випадіння', count: 24 },
+  { id: 'repair', label: 'Відновлення' },
+  { id: 'hydrate', label: 'Зволоження' },
+  { id: 'volume', label: "Об'єм" },
+  { id: 'color', label: 'Захист кольору' },
+  { id: 'oil-control', label: 'Контроль жирності' },
+  { id: 'anti-dandruff', label: 'Проти лупи' },
+  { id: 'hair-loss', label: 'Проти випадіння' },
 ]
 
 const hairTypes = [
-  { id: 'straight', label: 'Пряме', count: 120 },
-  { id: 'wavy', label: 'Хвилясте', count: 85 },
-  { id: 'curly', label: 'Кучеряве', count: 67 },
-  { id: 'coily', label: 'Туге кучеряве', count: 34 },
+  { id: 'straight', label: 'Пряме' },
+  { id: 'wavy', label: 'Хвилясте' },
+  { id: 'curly', label: 'Кучеряве' },
+  { id: 'coily', label: 'Туге кучеряве' },
 ]
 
-const brands = [
-  { id: 'elgon', label: 'Elgon', count: 45 },
-  { id: 'inebrya', label: 'INEBRYA', count: 78 },
-  { id: 'mood', label: 'MOOD', count: 34 },
-  { id: 'nevitaly', label: 'NEVITALY', count: 56 },
-  { id: 'link-d', label: 'LINK D', count: 23 },
-  { id: 'trend-toujours', label: 'Trend Toujours', count: 41 },
-]
+interface BrandOption {
+  id: string
+  label: string
+}
 
 interface FilterSectionProps {
   title: string
@@ -77,7 +74,21 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   )
 }
 
-function FilterContent({ filters, onFiltersChange, maxPrice = 5000 }: FilterSidebarProps) {
+function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter }: FilterSidebarProps) {
+  const [brandOptions, setBrandOptions] = useState<BrandOption[]>([])
+
+  useEffect(() => {
+    if (hideBrandFilter) return
+    getBrands().then((brands) => {
+      setBrandOptions(
+        brands.map((b) => ({
+          id: b.slug,
+          label: b.name,
+        }))
+      )
+    })
+  }, [hideBrandFilter])
+
   const handleConcernChange = (concernId: string, checked: boolean) => {
     const newConcerns = checked
       ? [...filters.concerns, concernId]
@@ -120,7 +131,6 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000 }: FilterSide
 
   return (
     <div className="space-y-4">
-      {/* Header with clear button */}
       {activeFiltersCount > 0 && (
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <span className="text-sm text-muted-foreground">
@@ -138,46 +148,45 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000 }: FilterSide
         </div>
       )}
 
-      {/* Concerns */}
       <FilterSection title="Проблема">
         {concerns.map((concern) => (
           <Checkbox
             key={concern.id}
             label={concern.label}
-            count={concern.count}
             checked={filters.concerns.includes(concern.id)}
             onChange={(e) => handleConcernChange(concern.id, e.target.checked)}
           />
         ))}
       </FilterSection>
 
-      {/* Hair Type */}
       <FilterSection title="Тип волосся">
         {hairTypes.map((type) => (
           <Checkbox
             key={type.id}
             label={type.label}
-            count={type.count}
             checked={filters.hairTypes.includes(type.id)}
             onChange={(e) => handleHairTypeChange(type.id, e.target.checked)}
           />
         ))}
       </FilterSection>
 
-      {/* Brand */}
-      <FilterSection title="Бренд">
-        {brands.map((brand) => (
-          <Checkbox
-            key={brand.id}
-            label={brand.label}
-            count={brand.count}
-            checked={filters.brands.includes(brand.id)}
-            onChange={(e) => handleBrandChange(brand.id, e.target.checked)}
-          />
-        ))}
-      </FilterSection>
+      {!hideBrandFilter && (
+        <FilterSection title="Бренд">
+          {brandOptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Завантаження...</p>
+          ) : (
+            brandOptions.map((brand) => (
+              <Checkbox
+                key={brand.id}
+                label={brand.label}
+                checked={filters.brands.includes(brand.id)}
+                onChange={(e) => handleBrandChange(brand.id, e.target.checked)}
+              />
+            ))
+          )}
+        </FilterSection>
+      )}
 
-      {/* Price Range */}
       <FilterSection title="Ціна">
         <Slider
           min={0}
@@ -197,7 +206,6 @@ export function FilterSidebar(props: FilterSidebarProps) {
 
   return (
     <>
-      {/* Mobile Filter Button */}
       <div className="lg:hidden mb-4">
         <Button
           variant="outline"
@@ -218,7 +226,6 @@ export function FilterSidebar(props: FilterSidebarProps) {
         </Button>
       </div>
 
-      {/* Mobile Sheet */}
       <Sheet
         open={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
@@ -230,7 +237,6 @@ export function FilterSidebar(props: FilterSidebarProps) {
         </div>
       </Sheet>
 
-      {/* Desktop Sidebar */}
       <aside className={cn("hidden lg:block", props.className)}>
         <div className="sticky top-24">
           <h2 className="text-lg font-semibold mb-4">Фільтри</h2>

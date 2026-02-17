@@ -21,6 +21,8 @@ export type {
   Brand,
   BenefitItem,
   PayloadMedia,
+  Review,
+  BlogPost,
 } from './types'
 
 export {
@@ -36,6 +38,8 @@ import type {
   Brand,
   PayloadMedia,
   PayloadProduct,
+  Review,
+  BlogPost,
 } from './types'
 
 // ─── Transform helpers ───────────────────────────────────────────
@@ -147,6 +151,33 @@ function transformBrand(doc: any): Brand {
     } : undefined,
     order: doc.order ?? 0,
     isActive: doc.isActive ?? true,
+  }
+}
+
+function transformReview(doc: any): Review {
+  return {
+    id: doc.id,
+    customerName: doc.customerName,
+    rating: doc.rating,
+    text: doc.text,
+    product: doc.product,
+    isApproved: doc.isApproved ?? false,
+    publishedAt: doc.publishedAt || undefined,
+  }
+}
+
+function transformBlogPost(doc: any): BlogPost {
+  return {
+    id: doc.id,
+    title: doc.title,
+    slug: doc.slug,
+    content: doc.content || undefined,
+    excerpt: doc.excerpt || undefined,
+    featuredImage: resolveMedia(doc.featuredImage),
+    author: doc.author || undefined,
+    tags: Array.isArray(doc.tags) ? doc.tags : undefined,
+    publishedAt: doc.publishedAt || undefined,
+    status: doc.status || 'draft',
   }
 }
 
@@ -398,5 +429,128 @@ export async function getProductsByBrand(brandSlug: string): Promise<{ products:
   } catch (error) {
     console.error('Error fetching products by brand:', error)
     return { products: [], count: 0 }
+  }
+}
+
+// ─── Review data fetching ───────────────────────────────────────
+
+export async function getReviewsByProduct(productId: number | string): Promise<Review[]> {
+  try {
+    const payload = await getPayload({ config })
+    const result = await payload.find({
+      collection: 'reviews',
+      where: {
+        product: { equals: productId },
+        isApproved: { equals: true },
+      },
+      sort: '-publishedAt',
+      limit: 100,
+    })
+    return result.docs.map(transformReview)
+  } catch (error) {
+    console.error('Error fetching reviews:', error)
+    return []
+  }
+}
+
+export async function getProductRating(productId: number | string): Promise<{ average: number; count: number }> {
+  try {
+    const reviews = await getReviewsByProduct(productId)
+    if (reviews.length === 0) return { average: 0, count: 0 }
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
+    return { average: Math.round((sum / reviews.length) * 10) / 10, count: reviews.length }
+  } catch (error) {
+    console.error('Error calculating product rating:', error)
+    return { average: 0, count: 0 }
+  }
+}
+
+// ─── Blog data fetching ─────────────────────────────────────────
+
+export async function getBlogPosts(options: { limit?: number; offset?: number } = {}): Promise<{ posts: BlogPost[]; count: number }> {
+  try {
+    const payload = await getPayload({ config })
+    const result = await payload.find({
+      collection: 'blog-posts',
+      where: {
+        status: { equals: 'published' },
+      },
+      sort: '-publishedAt',
+      limit: options.limit || 20,
+      page: options.offset ? Math.floor(options.offset / (options.limit || 20)) + 1 : 1,
+      depth: 1,
+    })
+    return { posts: result.docs.map(transformBlogPost), count: result.totalDocs }
+  } catch (error) {
+    console.error('Error fetching blog posts:', error)
+    return { posts: [], count: 0 }
+  }
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  try {
+    const payload = await getPayload({ config })
+    const result = await payload.find({
+      collection: 'blog-posts',
+      where: {
+        slug: { equals: slug },
+        status: { equals: 'published' },
+      },
+      limit: 1,
+      depth: 1,
+    })
+    return result.docs[0] ? transformBlogPost(result.docs[0]) : null
+  } catch (error) {
+    console.error('Error fetching blog post:', error)
+    return null
+  }
+}
+
+// ─── Site Settings (Global) ─────────────────────────────────────
+
+export interface SiteSettingsData {
+  contacts: {
+    phone: string
+    phoneLink: string
+    phoneSchedule: string
+    email: string
+    emailDescription: string
+    address: string
+    addressLink: string
+    addressDescription: string
+    schedule: string
+    scheduleDescription: string
+  }
+  social: {
+    instagram: string
+    telegram: string
+    facebook: string
+  }
+  delivery: {
+    methods: Array<{ title: string; description: string; isHighlight: boolean }>
+    steps: Array<{ title: string; description: string }>
+    faq: Array<{ question: string; answer: string }>
+  }
+  payment: {
+    methods: Array<{ title: string; description: string; isHighlight: boolean }>
+    securityText: string
+    faq: Array<{ question: string; answer: string }>
+  }
+  about: {
+    intro: string
+    story: string
+    features: Array<{ title: string; description: string }>
+    stats: Array<{ value: string; label: string }>
+  }
+}
+
+export async function getSiteSettings(): Promise<SiteSettingsData | null> {
+  try {
+    const payload = await getPayload({ config })
+    const result = await payload.findGlobal({ slug: 'site-settings' })
+    return result as unknown as SiteSettingsData
+  } catch (error) {
+    console.error('Error fetching site settings:', error)
+    return null
   }
 }

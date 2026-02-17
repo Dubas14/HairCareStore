@@ -4,7 +4,7 @@ export const ShippingConfig: GlobalConfig = {
   slug: 'shipping-config',
   label: 'Доставка',
   admin: {
-    group: 'Магазин',
+    hidden: true,
   },
   access: {
     read: () => true,

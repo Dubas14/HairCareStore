@@ -21,6 +21,7 @@ import {
 } from './collections'
 import { LoyaltySettings } from './globals/LoyaltySettings'
 import { ShippingConfig } from './globals/ShippingConfig'
+import { SiteSettings } from './globals/SiteSettings'
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
@@ -56,6 +57,7 @@ export default buildConfig({
   globals: [
     LoyaltySettings,
     ShippingConfig,
+    SiteSettings,
   ],
 
   admin: {
@@ -73,7 +75,7 @@ export default buildConfig({
       beforeDashboard: ['/components/payload/Dashboard'],
       beforeLogin: ['/components/payload/BeforeLogin'],
       afterLogin: ['/components/payload/AfterLogin'],
-      afterNavLinks: ['/components/payload/LoyaltyNavLink'],
+      afterNavLinks: ['/components/payload/LoyaltyNavLink', '/components/payload/SitePagesNavLink', '/components/payload/ShippingNavLink'],
     },
   },
 

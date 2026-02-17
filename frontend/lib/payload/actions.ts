@@ -19,9 +19,16 @@ import {
   searchProducts as _searchProducts,
   getProductsByCategory as _getProductsByCategory,
   getProductsByBrand as _getProductsByBrand,
+  getReviewsByProduct as _getReviewsByProduct,
+  getProductRating as _getProductRating,
+  getBlogPosts as _getBlogPosts,
+  getBlogPostBySlug as _getBlogPostBySlug,
+  getSiteSettings as _getSiteSettings,
 } from './client'
 
-import type { Category, Brand, Banner, PromoBlock, Page } from './client'
+import type { SiteSettingsData } from './client'
+
+import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost } from './client'
 import type { PayloadProduct } from './types'
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -76,4 +83,24 @@ export async function getProductsByCategory(categorySlug: string): Promise<{ pro
 
 export async function getProductsByBrand(brandSlug: string): Promise<{ products: PayloadProduct[]; count: number }> {
   return _getProductsByBrand(brandSlug)
+}
+
+export async function getReviewsByProduct(productId: number | string): Promise<Review[]> {
+  return _getReviewsByProduct(productId)
+}
+
+export async function getProductRating(productId: number | string): Promise<{ average: number; count: number }> {
+  return _getProductRating(productId)
+}
+
+export async function getBlogPosts(options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; count: number }> {
+  return _getBlogPosts(options)
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  return _getBlogPostBySlug(slug)
+}
+
+export async function getSiteSettings(): Promise<SiteSettingsData | null> {
+  return _getSiteSettings()
 }
