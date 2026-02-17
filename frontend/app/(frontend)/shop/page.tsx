@@ -32,7 +32,7 @@ function ShopContent() {
   }, [searchQuery])
 
   // Fetch products
-  const { data, isLoading, error } = useProducts({ limit: 100 })
+  const { data, isLoading, error } = useProducts({ limit: 1000 })
 
   // Search results if there's a query
   const { data: searchData, isLoading: isSearching } = useSearchProducts(localSearch)
