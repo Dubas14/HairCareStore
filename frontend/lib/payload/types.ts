@@ -174,6 +174,7 @@ export interface PayloadProduct {
   id: number | string
   title: string
   handle: string
+  barcode?: string
   subtitle?: string
   description?: any
   thumbnail?: PayloadMedia

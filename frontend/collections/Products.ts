@@ -29,6 +29,16 @@ export const Products: CollectionConfig = {
   fields: [
     { name: 'title', type: 'text', required: true },
     { name: 'handle', type: 'text', required: true, unique: true, admin: { position: 'sidebar' } },
+    {
+      name: 'barcode',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
+      },
+    },
     { name: 'subtitle', type: 'text', admin: { description: 'Brand name or short tagline' } },
     { name: 'description', type: 'richText' },
     { name: 'thumbnail', type: 'upload', relationTo: 'media' },

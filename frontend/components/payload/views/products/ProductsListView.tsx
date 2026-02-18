@@ -11,9 +11,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getProductsViewData, getProductsFilterOptions, deleteProduct } from '@/app/actions/admin-views'
+import { getProductsViewData, getProductsFilterOptions, deleteProduct, deleteProducts } from '@/app/actions/admin-views'
 import type { ProductViewItem, ProductsViewData, ProductsViewParams, ProductsFilterOptions } from '@/app/actions/admin-views'
 import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
+import { CsvImportModal } from './CsvImportModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -364,11 +365,13 @@ function ProductAvatar({ title, index, thumbnail }: { title: string; index: numb
 interface ProductRowProps {
   product: ProductViewItem
   index: number
+  selected: boolean
+  onToggleSelect: (id: string | number) => void
   onEdit: (id: string | number) => void
   onDelete: (id: string | number, title: string) => void
 }
 
-function ProductRow({ product, index, onEdit, onDelete }: ProductRowProps) {
+function ProductRow({ product, index, selected, onToggleSelect, onEdit, onDelete }: ProductRowProps) {
   const [hovered, setHovered] = useState(false)
   const [editHovered, setEditHovered] = useState(false)
   const [deleteHovered, setDeleteHovered] = useState(false)
@@ -399,11 +402,23 @@ function ProductRow({ product, index, onEdit, onDelete }: ProductRowProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? 'rgba(91,196,196,0.03)' : 'transparent',
+        background: selected ? 'rgba(91,196,196,0.06)' : hovered ? 'rgba(91,196,196,0.03)' : 'transparent',
         transition: 'all 0.2s ease',
         cursor: 'default',
       }}
     >
+      {/* Checkbox */}
+      <td style={{ padding: '14px 8px 14px 16px', verticalAlign: 'middle', width: 36 }}>
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onToggleSelect(product.id)}
+          onClick={(e) => e.stopPropagation()}
+          style={{ accentColor: COLORS.sea500, width: 16, height: 16, cursor: 'pointer' }}
+          aria-label={`Вибрати ${product.title}`}
+        />
+      </td>
+
       {/* Product cell */}
       <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -554,6 +569,9 @@ function TableSkeleton({ rows = 8 }: { rows?: number }) {
     <>
       {Array.from({ length: rows }).map((_, i) => (
         <tr key={i} style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+          <td style={{ padding: '14px 8px 14px 16px', width: 36 }}>
+            <SkeletonBlock width={16} height={16} radius={3} />
+          </td>
           <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <SkeletonBlock width={48} height={48} radius={12} />
@@ -759,11 +777,13 @@ function FilterChip({
 interface ProductGridCardProps {
   product: ProductViewItem
   index: number
+  selected: boolean
+  onToggleSelect: (id: string | number) => void
   onEdit: (id: string | number) => void
   onDelete: (id: string | number, title: string) => void
 }
 
-function ProductGridCard({ product, index, onEdit, onDelete }: ProductGridCardProps) {
+function ProductGridCard({ product, index, selected, onToggleSelect, onEdit, onDelete }: ProductGridCardProps) {
   const [hovered, setHovered] = useState(false)
   const minPrice = getMinPrice(product.variants)
   const comparePrice = getComparePrice(product.variants)
@@ -775,10 +795,12 @@ function ProductGridCard({ product, index, onEdit, onDelete }: ProductGridCardPr
       onMouseLeave={() => setHovered(false)}
       style={{
         background: COLORS.bgCard,
-        border: `1px solid ${hovered ? 'rgba(91,196,196,0.3)' : COLORS.border}`,
+        border: `1px solid ${selected ? COLORS.sea500 : hovered ? 'rgba(91,196,196,0.3)' : COLORS.border}`,
         borderRadius: 16,
         overflow: 'hidden',
-        boxShadow: hovered ? '0 8px 30px rgba(91,196,196,0.08)' : '0 2px 12px rgba(0,0,0,0.04)',
+        boxShadow: selected
+          ? '0 0 0 2px rgba(91,196,196,0.25)'
+          : hovered ? '0 8px 30px rgba(91,196,196,0.08)' : '0 2px 12px rgba(0,0,0,0.04)',
         transition: 'all 0.25s ease',
         display: 'flex',
         flexDirection: 'column',
@@ -821,6 +843,24 @@ function ProductGridCard({ product, index, onEdit, onDelete }: ProductGridCardPr
             {(product.title || '?')[0].toUpperCase()}
           </div>
         )}
+        {/* Checkbox overlay */}
+        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 2 }}>
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect(product.id)}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              accentColor: COLORS.sea500,
+              width: 18,
+              height: 18,
+              cursor: 'pointer',
+              opacity: selected || hovered ? 1 : 0,
+              transition: 'opacity 0.15s ease',
+            }}
+            aria-label={`Вибрати ${product.title}`}
+          />
+        </div>
         {/* Status badge overlay */}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <StatusBadge status={product.status} />
@@ -966,6 +1006,9 @@ export default function ProductsListView() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterBrand, setFilterBrand] = useState('')
   const [filterOptions, setFilterOptions] = useState<ProductsFilterOptions | null>(null)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   // Debounce search input
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1006,6 +1049,7 @@ export default function ProductsListView() {
         brand: filterBrand || undefined,
       })
       setData(result)
+      setSelectedIds(new Set())
     } catch (err) {
       console.error('[ProductsListView] fetch error', err)
       setError('Помилка завантаження даних. Спробуйте ще раз.')
@@ -1030,6 +1074,53 @@ export default function ProductsListView() {
       alert('Помилка видалення товару.')
     }
   }, [fetchData])
+
+  // Handle bulk delete
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return
+    const confirmed = window.confirm(
+      `Видалити ${selectedIds.size} ${selectedIds.size === 1 ? 'товар' : selectedIds.size < 5 ? 'товари' : 'товарів'}? Цю дію не можна скасувати.`
+    )
+    if (!confirmed) return
+    setBulkDeleting(true)
+    try {
+      const result = await deleteProducts(Array.from(selectedIds))
+      if (result.errors > 0) {
+        alert(`Видалено: ${result.deleted}, помилок: ${result.errors}`)
+      }
+      setSelectedIds(new Set())
+      await fetchData()
+    } catch (err) {
+      console.error('[ProductsListView] bulk delete error', err)
+      alert('Помилка масового видалення.')
+    } finally {
+      setBulkDeleting(false)
+    }
+  }, [selectedIds, fetchData])
+
+  // Selection helpers
+  const toggleSelect = useCallback((id: string | number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const toggleSelectAll = useCallback(() => {
+    if (!data) return
+    const allIds = data.products.map((p) => p.id)
+    const allSelected = allIds.every((id) => selectedIds.has(id))
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(allIds))
+    }
+  }, [data, selectedIds])
+
+  const isAllSelected = data ? data.products.length > 0 && data.products.every((p) => selectedIds.has(p.id)) : false
+  const isSomeSelected = selectedIds.size > 0
 
   // Handle edit
   const handleEdit = useCallback((id: string | number) => {
@@ -1091,6 +1182,30 @@ export default function ProductsListView() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setShowImportModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '9px 16px',
+                borderRadius: 10,
+                border: `1px solid ${COLORS.border}`,
+                background: COLORS.bgSecondary,
+                color: COLORS.textSecondary,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#eceef0' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = COLORS.bgSecondary }}
+            >
+              <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Імпорт CSV
+            </button>
             <button
               onClick={() => setFiltersOpen((v) => !v)}
               style={{
@@ -1338,6 +1453,72 @@ export default function ProductsListView() {
             ))}
           </div>
 
+          {/* ── Bulk Action Bar ── */}
+          {isSomeSelected && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                marginBottom: 16,
+                padding: '12px 18px',
+                borderRadius: 12,
+                background: 'rgba(91,196,196,0.06)',
+                border: `1px solid ${COLORS.sea400}`,
+                animation: 'fadeIn 0.2s ease-out',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={toggleSelectAll}
+                style={{ accentColor: COLORS.sea500, width: 16, height: 16, cursor: 'pointer' }}
+                aria-label="Вибрати всі на сторінці"
+              />
+              <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>
+                Вибрано: {selectedIds.size}
+              </span>
+              <div style={{ flex: 1 }} />
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: `1px solid ${COLORS.border}`,
+                  background: 'transparent',
+                  color: COLORS.textSecondary,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Скасувати вибір
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: bulkDeleting ? '#fca5a5' : '#ef4444',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: bulkDeleting ? 'not-allowed' : 'pointer',
+                  opacity: bulkDeleting ? 0.7 : 1,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <IconTrash size={13} color="#fff" />
+                {bulkDeleting ? 'Видалення...' : `Видалити (${selectedIds.size})`}
+              </button>
+            </div>
+          )}
+
           {/* ── Search + Controls Row ── */}
           <div
             style={{
@@ -1554,6 +1735,8 @@ export default function ProductsListView() {
                       key={product.id}
                       product={product}
                       index={i}
+                      selected={selectedIds.has(product.id)}
+                      onToggleSelect={toggleSelect}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
                     />
@@ -1603,6 +1786,21 @@ export default function ProductsListView() {
                         borderBottom: `1px solid ${COLORS.border}`,
                       }}
                     >
+                      <th
+                        scope="col"
+                        style={{
+                          padding: '12px 8px 12px 16px',
+                          width: 36,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isAllSelected}
+                          onChange={toggleSelectAll}
+                          style={{ accentColor: COLORS.sea500, width: 16, height: 16, cursor: 'pointer' }}
+                          aria-label="Вибрати всі на сторінці"
+                        />
+                      </th>
                       {['Товар', 'Категорія', 'Ціна', 'Запас', 'Статус', 'Оновлено', 'Дії'].map((h) => (
                         <th
                           key={h}
@@ -1632,12 +1830,14 @@ export default function ProductsListView() {
                           <ProductRow
                             product={product}
                             index={i}
+                            selected={selectedIds.has(product.id)}
+                            onToggleSelect={toggleSelect}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                           />
                           {i < data!.products.length - 1 && (
                             <tr aria-hidden="true">
-                              <td colSpan={7} style={{ padding: 0 }}>
+                              <td colSpan={8} style={{ padding: 0 }}>
                                 <div style={{ height: 1, background: COLORS.border, opacity: 0.6 }} />
                               </td>
                             </tr>
@@ -1664,6 +1864,12 @@ export default function ProductsListView() {
 
         </div>
       </div>
+
+      <CsvImportModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportComplete={() => fetchData()}
+      />
     </>
   )
 }

@@ -586,6 +586,28 @@ export async function deleteProduct(id: string | number): Promise<DeleteResult> 
 }
 
 /**
+ * Delete multiple products by IDs (bulk delete).
+ */
+export async function deleteProducts(ids: Array<string | number>): Promise<{ deleted: number; errors: number }> {
+  await requireAdmin()
+  const payload = await getPayload({ config })
+
+  let deleted = 0
+  let errors = 0
+
+  for (const id of ids) {
+    try {
+      await payload.delete({ collection: 'products', id })
+      deleted++
+    } catch {
+      errors++
+    }
+  }
+
+  return { deleted, errors }
+}
+
+/**
  * Delete a banner by ID.
  */
 export async function deleteBanner(id: string | number): Promise<DeleteResult> {
