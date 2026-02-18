@@ -1,9 +1,6 @@
 /**
- * In-memory rate limiter for login attempts.
- * Tracks failed login attempts per IP address.
- *
- * - Max 5 attempts per IP within 15-minute window
- * - After 5 failures — blocked for 30 minutes
+ * In-memory rate limiter for auth and public form actions.
+ * Supports multiple buckets with configurable limits.
  *
  * For production with multiple server instances, replace with Redis.
  */
@@ -14,25 +11,43 @@ interface RateLimitRecord {
   blockedUntil: number
 }
 
-const store = new Map<string, RateLimitRecord>()
+interface BucketConfig {
+  maxAttempts: number
+  windowMs: number
+  blockDurationMs: number
+}
 
-const MAX_ATTEMPTS = 5
-const WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-const BLOCK_DURATION_MS = 30 * 60 * 1000 // 30 minutes
+const BUCKETS: Record<string, BucketConfig> = {
+  login: { maxAttempts: 5, windowMs: 15 * 60 * 1000, blockDurationMs: 30 * 60 * 1000 },
+  register: { maxAttempts: 3, windowMs: 60 * 60 * 1000, blockDurationMs: 60 * 60 * 1000 },
+  newsletter: { maxAttempts: 3, windowMs: 60 * 60 * 1000, blockDurationMs: 60 * 60 * 1000 },
+}
 
-export function checkRateLimit(ip: string): {
+const stores = new Map<string, Map<string, RateLimitRecord>>()
+
+function getStore(bucket: string): Map<string, RateLimitRecord> {
+  let store = stores.get(bucket)
+  if (!store) {
+    store = new Map()
+    stores.set(bucket, store)
+  }
+  return store
+}
+
+export function checkRateLimit(key: string, bucket: string = 'login'): {
   allowed: boolean
   remainingAttempts: number
   blockTime?: number
 } {
+  const cfg = BUCKETS[bucket] || BUCKETS.login
+  const store = getStore(bucket)
   const now = Date.now()
-  const record = store.get(ip)
+  const record = store.get(key)
 
   if (!record) {
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS }
+    return { allowed: true, remainingAttempts: cfg.maxAttempts }
   }
 
-  // Currently blocked
   if (record.blockedUntil > now) {
     return {
       allowed: false,
@@ -41,45 +56,45 @@ export function checkRateLimit(ip: string): {
     }
   }
 
-  // Block expired — reset
   if (record.blockedUntil > 0 && record.blockedUntil <= now) {
-    store.delete(ip)
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS }
+    store.delete(key)
+    return { allowed: true, remainingAttempts: cfg.maxAttempts }
   }
 
-  // Window expired — reset
-  if (now - record.firstAttemptAt > WINDOW_MS) {
-    store.delete(ip)
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS }
+  if (now - record.firstAttemptAt > cfg.windowMs) {
+    store.delete(key)
+    return { allowed: true, remainingAttempts: cfg.maxAttempts }
   }
 
-  const remaining = Math.max(0, MAX_ATTEMPTS - record.attempts)
-  return {
-    allowed: remaining > 0,
-    remainingAttempts: remaining,
-  }
+  const remaining = Math.max(0, cfg.maxAttempts - record.attempts)
+  return { allowed: remaining > 0, remainingAttempts: remaining }
 }
 
-export function recordFailedAttempt(ip: string): void {
+export function recordAttempt(key: string, bucket: string = 'login'): void {
+  const cfg = BUCKETS[bucket] || BUCKETS.login
+  const store = getStore(bucket)
   const now = Date.now()
-  const existing = store.get(ip)
+  const existing = store.get(key)
 
-  if (!existing || now - existing.firstAttemptAt > WINDOW_MS) {
-    store.set(ip, { attempts: 1, firstAttemptAt: now, blockedUntil: 0 })
+  if (!existing || now - existing.firstAttemptAt > cfg.windowMs) {
+    store.set(key, { attempts: 1, firstAttemptAt: now, blockedUntil: 0 })
     return
   }
 
   existing.attempts += 1
-
-  if (existing.attempts >= MAX_ATTEMPTS) {
-    existing.blockedUntil = now + BLOCK_DURATION_MS
+  if (existing.attempts >= cfg.maxAttempts) {
+    existing.blockedUntil = now + cfg.blockDurationMs
   }
-
-  store.set(ip, existing)
+  store.set(key, existing)
 }
 
-export function resetAttempts(ip: string): void {
-  store.delete(ip)
+/** @deprecated Use recordAttempt instead */
+export function recordFailedAttempt(ip: string): void {
+  recordAttempt(ip, 'login')
+}
+
+export function resetAttempts(key: string, bucket: string = 'login'): void {
+  getStore(bucket).delete(key)
 }
 
 // Periodic cleanup of expired records (every 60 s)

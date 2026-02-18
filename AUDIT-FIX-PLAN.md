@@ -19,7 +19,7 @@
 - [x] **2.3** Timestamp в токені сесії + перевірка терміну дії (30 днів)
 - [x] **2.4** Error boundary — app/error.tsx + app/(frontend)/error.tsx
 - [x] **2.5** Loading files — app/(frontend)/loading.tsx (shop/loading.tsx вже існував)
-- [x] **2.6** Замінити img на Image + видалити unoptimized (product-card, product-gallery, hero-slider, brands, cart-drawer, brand-hero)
+- [x] **2.6** Замінити img на Image + видалити unoptimized (product-card, product-gallery, hero-slider, brands, cart-drawer, brand-hero, rich-text)
 - [x] **2.7** Видалити дублювання шрифтів з globals.css
 - [x] **2.8** Видалити console.log з newsletter.ts
 
@@ -35,7 +35,7 @@
 
 - [x] **4.1** React.memo на ProductCard
 - [x] **4.2** localStorage quota error handling (safeStorage в cart-store та auth-store)
-- [ ] **4.3** Rate limiting на реєстрацію та newsletter (потребує Redis для production)
+- [x] **4.3** Rate limiting на реєстрацію, login та newsletter (in-memory, bucket-based)
 
 ---
 
@@ -46,11 +46,5 @@
 | 1. Критичні | 6 | 6 | Готово |
 | 2. Високі | 8 | 8 | Готово |
 | 3. Середні | 5 | 5 | Готово |
-| 4. Низькі | 3 | 2 | Майже готово |
-| **Разом** | **22** | **21** | **Готово** |
-
----
-
-## Залишилось
-
-- **4.3** Rate limiting на реєстрацію/newsletter — потребує Redis (in-memory не масштабується). Рекомендація: впровадити при деплої на production.
+| 4. Низькі | 3 | 3 | Готово |
+| **Разом** | **22** | **22** | **Готово** |

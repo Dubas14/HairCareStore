@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 interface RichTextProps {
   content: any
 }
@@ -46,7 +48,7 @@ function renderNode(node: any, index: number): React.ReactNode {
     case 'upload': {
       const url = node.value?.url || node.fields?.url
       const alt = node.value?.alt || node.fields?.alt || ''
-      if (url) return <img key={index} src={url} alt={alt} className="rounded-card" />
+      if (url) return <Image key={index} src={url} alt={alt} width={800} height={500} className="rounded-card w-full h-auto" />
       return null
     }
     case 'linebreak':

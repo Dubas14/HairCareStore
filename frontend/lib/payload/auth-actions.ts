@@ -1,9 +1,15 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import crypto from 'crypto'
+import { checkRateLimit, recordAttempt, resetAttempts } from '@/lib/rate-limiter'
+
+async function getClientIP(): Promise<string> {
+  const h = await headers()
+  return h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || 'unknown'
+}
 
 const CUSTOMER_TOKEN_COOKIE = 'hair-lab-customer-token'
 
@@ -42,6 +48,12 @@ function verifyCustomerId(value: string): string | null {
 }
 
 export async function loginCustomer(email: string, password: string) {
+  const ip = await getClientIP()
+  const rl = checkRateLimit(ip, 'login')
+  if (!rl.allowed) {
+    throw new Error(`Забагато спроб. Спробуйте через ${Math.ceil((rl.blockTime || 1800) / 60)} хв.`)
+  }
+
   const payload = await getPayload({ config })
 
   try {
@@ -51,9 +63,11 @@ export async function loginCustomer(email: string, password: string) {
     })
 
     if (!result.user) {
+      recordAttempt(ip, 'login')
       throw new Error('Невірний email або пароль')
     }
 
+    resetAttempts(ip, 'login')
     const cookieStore = await cookies()
     cookieStore.set(CUSTOMER_TOKEN_COOKIE, signCustomerId(String(result.user.id)), {
       httpOnly: true,
@@ -64,7 +78,9 @@ export async function loginCustomer(email: string, password: string) {
     })
 
     return result.user
-  } catch {
+  } catch (err: any) {
+    if (err?.message?.startsWith('Забагато')) throw err
+    recordAttempt(ip, 'login')
     throw new Error('Невірний email або пароль')
   }
 }
@@ -75,6 +91,13 @@ export async function registerCustomer(data: {
   firstName: string
   lastName: string
 }) {
+  const ip = await getClientIP()
+  const rl = checkRateLimit(ip, 'register')
+  if (!rl.allowed) {
+    throw new Error(`Забагато спроб реєстрації. Спробуйте через ${Math.ceil((rl.blockTime || 3600) / 60)} хв.`)
+  }
+  recordAttempt(ip, 'register')
+
   const payload = await getPayload({ config })
 
   try {

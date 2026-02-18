@@ -1,6 +1,8 @@
 'use server'
 
 import { z } from 'zod'
+import { headers } from 'next/headers'
+import { checkRateLimit, recordAttempt } from '@/lib/rate-limiter'
 
 const newsletterSchema = z.object({
   email: z.string().email('Будь ласка, введіть коректний email'),
@@ -10,6 +12,14 @@ const newsletterSchema = z.object({
 })
 
 export async function subscribeToNewsletter(formData: FormData) {
+  const h = await headers()
+  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || 'unknown'
+  const rl = checkRateLimit(ip, 'newsletter')
+  if (!rl.allowed) {
+    return { success: false, error: 'Забагато спроб. Спробуйте пізніше.' }
+  }
+  recordAttempt(ip, 'newsletter')
+
   const rawData = {
     email: formData.get('email'),
     consent: formData.get('consent') === 'on'
