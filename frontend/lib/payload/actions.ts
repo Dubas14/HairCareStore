@@ -104,3 +104,38 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 export async function getSiteSettings(): Promise<SiteSettingsData | null> {
   return _getSiteSettings()
 }
+
+export async function submitReview(data: {
+  customerName: string
+  rating: number
+  text: string
+  productId: number | string
+}): Promise<{ success: boolean; error?: string }> {
+  const { getPayload } = await import('payload')
+  const config = (await import('@payload-config')).default
+
+  const name = data.customerName.trim()
+  const text = data.text.trim()
+
+  if (!name || name.length < 2) return { success: false, error: 'Вкажіть ваше імʼя' }
+  if (!text || text.length < 10) return { success: false, error: 'Відгук має містити щонайменше 10 символів' }
+  if (data.rating < 1 || data.rating > 5) return { success: false, error: 'Оцінка має бути від 1 до 5' }
+
+  try {
+    const payload = await getPayload({ config })
+    await payload.create({
+      collection: 'reviews',
+      data: {
+        customerName: name,
+        rating: data.rating,
+        text,
+        product: data.productId,
+        isApproved: false,
+        publishedAt: new Date().toISOString(),
+      },
+    })
+    return { success: true }
+  } catch {
+    return { success: false, error: 'Помилка при відправці відгуку' }
+  }
+}

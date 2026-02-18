@@ -10,6 +10,7 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   async headers() {
     return [
@@ -24,18 +25,19 @@ const nextConfig: NextConfig = {
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '9100',
+        port: '3200',
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3200',
+        protocol: 'https',
+        hostname: process.env.NEXT_PUBLIC_BASE_URL
+          ? new URL(process.env.NEXT_PUBLIC_BASE_URL).hostname
+          : 'localhost',
       },
     ],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: '4mb',
     },
   },
 }

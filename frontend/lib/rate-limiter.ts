@@ -104,11 +104,14 @@ if (typeof globalThis !== 'undefined') {
     ;(globalThis as Record<string, unknown>)[CLEANUP_KEY] = true
     setInterval(() => {
       const now = Date.now()
-      for (const [ip, record] of store.entries()) {
-        const windowExpired = now - record.firstAttemptAt > WINDOW_MS && record.blockedUntil === 0
-        const blockExpired = record.blockedUntil > 0 && record.blockedUntil <= now
-        if (windowExpired || blockExpired) {
-          store.delete(ip)
+      for (const [bucket, bucketStore] of stores.entries()) {
+        const cfg = BUCKETS[bucket] || BUCKETS.login
+        for (const [ip, record] of bucketStore.entries()) {
+          const windowExpired = now - record.firstAttemptAt > cfg.windowMs && record.blockedUntil === 0
+          const blockExpired = record.blockedUntil > 0 && record.blockedUntil <= now
+          if (windowExpired || blockExpired) {
+            bucketStore.delete(ip)
+          }
         }
       }
     }, 60_000)

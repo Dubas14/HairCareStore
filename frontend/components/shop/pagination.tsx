@@ -13,6 +13,11 @@ interface PaginationProps {
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null
 
+  const handlePageChange = (page: number) => {
+    onPageChange(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = []
 
@@ -52,7 +57,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Попередня сторінка"
       >
@@ -73,7 +78,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
               key={page}
               variant={currentPage === page ? 'default' : 'outline'}
               size="icon"
-              onClick={() => onPageChange(page)}
+              onClick={() => handlePageChange(page)}
               aria-label={`Сторінка ${page}`}
               aria-current={currentPage === page ? 'page' : undefined}
               className={cn(
@@ -90,7 +95,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Наступна сторінка"
       >

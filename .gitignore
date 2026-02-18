@@ -42,6 +42,9 @@ redis_data/
 # Payload CMS uploaded media
 frontend/media/
 
+# Backups
+backup/
+
 # Cache
 .cache/
 

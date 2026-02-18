@@ -1,0 +1,54 @@
+# ============================
+# Hair Lab Store — Production Docker Compose
+# ============================
+# Only databases. The app runs via PM2.
+# Usage: docker compose -f docker-compose.prod.yml up -d
+# ============================
+
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: beauty-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-payload}
+      POSTGRES_USER: ${DB_USER:-payload_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-payload_user} -d ${DB_NAME:-payload}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: beauty-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -62,6 +62,7 @@ interface FormState {
   metaTitle: string
   metaDescription: string
   thumbnail: MediaDoc | null
+  images: MediaDoc[]
   variants: Variant[]
 }
 
@@ -335,6 +336,7 @@ function defaultForm(): FormState {
     metaTitle:      '',
     metaDescription: '',
     thumbnail:      null,
+    images:         [],
     variants:       [],
   }
 }
@@ -347,7 +349,6 @@ function emptyVariant(): Variant {
 // Data helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapProductToForm(doc: any): FormState {
   const firstVariant = Array.isArray(doc.variants) ? doc.variants[0] : null
   const variants: Variant[] = Array.isArray(doc.variants)
@@ -360,6 +361,12 @@ function mapProductToForm(doc: any): FormState {
         inStock:        v.inStock ?? true,
         inventory:      v.inventory != null ? String(v.inventory) : '0',
       }))
+    : []
+
+  const images: MediaDoc[] = Array.isArray(doc.images)
+    ? doc.images
+        .map((item: any) => item?.image)
+        .filter((img: any) => img && img.id != null)
     : []
 
   return {
@@ -375,11 +382,11 @@ function mapProductToForm(doc: any): FormState {
     metaTitle:      doc.metaTitle ?? '',
     metaDescription: doc.metaDescription ?? '',
     thumbnail:      doc.thumbnail ?? null,
+    images,
     variants,
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildPayload(form: FormState, isCreate: boolean): Record<string, any> {
   const variants = form.variants.length > 0
     ? form.variants.map((v) => ({
@@ -408,6 +415,7 @@ function buildPayload(form: FormState, isCreate: boolean): Record<string, any> {
     categories:      form.categoryId ? [Number(form.categoryId)] : [],
     brand:           form.brandId ? Number(form.brandId) : undefined,
     thumbnail:       form.thumbnail?.id != null ? Number(form.thumbnail.id) : undefined,
+    images:          form.images.map((img) => ({ image: Number(img.id) })),
     variants,
   }
 }
@@ -790,22 +798,314 @@ function DescriptionEditor({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Media upload helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function uploadMedia(file: File): Promise<MediaDoc> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('alt', file.name.replace(/\.[^.]+$/, ''))
+  formData.append('folder', 'products')
+
+  const res = await fetch(`${window.location.origin}/api/media`, {
+    method: 'POST',
+    body: formData,
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `Upload failed: HTTP ${res.status}`)
+  }
+  const data = await res.json()
+  return data.doc as MediaDoc
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Media Picker Modal
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MediaPickerModal({
+  open,
+  onClose,
+  onSelect,
+  multiple = false,
+}: {
+  open: boolean
+  onClose: () => void
+  onSelect: (docs: MediaDoc[]) => void
+  multiple?: boolean
+}) {
+  const [media, setMedia] = useState<MediaDoc[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState<Set<string | number>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    if (!open) return
+    setLoading(true)
+    setSelected(new Set())
+    const base = window.location.origin
+    const query = searchQuery ? `&where[filename][contains]=${encodeURIComponent(searchQuery)}` : ''
+    fetch(`${base}/api/media?limit=60&sort=-createdAt${query}`)
+      .then((r) => r.json())
+      .then((data) => setMedia(data.docs ?? []))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [open, searchQuery])
+
+  if (!open) return null
+
+  const handleToggle = (doc: MediaDoc) => {
+    if (multiple) {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        if (next.has(doc.id)) next.delete(doc.id)
+        else next.add(doc.id)
+        return next
+      })
+    } else {
+      onSelect([doc])
+      onClose()
+    }
+  }
+
+  const handleConfirm = () => {
+    const docs = media.filter((m) => selected.has(m.id))
+    onSelect(docs)
+    onClose()
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.5)',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        style={{
+          background: C.bgCard,
+          borderRadius: 16,
+          width: '90%',
+          maxWidth: 800,
+          maxHeight: '80vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: `1px solid ${C.border}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
+            Обрати {multiple ? 'зображення' : 'мініатюру'}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Пошук за назвою..."
+              style={{
+                ...inputStyle,
+                width: 200,
+                padding: '8px 12px',
+                fontSize: 13,
+              }}
+            />
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: 20,
+                cursor: 'pointer',
+                color: C.textMuted,
+                padding: '4px 8px',
+              }}
+              aria-label="Закрити"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 40, color: C.textMuted, fontSize: 14 }}>
+              Завантаження...
+            </div>
+          ) : media.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 40, color: C.textMuted, fontSize: 14 }}>
+              Медіафайлів не знайдено
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+              {media.map((doc) => {
+                const isSelected = selected.has(doc.id)
+                const imgUrl = doc.url || ''
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    onClick={() => handleToggle(doc)}
+                    style={{
+                      position: 'relative',
+                      aspectRatio: '1',
+                      borderRadius: 10,
+                      border: `2px solid ${isSelected ? C.sea500 : C.border}`,
+                      background: C.bgSecondary,
+                      padding: 0,
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      boxShadow: isSelected ? `0 0 0 2px ${C.sea400}` : 'none',
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
+                    }}
+                  >
+                    {imgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={imgUrl}
+                        alt={doc.alt || doc.filename || ''}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 11,
+                        color: C.textMuted,
+                        padding: 8,
+                        wordBreak: 'break-all',
+                      }}>
+                        {doc.filename || 'file'}
+                      </div>
+                    )}
+                    {isSelected && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          background: C.sea500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#fff',
+                          fontSize: 13,
+                          fontWeight: 700,
+                        }}
+                      >
+                        ✓
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer (for multiple mode) */}
+        {multiple && (
+          <div
+            style={{
+              padding: '12px 20px',
+              borderTop: `1px solid ${C.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontSize: 13, color: C.textMuted }}>
+              Вибрано: {selected.size}
+            </span>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={selected.size === 0}
+              style={{
+                padding: '8px 20px',
+                borderRadius: 10,
+                border: 'none',
+                background: selected.size > 0
+                  ? `linear-gradient(135deg, ${C.sea500}, ${C.sea600})`
+                  : C.textMuted,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: selected.size > 0 ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Додати
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Thumbnail upload zone
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ThumbnailZone({
   thumbnail,
   onClear,
+  onUpload,
+  onPickExisting,
+  uploading,
 }: {
   thumbnail: MediaDoc | null
   onClear: () => void
+  onUpload: (file: File) => void
+  onPickExisting: () => void
+  uploading: boolean
 }) {
   const [dragging, setDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) onUpload(file)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) onUpload(file)
+    e.target.value = ''
+  }
 
   if (thumbnail) {
     const imgUrl = thumbnail.url ?? ''
     return (
-      <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgUrl}
@@ -847,7 +1147,7 @@ function ThumbnailZone({
       onDragEnter={() => setDragging(true)}
       onDragLeave={() => setDragging(false)}
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-      onDrop={(e) => { e.preventDefault(); setDragging(false) }}
+      onDrop={handleDrop}
       style={{
         border:         `2px dashed ${dragging ? C.sea400 : C.border}`,
         borderRadius:   16,
@@ -855,8 +1155,17 @@ function ThumbnailZone({
         textAlign:      'center',
         transition:     'border-color 0.2s, background 0.2s',
         background:     dragging ? `${C.sea400}0d` : 'transparent',
+        opacity:        uploading ? 0.6 : 1,
+        pointerEvents:  uploading ? 'none' : 'auto',
       }}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
       <div
         style={{
           width:          56,
@@ -872,11 +1181,12 @@ function ThumbnailZone({
         <IconCloudUpload size={28} color={C.sea500} />
       </div>
       <p style={{ margin: '0 0 16px', fontSize: 14, color: C.textSecondary }}>
-        Перетягніть файл або
+        {uploading ? 'Завантаження...' : 'Перетягніть файл або'}
       </p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button
           type="button"
+          onClick={() => fileInputRef.current?.click()}
           style={{
             background:   `linear-gradient(135deg, ${C.sea500}, ${C.sea600})`,
             color:        '#fff',
@@ -888,10 +1198,11 @@ function ThumbnailZone({
             fontWeight:   600,
           }}
         >
-          Створити новий
+          Завантажити файл
         </button>
         <button
           type="button"
+          onClick={onPickExisting}
           style={{
             background:   C.bgCard,
             color:        C.sea600,
@@ -949,6 +1260,10 @@ export default function ProductEditView() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [deleteBtnHovered, setDeleteBtnHovered] = useState(false)
   const [dupBtnHovered, setDupBtnHovered] = useState(false)
+  const [thumbnailUploading, setThumbnailUploading] = useState(false)
+  const [imagesUploading, setImagesUploading] = useState(false)
+  const [showThumbnailPicker, setShowThumbnailPicker] = useState(false)
+  const [showImagesPicker, setShowImagesPicker] = useState(false)
 
   const showToast = useCallback((message: string, type: Toast['type']) => {
     setToast({ message, type })
@@ -1034,6 +1349,42 @@ export default function ProductEditView() {
   const handleAddVariant = useCallback(() => {
     setForm((prev) => ({ ...prev, variants: [...prev.variants, emptyVariant()] }))
   }, [])
+
+  // Thumbnail upload
+  const handleThumbnailUpload = useCallback(async (file: File) => {
+    setThumbnailUploading(true)
+    try {
+      const doc = await uploadMedia(file)
+      setField('thumbnail', doc)
+    } catch (err) {
+      console.error('Thumbnail upload error:', err)
+      showToast('Помилка завантаження мініатюри', 'error')
+    } finally {
+      setThumbnailUploading(false)
+    }
+  }, [setField, showToast])
+
+  // Image upload
+  const handleImageUpload = useCallback(async (file: File) => {
+    setImagesUploading(true)
+    try {
+      const doc = await uploadMedia(file)
+      setForm((prev) => ({ ...prev, images: [...prev.images, doc] }))
+    } catch (err) {
+      console.error('Image upload error:', err)
+      showToast('Помилка завантаження зображення', 'error')
+    } finally {
+      setImagesUploading(false)
+    }
+  }, [showToast])
+
+  // Remove image
+  const handleRemoveImage = useCallback((id: string | number) => {
+    setForm((prev) => ({ ...prev, images: prev.images.filter((img) => img.id !== id) }))
+  }, [])
+
+  // Images file input ref
+  const imagesFileRef = useRef<HTMLInputElement>(null)
 
   // Save handler
   const handleSave = useCallback(async () => {
@@ -1361,6 +1712,9 @@ export default function ProductEditView() {
                   <ThumbnailZone
                     thumbnail={form.thumbnail}
                     onClear={() => setField('thumbnail', null)}
+                    onUpload={handleThumbnailUpload}
+                    onPickExisting={() => setShowThumbnailPicker(true)}
+                    uploading={thumbnailUploading}
                   />
                 </div>
 
@@ -1376,10 +1730,69 @@ export default function ProductEditView() {
                   onMouseLeave={() => setHoveredCard(null)}
                 >
                   <h2 style={cardTitleStyle}>Зображення</h2>
+                  <input
+                    ref={imagesFileRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageUpload(file)
+                      e.target.value = ''
+                    }}
+                  />
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {form.images.map((img) => (
+                      <div
+                        key={img.id}
+                        style={{
+                          position: 'relative',
+                          width: 80,
+                          height: 80,
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          border: `1px solid ${C.border}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.url || ''}
+                          alt={img.alt || img.filename || ''}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          loading="lazy"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(img.id)}
+                          aria-label="Видалити зображення"
+                          style={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            width: 20,
+                            height: 20,
+                            borderRadius: '50%',
+                            background: 'rgba(239,68,68,0.9)',
+                            border: 'none',
+                            color: '#fff',
+                            fontSize: 13,
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                     <button
                       type="button"
-                      aria-label="Додати зображення"
+                      aria-label="Завантажити зображення"
+                      onClick={() => imagesFileRef.current?.click()}
+                      disabled={imagesUploading}
                       style={{
                         width:          60,
                         height:         60,
@@ -1389,16 +1802,35 @@ export default function ProductEditView() {
                         display:        'flex',
                         alignItems:     'center',
                         justifyContent: 'center',
-                        cursor:         'pointer',
+                        cursor:         imagesUploading ? 'wait' : 'pointer',
                         transition:     'background 0.2s, border-color 0.2s',
                         flexShrink:     0,
+                        opacity:        imagesUploading ? 0.5 : 1,
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${C.sea400}1a` }}
+                      onMouseEnter={(e) => { if (!imagesUploading) (e.currentTarget as HTMLButtonElement).style.background = `${C.sea400}1a` }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                     >
                       <IconPlus size={22} color={C.sea500} />
                     </button>
-                    <span style={{ fontSize: 13, color: C.textMuted }}>Додати зображення</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowImagesPicker(true)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 8,
+                        border: `1px solid ${C.sea400}`,
+                        background: 'transparent',
+                        color: C.sea600,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Обрати з медіа
+                    </button>
+                    {imagesUploading && (
+                      <span style={{ fontSize: 12, color: C.textMuted }}>Завантаження...</span>
+                    )}
                   </div>
                 </div>
 
@@ -1771,6 +2203,29 @@ export default function ProductEditView() {
           </>
         )}
       </div>
+
+      {/* Media Picker Modals */}
+      <MediaPickerModal
+        open={showThumbnailPicker}
+        onClose={() => setShowThumbnailPicker(false)}
+        onSelect={(docs) => {
+          if (docs[0]) setField('thumbnail', docs[0])
+        }}
+      />
+      <MediaPickerModal
+        open={showImagesPicker}
+        onClose={() => setShowImagesPicker(false)}
+        multiple
+        onSelect={(docs) => {
+          setForm((prev) => ({
+            ...prev,
+            images: [
+              ...prev.images,
+              ...docs.filter((d) => !prev.images.some((img) => img.id === d.id)),
+            ],
+          }))
+        }}
+      />
     </div>
   )
 }

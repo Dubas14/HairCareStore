@@ -25,7 +25,7 @@ export const Media: CollectionConfig = {
     delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   upload: {
-    staticDir: '../media',
+    staticDir: 'media',
     mimeTypes: ['image/*', 'video/*'],
     imageSizes: [
       {

@@ -416,12 +416,22 @@ export default function CustomEditView() {
               .map((k) => {
                 const meta = fieldSchema.find((f) => f.name === k)
                 // For select fields, show option label instead of raw value
-                let displayValue: string
+                let displayValue: React.ReactNode
                 if (meta?.options) {
                   const opt = meta.options.find((o) => o.value === formData[k])
                   displayValue = opt?.label || String(formData[k] ?? '—')
-                } else if (typeof formData[k] === 'boolean') {
-                  displayValue = formData[k] ? 'Так' : 'Ні'
+                } else if (typeof formData[k] === 'boolean' || meta?.type === 'checkbox') {
+                  displayValue = (
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={!!formData[k]}
+                        onChange={(e) => handleChange(k, e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--hl-primary, #6366f1)', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: 12 }}>{formData[k] ? 'Так' : 'Ні'}</span>
+                    </label>
+                  )
                 } else {
                   displayValue = String(formData[k] ?? '—')
                 }

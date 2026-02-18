@@ -1,3 +1,13 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "overrides": [
+    {
+      "files": ["components/payload/**/*.tsx", "components/payload/**/*.ts"],
+      "rules": {
+        "@next/next/no-html-link-for-pages": "off",
+        "@next/next/no-img-element": "off",
+        "react/no-unescaped-entities": "off"
+      }
+    }
+  ]
 }
