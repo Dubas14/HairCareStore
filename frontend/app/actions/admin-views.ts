@@ -87,6 +87,18 @@ export interface ProductsViewParams {
   search?: string
   status?: 'active' | 'draft' | 'archived' | 'all'
   sort?: '-updatedAt' | 'title' | '-variants.price'
+  category?: string
+  brand?: string
+}
+
+export interface FilterOption {
+  id: string
+  name: string
+}
+
+export interface ProductsFilterOptions {
+  categories: FilterOption[]
+  brands: FilterOption[]
 }
 
 export async function getProductsViewData(
@@ -98,35 +110,43 @@ export async function getProductsViewData(
     search = '',
     status = 'all',
     sort = '-updatedAt',
+    category,
+    brand,
   } = params
 
   const payload = await getPayload({ config })
 
   // Build `where` clause
-  const statusFilter =
-    status && status !== 'all' ? { status: { equals: status } } : {}
+  const conditions: Record<string, any>[] = []
 
-  const searchFilter = search.trim()
-    ? {
-        or: [
-          { title: { contains: search.trim() } },
-          { subtitle: { contains: search.trim() } },
-          { handle: { contains: search.trim() } },
-        ],
-      }
-    : {}
-
-  const hasSearch = search.trim().length > 0
-  const hasStatus = status && status !== 'all'
-
-  let where: Record<string, any> = {}
-  if (hasSearch && hasStatus) {
-    where = { and: [statusFilter, searchFilter] }
-  } else if (hasStatus) {
-    where = statusFilter
-  } else if (hasSearch) {
-    where = searchFilter
+  if (status && status !== 'all') {
+    conditions.push({ status: { equals: status } })
   }
+
+  if (search.trim()) {
+    conditions.push({
+      or: [
+        { title: { contains: search.trim() } },
+        { subtitle: { contains: search.trim() } },
+        { handle: { contains: search.trim() } },
+      ],
+    })
+  }
+
+  if (category) {
+    conditions.push({ categories: { equals: category } })
+  }
+
+  if (brand) {
+    conditions.push({ brand: { equals: brand } })
+  }
+
+  const where: Record<string, any> =
+    conditions.length > 1
+      ? { and: conditions }
+      : conditions.length === 1
+      ? conditions[0]
+      : {}
 
   // Fetch paginated products and all status counts in parallel
   const [result, activeCount, draftCount, archivedCount, totalCount] =
@@ -210,6 +230,22 @@ export async function getProductsViewData(
       draft: draftCount.totalDocs,
       archived: archivedCount.totalDocs,
     },
+  }
+}
+
+// ─── Products filter options ──────────────────────────────────────────────────
+
+export async function getProductsFilterOptions(): Promise<ProductsFilterOptions> {
+  const payload = await getPayload({ config })
+
+  const [cats, brs] = await Promise.all([
+    payload.find({ collection: 'categories', limit: 200, sort: 'name', depth: 0 }),
+    payload.find({ collection: 'brands', limit: 200, sort: 'name', depth: 0 }),
+  ])
+
+  return {
+    categories: cats.docs.map((c: any) => ({ id: String(c.id), name: c.name ?? '' })),
+    brands: brs.docs.map((b: any) => ({ id: String(b.id), name: b.name ?? '' })),
   }
 }
 

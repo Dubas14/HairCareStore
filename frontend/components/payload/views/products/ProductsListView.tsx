@@ -11,8 +11,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getProductsViewData, deleteProduct } from '@/app/actions/admin-views'
-import type { ProductViewItem, ProductsViewData, ProductsViewParams } from '@/app/actions/admin-views'
+import { getProductsViewData, getProductsFilterOptions, deleteProduct } from '@/app/actions/admin-views'
+import type { ProductViewItem, ProductsViewData, ProductsViewParams, ProductsFilterOptions } from '@/app/actions/admin-views'
 import { useCleanPayloadUrl } from '../useCleanPayloadUrl'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -754,6 +754,196 @@ function FilterChip({
   )
 }
 
+// ─── Product Grid Card ───────────────────────────────────────────────────────
+
+interface ProductGridCardProps {
+  product: ProductViewItem
+  index: number
+  onEdit: (id: string | number) => void
+  onDelete: (id: string | number, title: string) => void
+}
+
+function ProductGridCard({ product, index, onEdit, onDelete }: ProductGridCardProps) {
+  const [hovered, setHovered] = useState(false)
+  const minPrice = getMinPrice(product.variants)
+  const comparePrice = getComparePrice(product.variants)
+  const totalInventory = getTotalInventory(product.variants)
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: COLORS.bgCard,
+        border: `1px solid ${hovered ? 'rgba(91,196,196,0.3)' : COLORS.border}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: hovered ? '0 8px 30px rgba(91,196,196,0.08)' : '0 2px 12px rgba(0,0,0,0.04)',
+        transition: 'all 0.25s ease',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Thumbnail */}
+      <div
+        style={{
+          width: '100%',
+          aspectRatio: '1',
+          background: COLORS.bgSecondary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {product.thumbnail?.url ? (
+          <img
+            src={product.thumbnail.url}
+            alt={product.thumbnail.alt || product.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            loading="lazy"
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              background: AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length],
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 36,
+            }}
+          >
+            {(product.title || '?')[0].toUpperCase()}
+          </div>
+        )}
+        {/* Status badge overlay */}
+        <div style={{ position: 'absolute', top: 8, right: 8 }}>
+          <StatusBadge status={product.status} />
+        </div>
+      </div>
+
+      {/* Info */}
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: COLORS.textPrimary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+          title={product.title}
+        >
+          {product.title || '(без назви)'}
+        </div>
+
+        <div style={{ fontSize: 12, color: COLORS.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {[product.brand?.name, product.categories[0]?.name].filter(Boolean).join(' • ') || '—'}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            {minPrice != null ? (
+              <>
+                <span style={{ fontSize: 15, fontWeight: 700, color: COLORS.textPrimary }}>{formatPrice(minPrice)}</span>
+                {comparePrice != null && comparePrice > minPrice && (
+                  <span style={{ fontSize: 11, color: COLORS.textMuted, textDecoration: 'line-through' }}>{formatPrice(comparePrice)}</span>
+                )}
+              </>
+            ) : (
+              <span style={{ fontSize: 13, color: COLORS.textMuted }}>—</span>
+            )}
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 600, color: totalInventory > 0 ? '#5a9e7a' : COLORS.textMuted }}>
+            {totalInventory > 0 ? `${totalInventory} шт` : 'Немає'}
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div
+        style={{
+          display: 'flex',
+          borderTop: `1px solid ${COLORS.border}`,
+        }}
+      >
+        <button
+          onClick={() => onEdit(product.id)}
+          aria-label={`Редагувати ${product.title}`}
+          style={{
+            flex: 1,
+            padding: '10px 0',
+            border: 'none',
+            background: 'transparent',
+            color: COLORS.textMuted,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            fontSize: 12,
+            fontWeight: 500,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(91,196,196,0.06)'; e.currentTarget.style.color = COLORS.sea600 }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = COLORS.textMuted }}
+        >
+          <IconEdit size={13} /> Редагувати
+        </button>
+        <div style={{ width: 1, background: COLORS.border }} />
+        <button
+          onClick={() => onDelete(product.id, product.title)}
+          aria-label={`Видалити ${product.title}`}
+          style={{
+            flex: 1,
+            padding: '10px 0',
+            border: 'none',
+            background: 'transparent',
+            color: COLORS.textMuted,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            fontSize: 12,
+            fontWeight: 500,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.04)'; e.currentTarget.style.color = '#ef4444' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = COLORS.textMuted }}
+        >
+          <IconTrash size={13} /> Видалити
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Grid Skeleton ───────────────────────────────────────────────────────────
+
+function GridSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 16, overflow: 'hidden' }}>
+          <SkeletonBlock width="100%" height={200} radius={0} />
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <SkeletonBlock width="80%" height={14} />
+            <SkeletonBlock width="50%" height={11} />
+            <SkeletonBlock width="40%" height={15} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const LIMIT = 10
@@ -771,6 +961,11 @@ export default function ProductsListView() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [status, setStatus] = useState<ProductsViewParams['status']>('all')
   const [sort, setSort] = useState<ProductsViewParams['sort']>('-updatedAt')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterBrand, setFilterBrand] = useState('')
+  const [filterOptions, setFilterOptions] = useState<ProductsFilterOptions | null>(null)
 
   // Debounce search input
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -789,6 +984,13 @@ export default function ProductsListView() {
     }
   }, [])
 
+  // Load filter options once when panel opens
+  useEffect(() => {
+    if (filtersOpen && !filterOptions) {
+      getProductsFilterOptions().then(setFilterOptions).catch(console.error)
+    }
+  }, [filtersOpen, filterOptions])
+
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -800,6 +1002,8 @@ export default function ProductsListView() {
         search: debouncedSearch,
         status,
         sort,
+        category: filterCategory || undefined,
+        brand: filterBrand || undefined,
       })
       setData(result)
     } catch (err) {
@@ -808,7 +1012,7 @@ export default function ProductsListView() {
     } finally {
       setLoading(false)
     }
-  }, [page, debouncedSearch, status, sort])
+  }, [page, debouncedSearch, status, sort, filterCategory, filterBrand])
 
   useEffect(() => {
     fetchData()
@@ -888,25 +1092,36 @@ export default function ProductsListView() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
+              onClick={() => setFiltersOpen((v) => !v)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 7,
                 padding: '9px 16px',
                 borderRadius: 10,
-                border: `1px solid ${COLORS.border}`,
-                background: COLORS.bgSecondary,
-                color: COLORS.textSecondary,
+                border: `1px solid ${filtersOpen ? COLORS.sea400 : COLORS.border}`,
+                background: filtersOpen ? 'rgba(91,196,196,0.08)' : COLORS.bgSecondary,
+                color: filtersOpen ? COLORS.sea600 : COLORS.textSecondary,
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: 'pointer',
-                transition: 'background 0.2s ease',
+                transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#eceef0' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = COLORS.bgSecondary }}
+              onMouseEnter={(e) => { if (!filtersOpen) (e.currentTarget as HTMLButtonElement).style.background = '#eceef0' }}
+              onMouseLeave={(e) => { if (!filtersOpen) (e.currentTarget as HTMLButtonElement).style.background = COLORS.bgSecondary }}
             >
               <IconFilter size={14} />
               Фільтри
+              {(filterCategory || filterBrand) && (
+                <span style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: COLORS.sea500, color: '#fff',
+                  fontSize: 10, fontWeight: 700,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {(filterCategory ? 1 : 0) + (filterBrand ? 1 : 0)}
+                </span>
+              )}
             </button>
 
             <a
@@ -943,6 +1158,91 @@ export default function ProductsListView() {
             </a>
           </div>
         </header>
+
+        {/* ── Filters Panel ── */}
+        {filtersOpen && (
+          <div
+            style={{
+              background: COLORS.bgCard,
+              borderBottom: `1px solid ${COLORS.border}`,
+              padding: '16px 28px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              flexWrap: 'wrap',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label style={{ fontSize: 13, color: COLORS.textMuted, whiteSpace: 'nowrap' }}>Категорія:</label>
+              <select
+                value={filterCategory}
+                onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 10,
+                  border: `1px solid ${COLORS.border}`,
+                  background: COLORS.bgSecondary,
+                  fontSize: 13,
+                  color: COLORS.textSecondary,
+                  cursor: 'pointer',
+                  outline: 'none',
+                  minWidth: 160,
+                }}
+              >
+                <option value="">Всі категорії</option>
+                {filterOptions?.categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label style={{ fontSize: 13, color: COLORS.textMuted, whiteSpace: 'nowrap' }}>Бренд:</label>
+              <select
+                value={filterBrand}
+                onChange={(e) => { setFilterBrand(e.target.value); setPage(1) }}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 10,
+                  border: `1px solid ${COLORS.border}`,
+                  background: COLORS.bgSecondary,
+                  fontSize: 13,
+                  color: COLORS.textSecondary,
+                  cursor: 'pointer',
+                  outline: 'none',
+                  minWidth: 160,
+                }}
+              >
+                <option value="">Всі бренди</option>
+                {filterOptions?.brands.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {(filterCategory || filterBrand) && (
+              <button
+                onClick={() => { setFilterCategory(''); setFilterBrand(''); setPage(1) }}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: 'rgba(239,68,68,0.08)',
+                  color: '#dc2626',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.14)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
+              >
+                Скинути фільтри
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ── Page Body ── */}
         <div style={{ padding: '24px 28px', maxWidth: 1400, margin: '0 auto' }}>
@@ -1124,7 +1424,7 @@ export default function ProductsListView() {
               </select>
             </div>
 
-            {/* View toggle (visual only) */}
+            {/* View toggle */}
             <div
               style={{
                 display: 'flex',
@@ -1136,6 +1436,7 @@ export default function ProductsListView() {
             >
               <button
                 aria-label="Таблиця"
+                onClick={() => setViewMode('list')}
                 style={{
                   width: 36,
                   height: 36,
@@ -1143,15 +1444,17 @@ export default function ProductsListView() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: 'none',
-                  background: COLORS.sea500,
-                  color: '#fff',
+                  background: viewMode === 'list' ? COLORS.sea500 : COLORS.bgCard,
+                  color: viewMode === 'list' ? '#fff' : COLORS.textMuted,
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                 }}
               >
-                <IconList size={15} color="#fff" />
+                <IconList size={15} color={viewMode === 'list' ? '#fff' : undefined} />
               </button>
               <button
                 aria-label="Сітка"
+                onClick={() => setViewMode('grid')}
                 style={{
                   width: 36,
                   height: 36,
@@ -1159,12 +1462,13 @@ export default function ProductsListView() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: 'none',
-                  background: COLORS.bgCard,
-                  color: COLORS.textMuted,
+                  background: viewMode === 'grid' ? COLORS.sea500 : COLORS.bgCard,
+                  color: viewMode === 'grid' ? '#fff' : COLORS.textMuted,
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                 }}
               >
-                <IconGrid size={15} />
+                <IconGrid size={15} color={viewMode === 'grid' ? '#fff' : undefined} />
               </button>
             </div>
           </div>
@@ -1207,125 +1511,156 @@ export default function ProductsListView() {
             </div>
           )}
 
-          {/* ── Products Table ── */}
-          <div
-            style={{
-              background: COLORS.bgCard,
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 16,
-              boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ overflowX: 'auto' }}>
-              <table
-                style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  minWidth: 700,
-                }}
-                aria-label="Таблиця товарів"
-              >
-                <thead>
-                  <tr
-                    style={{
-                      background: COLORS.bgSecondary,
-                      borderBottom: `1px solid ${COLORS.border}`,
-                    }}
-                  >
-                    {['Товар', 'Категорія', 'Ціна', 'Запас', 'Статус', 'Оновлено', 'Дії'].map((h) => (
-                      <th
-                        key={h}
-                        scope="col"
-                        style={{
-                          padding: '12px 16px',
-                          textAlign: 'left',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
-                          color: COLORS.textMuted,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <TableSkeleton rows={LIMIT} />
-                  ) : !data || data.products.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        style={{
-                          padding: '60px 20px',
-                          textAlign: 'center',
-                          color: COLORS.textMuted,
-                          fontSize: 14,
-                        }}
-                      >
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" />
-                          </svg>
-                          <span>
-                            {debouncedSearch || status !== 'all'
-                              ? 'Нічого не знайдено. Спробуйте змінити фільтри.'
-                              : 'Товарів ще немає.'}
-                          </span>
-                          {!debouncedSearch && status === 'all' && (
-                            <a
-                              href="/admin/collections/products/create"
-                              style={{
-                                fontSize: 13,
-                                color: COLORS.sea600,
-                                textDecoration: 'none',
-                                fontWeight: 500,
-                              }}
-                            >
-                              Створити перший товар
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    data.products.map((product, i) => (
-                      <React.Fragment key={product.id}>
-                        <ProductRow
-                          product={product}
-                          index={i}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                        {i < data.products.length - 1 && (
-                          <tr aria-hidden="true">
-                            <td colSpan={7} style={{ padding: 0 }}>
-                              <div style={{ height: 1, background: COLORS.border, opacity: 0.6 }} />
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {/* ── Empty State ── */}
+          {!loading && (!data || data.products.length === 0) && (
+            <div
+              style={{
+                background: COLORS.bgCard,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 16,
+                padding: '60px 20px',
+                textAlign: 'center',
+                color: COLORS.textMuted,
+                fontSize: 14,
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" />
+                </svg>
+                <span>
+                  {debouncedSearch || status !== 'all'
+                    ? 'Нічого не знайдено. Спробуйте змінити фільтри.'
+                    : 'Товарів ще немає.'}
+                </span>
+                {!debouncedSearch && status === 'all' && (
+                  <a href="/admin/collections/products/create" style={{ fontSize: 13, color: COLORS.sea600, textDecoration: 'none', fontWeight: 500 }}>
+                    Створити перший товар
+                  </a>
+                )}
+              </div>
             </div>
+          )}
 
-            {/* Pagination */}
-            {!loading && data && data.totalPages >= 1 && (
-              <Pagination
-                currentPage={data.page}
-                totalPages={data.totalPages}
-                totalDocs={data.totalDocs}
-                limit={LIMIT}
-                onPageChange={(p) => setPage(p)}
-              />
-            )}
-          </div>
+          {/* ── Products Grid View ── */}
+          {viewMode === 'grid' && (loading || (data && data.products.length > 0)) && (
+            <div>
+              {loading ? (
+                <GridSkeleton count={LIMIT} />
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+                  {data!.products.map((product, i) => (
+                    <ProductGridCard
+                      key={product.id}
+                      product={product}
+                      index={i}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {!loading && data && data.totalPages >= 1 && (
+                <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 16, marginTop: 16 }}>
+                  <Pagination
+                    currentPage={data.page}
+                    totalPages={data.totalPages}
+                    totalDocs={data.totalDocs}
+                    limit={LIMIT}
+                    onPageChange={(p) => setPage(p)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Products Table View ── */}
+          {viewMode === 'list' && (loading || (data && data.products.length > 0)) && (
+            <div
+              style={{
+                background: COLORS.bgCard,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 16,
+                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ overflowX: 'auto' }}>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    minWidth: 700,
+                  }}
+                  aria-label="Таблиця товарів"
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        background: COLORS.bgSecondary,
+                        borderBottom: `1px solid ${COLORS.border}`,
+                      }}
+                    >
+                      {['Товар', 'Категорія', 'Ціна', 'Запас', 'Статус', 'Оновлено', 'Дії'].map((h) => (
+                        <th
+                          key={h}
+                          scope="col"
+                          style={{
+                            padding: '12px 16px',
+                            textAlign: 'left',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.06em',
+                            color: COLORS.textMuted,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <TableSkeleton rows={LIMIT} />
+                    ) : (
+                      data!.products.map((product, i) => (
+                        <React.Fragment key={product.id}>
+                          <ProductRow
+                            product={product}
+                            index={i}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                          />
+                          {i < data!.products.length - 1 && (
+                            <tr aria-hidden="true">
+                              <td colSpan={7} style={{ padding: 0 }}>
+                                <div style={{ height: 1, background: COLORS.border, opacity: 0.6 }} />
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {!loading && data && data.totalPages >= 1 && (
+                <Pagination
+                  currentPage={data.page}
+                  totalPages={data.totalPages}
+                  totalDocs={data.totalDocs}
+                  limit={LIMIT}
+                  onPageChange={(p) => setPage(p)}
+                />
+              )}
+            </div>
+          )}
 
         </div>
       </div>
