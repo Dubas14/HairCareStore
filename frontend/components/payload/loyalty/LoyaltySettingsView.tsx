@@ -77,8 +77,8 @@ const LoyaltySettingsView: React.FC = () => {
             </div>
             <button
               type="button"
-              className={`loyalty-admin__toggle loyalty-admin__toggle--${settings?.is_active ? 'on' : 'off'}`}
-              onClick={() => updateField('is_active', !settings?.is_active)}
+              className={`loyalty-admin__toggle loyalty-admin__toggle--${settings?.isActive ? 'on' : 'off'}`}
+              onClick={() => updateField('isActive', !settings?.isActive)}
             />
           </div>
         </div>
@@ -92,8 +92,8 @@ const LoyaltySettingsView: React.FC = () => {
               <input
                 type="number"
                 step="0.01"
-                value={settings?.points_per_uah || 0}
-                onChange={(e) => updateField('points_per_uah', parseFloat(e.target.value) || 0)}
+                value={settings?.pointsPerUah || 0}
+                onChange={(e) => updateField('pointsPerUah', parseFloat(e.target.value) || 0)}
               />
               <div className="loyalty-admin__field-hint">0.1 = 1 бал за 10 грн</div>
             </div>
@@ -102,8 +102,8 @@ const LoyaltySettingsView: React.FC = () => {
               <input
                 type="number"
                 step="0.1"
-                value={settings?.point_value || 0}
-                onChange={(e) => updateField('point_value', parseFloat(e.target.value) || 0)}
+                value={settings?.pointValue || 0}
+                onChange={(e) => updateField('pointValue', parseFloat(e.target.value) || 0)}
               />
             </div>
             <div className="loyalty-admin__field">
@@ -113,8 +113,8 @@ const LoyaltySettingsView: React.FC = () => {
                 step="0.01"
                 min="0"
                 max="1"
-                value={settings?.max_spend_percentage || 0}
-                onChange={(e) => updateField('max_spend_percentage', parseFloat(e.target.value) || 0)}
+                value={settings?.maxSpendPercentage || 0}
+                onChange={(e) => updateField('maxSpendPercentage', parseFloat(e.target.value) || 0)}
               />
               <div className="loyalty-admin__field-hint">0.3 = 30% від суми замовлення</div>
             </div>
@@ -129,8 +129,8 @@ const LoyaltySettingsView: React.FC = () => {
               <label>Welcome бонус</label>
               <input
                 type="number"
-                value={settings?.welcome_bonus || 0}
-                onChange={(e) => updateField('welcome_bonus', parseInt(e.target.value) || 0)}
+                value={settings?.welcomeBonus || 0}
+                onChange={(e) => updateField('welcomeBonus', parseInt(e.target.value) || 0)}
               />
               <div className="loyalty-admin__field-hint">Бали за реєстрацію</div>
             </div>
@@ -138,8 +138,8 @@ const LoyaltySettingsView: React.FC = () => {
               <label>Реферальний бонус</label>
               <input
                 type="number"
-                value={settings?.referral_bonus || 0}
-                onChange={(e) => updateField('referral_bonus', parseInt(e.target.value) || 0)}
+                value={settings?.referralBonus || 0}
+                onChange={(e) => updateField('referralBonus', parseInt(e.target.value) || 0)}
               />
               <div className="loyalty-admin__field-hint">Бали обом учасникам</div>
             </div>
@@ -157,8 +157,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <label>Bronze — від (балів)</label>
                 <input
                   type="number"
-                  value={settings?.bronze_min || 0}
-                  onChange={(e) => updateField('bronze_min', parseInt(e.target.value) || 0)}
+                  value={settings?.bronzeMin || 0}
+                  onChange={(e) => updateField('bronzeMin', parseInt(e.target.value) || 0)}
                 />
               </div>
               <div className="loyalty-admin__field">
@@ -166,8 +166,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <input
                   type="number"
                   step="0.01"
-                  value={settings?.bronze_multiplier || 1}
-                  onChange={(e) => updateField('bronze_multiplier', parseFloat(e.target.value) || 1)}
+                  value={settings?.bronzeMultiplier || 1}
+                  onChange={(e) => updateField('bronzeMultiplier', parseFloat(e.target.value) || 1)}
                 />
               </div>
             </div>
@@ -180,8 +180,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <label>Silver — від (балів)</label>
                 <input
                   type="number"
-                  value={settings?.silver_min || 0}
-                  onChange={(e) => updateField('silver_min', parseInt(e.target.value) || 0)}
+                  value={settings?.silverMin || 0}
+                  onChange={(e) => updateField('silverMin', parseInt(e.target.value) || 0)}
                 />
               </div>
               <div className="loyalty-admin__field">
@@ -189,8 +189,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <input
                   type="number"
                   step="0.01"
-                  value={settings?.silver_multiplier || 1}
-                  onChange={(e) => updateField('silver_multiplier', parseFloat(e.target.value) || 1)}
+                  value={settings?.silverMultiplier || 1}
+                  onChange={(e) => updateField('silverMultiplier', parseFloat(e.target.value) || 1)}
                 />
               </div>
             </div>
@@ -203,8 +203,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <label>Gold — від (балів)</label>
                 <input
                   type="number"
-                  value={settings?.gold_min || 0}
-                  onChange={(e) => updateField('gold_min', parseInt(e.target.value) || 0)}
+                  value={settings?.goldMin || 0}
+                  onChange={(e) => updateField('goldMin', parseInt(e.target.value) || 0)}
                 />
               </div>
               <div className="loyalty-admin__field">
@@ -212,8 +212,8 @@ const LoyaltySettingsView: React.FC = () => {
                 <input
                   type="number"
                   step="0.01"
-                  value={settings?.gold_multiplier || 1}
-                  onChange={(e) => updateField('gold_multiplier', parseFloat(e.target.value) || 1)}
+                  value={settings?.goldMultiplier || 1}
+                  onChange={(e) => updateField('goldMultiplier', parseFloat(e.target.value) || 1)}
                 />
               </div>
             </div>

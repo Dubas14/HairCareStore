@@ -66,12 +66,15 @@ const LoyaltyTransactionsView: React.FC = () => {
                   <td colSpan={6} className="loyalty-admin__empty">Транзакцій не знайдено</td>
                 </tr>
               ) : (
-                transactions.map((tx) => (
+                transactions.map((tx) => {
+                  const customerId = typeof tx.customer === 'object' && tx.customer ? tx.customer.id : String(tx.customer)
+                  const customerObj = typeof tx.customer === 'object' ? tx.customer : null
+                  return (
                   <tr key={tx.id}>
                     <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
-                      {new Date(tx.created_at).toLocaleDateString('uk-UA')}{' '}
+                      {new Date(tx.createdAt).toLocaleDateString('uk-UA')}{' '}
                       <span style={{ color: 'var(--color-base-400)' }}>
-                        {new Date(tx.created_at).toLocaleTimeString('uk-UA', {
+                        {new Date(tx.createdAt).toLocaleTimeString('uk-UA', {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
@@ -79,16 +82,16 @@ const LoyaltyTransactionsView: React.FC = () => {
                     </td>
                     <td>
                       <Link
-                        href={`/admin/loyalty/customers/${tx.customer_id}`}
+                        href={`/admin/loyalty/customers/${customerId}`}
                         style={{ color: 'inherit', textDecoration: 'none' }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div style={{ fontWeight: 500 }}>
-                          {tx.customer?.first_name || ''} {tx.customer?.last_name || ''}
-                          {!tx.customer?.first_name && !tx.customer?.last_name && '—'}
+                          {customerObj?.firstName || ''} {customerObj?.lastName || ''}
+                          {!customerObj?.firstName && !customerObj?.lastName && '—'}
                         </div>
                         <div style={{ fontSize: 12, color: 'var(--color-base-400)' }}>
-                          {tx.customer?.email || tx.customer_id}
+                          {customerObj?.email || customerId}
                         </div>
                       </Link>
                     </td>
@@ -96,33 +99,34 @@ const LoyaltyTransactionsView: React.FC = () => {
                       <span
                         className="loyalty-admin__type-badge"
                         style={{
-                          backgroundColor: `${transactionTypeColors[tx.transaction_type] || '#6b7280'}20`,
-                          color: transactionTypeColors[tx.transaction_type] || '#6b7280',
+                          backgroundColor: `${transactionTypeColors[tx.transactionType] || '#6b7280'}20`,
+                          color: transactionTypeColors[tx.transactionType] || '#6b7280',
                         }}
                       >
-                        {transactionTypeLabels[tx.transaction_type] || tx.transaction_type}
+                        {transactionTypeLabels[tx.transactionType] || tx.transactionType}
                       </span>
                     </td>
                     <td style={{ fontSize: 13, color: 'var(--color-base-400)', maxWidth: 200 }}>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {tx.description || '—'}
                       </div>
-                      {tx.order_id && (
+                      {tx.orderId && (
                         <div style={{ fontSize: 12 }}>
-                          Замовлення: {tx.order_id.slice(0, 12)}...
+                          Замовлення: {String(tx.orderId).slice(0, 12)}...
                         </div>
                       )}
                     </td>
                     <td
                       className="text-right"
-                      style={{ fontWeight: 500, color: tx.points_amount > 0 ? '#4a9468' : '#b06060' }}
+                      style={{ fontWeight: 500, color: tx.pointsAmount > 0 ? '#4a9468' : '#b06060' }}
                     >
-                      {tx.points_amount > 0 ? '+' : ''}{tx.points_amount.toLocaleString()}
+                      {tx.pointsAmount > 0 ? '+' : ''}{tx.pointsAmount.toLocaleString()}
                     </td>
-                    <td className="text-right">{tx.balance_after.toLocaleString()}</td>
+                    <td className="text-right">{tx.balanceAfter.toLocaleString()}</td>
                   </tr>
-                ))
-              )}
+                  )
+                }))
+              }
             </tbody>
           </table>
 

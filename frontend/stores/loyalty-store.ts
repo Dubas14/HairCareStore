@@ -17,14 +17,14 @@ export interface LoyaltySummary {
 }
 
 export interface LoyaltyTransaction {
-  id: string
-  customer_id: string
-  transaction_type: 'earned' | 'spent' | 'expired' | 'welcome' | 'referral' | 'adjustment'
-  points_amount: number
-  order_id: string | null
+  id: string | number
+  customer: string | number
+  transactionType: 'earned' | 'spent' | 'expired' | 'welcome' | 'referral' | 'adjustment'
+  pointsAmount: number
+  orderId: string | null
   description: string | null
-  balance_after: number
-  created_at: string
+  balanceAfter: number
+  createdAt: string
 }
 
 export interface LoyaltyCalculation {

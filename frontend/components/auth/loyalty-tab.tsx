@@ -320,13 +320,13 @@ export function LoyaltyTab() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
-                    <TransactionIcon type={tx.transaction_type} />
+                    <TransactionIcon type={tx.transactionType} />
                   </div>
                   <div>
-                    <p className="font-medium">{getTransactionTypeLabel(tx.transaction_type)}</p>
+                    <p className="font-medium">{getTransactionTypeLabel(tx.transactionType)}</p>
                     <p className="text-sm text-muted-foreground">
                       {tx.description ||
-                        new Date(tx.created_at).toLocaleDateString('uk-UA', {
+                        new Date(tx.createdAt).toLocaleDateString('uk-UA', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
@@ -337,13 +337,13 @@ export function LoyaltyTab() {
                 <div className="text-right">
                   <p
                     className={`font-bold ${
-                      tx.points_amount > 0 ? 'text-green-500' : 'text-red-500'
+                      tx.pointsAmount > 0 ? 'text-green-500' : 'text-red-500'
                     }`}
                   >
-                    {tx.points_amount > 0 ? '+' : ''}
-                    {tx.points_amount}
+                    {tx.pointsAmount > 0 ? '+' : ''}
+                    {tx.pointsAmount}
                   </p>
-                  <p className="text-xs text-muted-foreground">Баланс: {tx.balance_after}</p>
+                  <p className="text-xs text-muted-foreground">Баланс: {tx.balanceAfter}</p>
                 </div>
               </div>
             ))}

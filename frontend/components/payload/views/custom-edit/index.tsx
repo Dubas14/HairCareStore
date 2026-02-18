@@ -54,18 +54,24 @@ function renderField(
   onChange: (key: string, val: any) => void,
   fieldMeta?: FieldSchema
 ): React.ReactNode {
+  const label = fieldMeta?.label || key
+  const ro = fieldMeta?.readOnly || false
+
   // If we have schema metadata, use it for proper rendering
   if (fieldMeta) {
+    // Skip hidden fields
+    if (fieldMeta.hidden) return null
+
     switch (fieldMeta.type) {
       case 'checkbox':
-        return <StyledCheckbox key={key} label={key} checked={!!value} onChange={(v) => onChange(key, v)} />
+        return <StyledCheckbox key={key} label={label} checked={!!value} onChange={ro ? () => {} : (v) => onChange(key, v)} />
       case 'select':
         return (
           <StyledSelect
             key={key}
-            label={key}
+            label={label}
             value={String(value ?? '')}
-            onChange={(v) => onChange(key, v)}
+            onChange={ro ? () => {} : (v) => onChange(key, v)}
             options={fieldMeta.options || []}
             required={fieldMeta.required}
           />
@@ -74,40 +80,68 @@ function renderField(
         return (
           <StyledUpload
             key={key}
-            label={key}
+            label={label}
             value={value}
-            onChange={(v) => onChange(key, v)}
+            onChange={ro ? () => {} : (v) => onChange(key, v)}
             relationTo={fieldMeta.relationTo}
           />
         )
       case 'relationship':
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           const display = value.title || value.name || value.email || `ID: ${value.id}`
-          return <StyledInput key={key} label={key} value={display} onChange={() => {}} disabled />
+          return <StyledInput key={key} label={label} value={display} onChange={() => {}} disabled />
         }
         if (Array.isArray(value)) {
-          return <StyledInput key={key} label={`${key} (${value.length} елементів)`} value={`[${value.length} шт.]`} onChange={() => {}} disabled />
+          return <StyledInput key={key} label={`${label} (${value.length} елементів)`} value={`[${value.length} шт.]`} onChange={() => {}} disabled />
         }
-        return <StyledInput key={key} label={key} value={value != null ? String(value) : '—'} onChange={() => {}} disabled />
+        return <StyledInput key={key} label={label} value={value != null ? String(value) : '—'} onChange={() => {}} disabled />
       case 'textarea':
-        return <StyledTextarea key={key} label={key} value={String(value ?? '')} onChange={(v) => onChange(key, v)} rows={4} required={fieldMeta.required} />
+        return <StyledTextarea key={key} label={label} value={String(value ?? '')} onChange={ro ? () => {} : (v) => onChange(key, v)} rows={4} required={fieldMeta.required} />
       case 'richText':
-        return <StyledTextarea key={key} label={key} value={typeof value === 'string' ? value : ''} onChange={(v) => onChange(key, v)} rows={6} />
+        return <StyledTextarea key={key} label={label} value={typeof value === 'string' ? value : ''} onChange={ro ? () => {} : (v) => onChange(key, v)} rows={6} />
       case 'number':
-        return <StyledInput key={key} label={key} value={value ?? 0} onChange={(v) => onChange(key, Number(v) || 0)} type="number" required={fieldMeta.required} />
-      case 'array':
-        return <StyledInput key={key} label={`${key} (${Array.isArray(value) ? value.length : 0} елементів)`} value={`[${Array.isArray(value) ? value.length : 0} шт.]`} onChange={() => {}} disabled />
+        return <StyledInput key={key} label={label} value={value ?? 0} onChange={ro ? () => {} : (v) => onChange(key, Number(v) || 0)} type="number" required={fieldMeta.required} disabled={ro} />
+      case 'array': {
+        const items = Array.isArray(value) ? value : []
+        const arrayLabel = fieldMeta.labels?.plural || label
+        if (items.length === 0) {
+          return <StyledInput key={key} label={arrayLabel} value="— порожньо —" onChange={() => {}} disabled />
+        }
+        return (
+          <FieldGroup key={key} title={`${arrayLabel} (${items.length})`}>
+            {items.map((item: any, idx: number) => {
+              const itemLabel = fieldMeta.labels?.singular || label
+              const subFields = fieldMeta.fields || []
+              const visibleSubFields = subFields.filter((sf) => !sf.hidden)
+              if (visibleSubFields.length === 0) return null
+              // Show a compact summary of each array item
+              return (
+                <FieldGroup key={idx} title={`${itemLabel} #${idx + 1}`}>
+                  {visibleSubFields.map((sf) => {
+                    const sfVal = item[sf.name]
+                    return renderField(sf.name, sfVal, (k, v) => {
+                      const updated = [...items]
+                      updated[idx] = { ...updated[idx], [k]: v }
+                      onChange(key, updated)
+                    }, { ...sf, readOnly: ro || sf.readOnly })
+                  })}
+                </FieldGroup>
+              )
+            })}
+          </FieldGroup>
+        )
+      }
       case 'group':
         if (typeof value === 'object' && value !== null) {
-          const groupKeys = Object.keys(value)
-          if (groupKeys.length === 0) return null
+          const subFields = fieldMeta.fields || []
+          const visibleSubFields = subFields.filter((sf) => !sf.hidden)
+          if (visibleSubFields.length === 0) return null
           return (
-            <FieldGroup key={key} title={key}>
-              {groupKeys.map((gk) => {
-                const subMeta = fieldMeta.fields?.find((f) => f.name === gk)
-                return renderField(gk, value[gk], (k, v) => {
+            <FieldGroup key={key} title={label}>
+              {visibleSubFields.map((sf) => {
+                return renderField(sf.name, value[sf.name], (k, v) => {
                   onChange(key, { ...value, [k]: v })
-                }, subMeta)
+                }, { ...sf, readOnly: ro || sf.readOnly })
               })}
             </FieldGroup>
           )
@@ -115,32 +149,32 @@ function renderField(
         return null
       default:
         // text, email, date, code, etc.
-        return <StyledInput key={key} label={key} value={String(value ?? '')} onChange={(v) => onChange(key, v)} required={fieldMeta.required} />
+        return <StyledInput key={key} label={label} value={String(value ?? '')} onChange={ro ? () => {} : (v) => onChange(key, v)} required={fieldMeta.required} disabled={ro} />
     }
   }
 
   // Fallback: no schema — infer from JS type (for backwards compat)
   if (typeof value === 'boolean') {
-    return <StyledCheckbox key={key} label={key} checked={value} onChange={(v) => onChange(key, v)} />
+    return <StyledCheckbox key={key} label={label} checked={value} onChange={(v) => onChange(key, v)} />
   }
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
     // Check if this looks like a media object (has url)
     if (value.url || value.filename) {
-      return <StyledUpload key={key} label={key} value={value} onChange={(v) => onChange(key, v)} />
+      return <StyledUpload key={key} label={label} value={value} onChange={(v) => onChange(key, v)} />
     }
     const display = value.title || value.name || value.email || JSON.stringify(value).slice(0, 60)
-    return <StyledInput key={key} label={key} value={display} onChange={() => {}} disabled />
+    return <StyledInput key={key} label={label} value={display} onChange={() => {}} disabled />
   }
   if (Array.isArray(value)) {
-    return <StyledInput key={key} label={`${key} (${value.length} елементів)`} value={`[${value.length} шт.]`} onChange={() => {}} disabled />
+    return <StyledInput key={key} label={`${label} (${value.length} елементів)`} value={`[${value.length} шт.]`} onChange={() => {}} disabled />
   }
   if (typeof value === 'number') {
-    return <StyledInput key={key} label={key} value={value} onChange={(v) => onChange(key, Number(v) || 0)} type="number" />
+    return <StyledInput key={key} label={label} value={value} onChange={(v) => onChange(key, Number(v) || 0)} type="number" />
   }
   if (typeof value === 'string' && value.length > 120) {
-    return <StyledTextarea key={key} label={key} value={value} onChange={(v) => onChange(key, v)} rows={4} />
+    return <StyledTextarea key={key} label={label} value={value} onChange={(v) => onChange(key, v)} rows={4} />
   }
-  return <StyledInput key={key} label={key} value={String(value ?? '')} onChange={(v) => onChange(key, v)} />
+  return <StyledInput key={key} label={label} value={String(value ?? '')} onChange={(v) => onChange(key, v)} />
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -318,10 +352,18 @@ export default function CustomEditView() {
     )
   }
 
-  // Split fields into main and sidebar
-  const allKeys = Object.keys(formData).filter((k) => !SKIP_FIELDS.has(k))
-  const sidebarKeys = allKeys.filter((k) => SIDEBAR_FIELDS.has(k))
-  const mainKeys = allKeys.filter((k) => !SIDEBAR_FIELDS.has(k))
+  // Split fields into main and sidebar, filtering out hidden fields
+  const allKeys = Object.keys(formData).filter((k) => {
+    if (SKIP_FIELDS.has(k)) return false
+    const meta = fieldSchema.find((f) => f.name === k)
+    if (meta?.hidden) return false
+    return true
+  })
+  const sidebarKeys = allKeys.filter((k) => {
+    const meta = fieldSchema.find((f) => f.name === k)
+    return SIDEBAR_FIELDS.has(k) || meta?.position === 'sidebar'
+  })
+  const mainKeys = allKeys.filter((k) => !sidebarKeys.includes(k))
 
   const title = isCreate
     ? `Новий: ${COLLECTION_LABELS[slug] || slug}`
@@ -368,12 +410,20 @@ export default function CustomEditView() {
             isCreate={isCreate}
             extraFields={sidebarKeys
               .filter((k) => k !== 'status')
-              .map((k) => ({
-                label: k,
-                value: typeof formData[k] === 'boolean'
-                  ? (formData[k] ? 'Так' : 'Ні')
-                  : String(formData[k] ?? '—'),
-              }))}
+              .map((k) => {
+                const meta = fieldSchema.find((f) => f.name === k)
+                // For select fields, show option label instead of raw value
+                let displayValue: string
+                if (meta?.options) {
+                  const opt = meta.options.find((o) => o.value === formData[k])
+                  displayValue = opt?.label || String(formData[k] ?? '—')
+                } else if (typeof formData[k] === 'boolean') {
+                  displayValue = formData[k] ? 'Так' : 'Ні'
+                } else {
+                  displayValue = String(formData[k] ?? '—')
+                }
+                return { label: meta?.label || k, value: displayValue }
+              })}
           />
           {!isCreate && (
             <div style={{ marginTop: 16 }}>

@@ -42,7 +42,7 @@ function formatDate(val: any): string {
 function renderDefault(value: any): React.ReactNode {
   if (value === null || value === undefined) return '\u2014'
   if (typeof value === 'boolean') return value ? 'Так' : 'Ні'
-  if (typeof value === 'string' && /^\\d{4}-\\d{2}-\\d{2}/.test(value)) return formatDate(value)
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return formatDate(value)
   if (typeof value === 'object' && value.title) return value.title
   if (typeof value === 'object' && value.name) return value.name
   return String(value)

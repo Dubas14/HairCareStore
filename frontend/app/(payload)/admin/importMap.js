@@ -27,10 +27,13 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_c81e05de9047729fd3c28fbbffa7b1e3 } from '../../../components/payload/views/products/ProductEditView'
 import { default as default_3f6afdc7021b79eaf72ff30cbdb2c6ff } from '../../../components/payload/views/products/ProductsListView'
+import { default as default_444dad1ce1aa758502d26222a46379bf } from '../../../components/payload/views/orders/OrderEditView'
 import { default as default_6f64da3861999de587a3ed586829047d } from '../../../components/payload/Icon'
 import { default as default_c6fe5946efe4ec376b0411c30a8f0d79 } from '../../../components/payload/Logo'
 import { default as default_e52e6b4fb317d83f3750ef04532260f8 } from '../../../components/payload/AfterLogin'
 import { default as default_3e17da0469b41e5593432ff346c4a18b } from '../../../components/payload/LoyaltyNavLink'
+import { default as default_c5270462812161255fd01327b2ad4d74 } from '../../../components/payload/SitePagesNavLink'
+import { default as default_06e21d97bfe9822a99aa3abc50225d6f } from '../../../components/payload/ShippingNavLink'
 import { default as default_bfe3dda99be101306e18d134ca8bfe68 } from '../../../components/payload/Dashboard'
 import { default as default_b1d996ed647a83e541c82d414f320b6a } from '../../../components/payload/BeforeLogin'
 import { default as default_9a317fe93eb57e9c5ee1719cbdb13109 } from '../../../components/payload/NavProvider'
@@ -66,10 +69,13 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/payload/views/products/ProductEditView#default": default_c81e05de9047729fd3c28fbbffa7b1e3,
   "/components/payload/views/products/ProductsListView#default": default_3f6afdc7021b79eaf72ff30cbdb2c6ff,
+  "/components/payload/views/orders/OrderEditView#default": default_444dad1ce1aa758502d26222a46379bf,
   "/components/payload/Icon#default": default_6f64da3861999de587a3ed586829047d,
   "/components/payload/Logo#default": default_c6fe5946efe4ec376b0411c30a8f0d79,
   "/components/payload/AfterLogin#default": default_e52e6b4fb317d83f3750ef04532260f8,
   "/components/payload/LoyaltyNavLink#default": default_3e17da0469b41e5593432ff346c4a18b,
+  "/components/payload/SitePagesNavLink#default": default_c5270462812161255fd01327b2ad4d74,
+  "/components/payload/ShippingNavLink#default": default_06e21d97bfe9822a99aa3abc50225d6f,
   "/components/payload/Dashboard#default": default_bfe3dda99be101306e18d134ca8bfe68,
   "/components/payload/BeforeLogin#default": default_b1d996ed647a83e541c82d414f320b6a,
   "/components/payload/NavProvider#default": default_9a317fe93eb57e9c5ee1719cbdb13109,

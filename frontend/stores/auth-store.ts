@@ -4,14 +4,14 @@ import { persist } from 'zustand/middleware'
 export interface Customer {
   id: string
   email: string
-  first_name: string
-  last_name: string
+  firstName: string
+  lastName: string
   phone?: string
   addresses?: any[]
   wishlist?: any[]
   metadata?: Record<string, unknown>
-  created_at: string
-  updated_at?: string
+  createdAt: string
+  updatedAt?: string
 }
 
 interface AuthState {

@@ -868,3 +868,108 @@
   display: flex;
   gap: 8px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ORDER EDIT VIEW — Items Table & Totals
+   ═══════════════════════════════════════════════════════════════ */
+
+.hl-order-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+
+  thead th {
+    padding: 8px 10px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-base-400);
+    text-align: left;
+    border-bottom: 1px solid var(--color-base-100);
+  }
+
+  tbody tr {
+    transition: background var(--hl-transition);
+
+    &:hover {
+      background: rgba(91, 196, 196, 0.03);
+    }
+
+    &:not(:last-child) td {
+      border-bottom: 1px solid var(--color-base-50);
+    }
+  }
+
+  tbody td {
+    padding: 6px 6px;
+    vertical-align: middle;
+    font-size: 13px;
+    color: var(--color-base-600);
+  }
+}
+
+.hl-order-table__input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--color-base-200);
+  border-radius: var(--hl-radius-sm);
+  font-size: 13px;
+  color: var(--color-base-700);
+  background: var(--color-base-0);
+  transition: border-color var(--hl-transition), box-shadow var(--hl-transition);
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-sea-400);
+    box-shadow: 0 0 0 2px rgba(91, 196, 196, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--color-base-300);
+  }
+}
+
+.hl-order-table__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--color-base-300);
+  border-radius: var(--hl-radius-sm);
+  cursor: pointer;
+  transition: all var(--hl-transition);
+
+  &:hover {
+    background: rgba(212, 165, 165, 0.12);
+    color: var(--color-error);
+  }
+}
+
+/* Order totals block */
+.hl-order-totals {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-base-100);
+}
+
+.hl-order-totals__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--color-base-500);
+
+  &--total {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 2px solid var(--color-base-200);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-base-800);
+  }
+}

@@ -165,3 +165,16 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
   await clearCartCookie()
   return { orderId: order.id, displayId: (order as any).displayId }
 }
+
+export async function linkCartToCustomer(customerId: number | string): Promise<void> {
+  const payload = await getPayload({ config })
+  const cartId = await getCartIdFromCookie()
+  if (!cartId) return
+
+  try {
+    const cart = await payload.findByID({ collection: 'carts', id: cartId })
+    if (cart && (cart as any).status === 'active' && !(cart as any).customer) {
+      await payload.update({ collection: 'carts', id: cartId, data: { customer: customerId } })
+    }
+  } catch { /* cart not found */ }
+}

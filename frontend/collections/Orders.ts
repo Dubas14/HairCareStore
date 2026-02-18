@@ -1,15 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-const addressFields = [
-  { name: 'firstName', type: 'text' as const },
-  { name: 'lastName', type: 'text' as const },
-  { name: 'phone', type: 'text' as const },
-  { name: 'city', type: 'text' as const },
-  { name: 'address1', type: 'text' as const },
-  { name: 'countryCode', type: 'text' as const, defaultValue: 'ua' },
-  { name: 'postalCode', type: 'text' as const },
-]
-
 export const Orders: CollectionConfig = {
   slug: 'orders',
   labels: { singular: 'Замовлення', plural: 'Замовлення' },
@@ -24,7 +14,7 @@ export const Orders: CollectionConfig = {
         },
         edit: {
           root: {
-            Component: '/components/payload/views/custom-edit',
+            Component: '/components/payload/views/orders/OrderEditView',
           },
         },
       },
@@ -43,11 +33,29 @@ export const Orders: CollectionConfig = {
     },
   },
   fields: [
-    { name: 'displayId', type: 'number', admin: { readOnly: true } },
-    { name: 'customer', type: 'relationship', relationTo: 'customers' },
-    { name: 'email', type: 'email', required: true },
+    // --- Основна інформація ---
+    {
+      name: 'displayId',
+      label: '№ замовлення',
+      type: 'number',
+    },
+    {
+      name: 'customer',
+      label: 'Клієнт',
+      type: 'relationship',
+      relationTo: 'customers',
+    },
+    {
+      name: 'email',
+      label: 'Email',
+      type: 'email',
+      required: true,
+    },
+
+    // --- Статуси (sidebar) ---
     {
       name: 'status',
+      label: 'Статус',
       type: 'select',
       defaultValue: 'pending',
       options: [
@@ -61,6 +69,7 @@ export const Orders: CollectionConfig = {
     },
     {
       name: 'paymentStatus',
+      label: 'Оплата',
       type: 'select',
       defaultValue: 'awaiting',
       options: [
@@ -72,39 +81,102 @@ export const Orders: CollectionConfig = {
     },
     {
       name: 'fulfillmentStatus',
+      label: 'Доставка',
       type: 'select',
       defaultValue: 'not_fulfilled',
       options: [
-        { label: 'Не виконано', value: 'not_fulfilled' },
+        { label: 'Не відправлено', value: 'not_fulfilled' },
         { label: 'Відправлено', value: 'shipped' },
         { label: 'Доставлено', value: 'delivered' },
       ],
       admin: { position: 'sidebar' },
     },
+
+    // --- Товари ---
     {
       name: 'items',
+      label: 'Товари',
       type: 'array',
+      labels: { singular: 'Товар', plural: 'Товари' },
       fields: [
-        { name: 'productId', type: 'number' },
-        { name: 'productTitle', type: 'text', required: true },
-        { name: 'variantTitle', type: 'text' },
-        { name: 'quantity', type: 'number', required: true },
-        { name: 'unitPrice', type: 'number', required: true },
-        { name: 'subtotal', type: 'number', required: true },
-        { name: 'thumbnail', type: 'text' },
+        { name: 'productTitle', label: 'Назва', type: 'text', required: true },
+        { name: 'variantTitle', label: 'Варіант', type: 'text' },
+        { name: 'quantity', label: 'Кількість', type: 'number', required: true },
+        { name: 'unitPrice', label: 'Ціна за од.', type: 'number', required: true },
+        { name: 'subtotal', label: 'Сума', type: 'number', required: true },
+        { name: 'productId', type: 'number', admin: { hidden: true } },
+        { name: 'thumbnail', type: 'text', admin: { hidden: true } },
       ],
     },
-    { name: 'shippingAddress', type: 'group', fields: addressFields },
-    { name: 'billingAddress', type: 'group', fields: addressFields },
-    { name: 'paymentMethod', type: 'text', defaultValue: 'cod' },
-    { name: 'shippingMethod', type: 'text' },
-    { name: 'subtotal', type: 'number', required: true },
-    { name: 'shippingTotal', type: 'number', defaultValue: 0 },
-    { name: 'discountTotal', type: 'number', defaultValue: 0 },
-    { name: 'loyaltyPointsUsed', type: 'number', defaultValue: 0 },
-    { name: 'loyaltyDiscount', type: 'number', defaultValue: 0 },
-    { name: 'total', type: 'number', required: true },
-    { name: 'cartId', type: 'text' },
+
+    // --- Адреса доставки ---
+    {
+      name: 'shippingAddress',
+      label: 'Адреса доставки',
+      type: 'group',
+      fields: [
+        { name: 'firstName', label: "Ім'я", type: 'text' as const },
+        { name: 'lastName', label: 'Прізвище', type: 'text' as const },
+        { name: 'phone', label: 'Телефон', type: 'text' as const },
+        { name: 'city', label: 'Місто', type: 'text' as const },
+        { name: 'address1', label: 'Відділення НП', type: 'text' as const },
+        { name: 'countryCode', type: 'text' as const, defaultValue: 'ua', admin: { hidden: true } },
+        { name: 'postalCode', type: 'text' as const, admin: { hidden: true } },
+      ],
+    },
+
+    // --- Спосіб оплати / доставки ---
+    {
+      name: 'paymentMethod',
+      label: 'Спосіб оплати',
+      type: 'text',
+      defaultValue: 'cod',
+    },
+    {
+      name: 'shippingMethod',
+      label: 'Спосіб доставки',
+      type: 'text',
+    },
+
+    // --- Суми ---
+    {
+      name: 'subtotal',
+      label: 'Підсумок товарів',
+      type: 'number',
+      required: true,
+    },
+    {
+      name: 'shippingTotal',
+      label: 'Доставка',
+      type: 'number',
+      defaultValue: 0,
+    },
+    {
+      name: 'total',
+      label: 'Загальна сума',
+      type: 'number',
+      required: true,
+    },
+
+    // --- Приховані / технічні ---
+    {
+      name: 'billingAddress',
+      type: 'group',
+      admin: { hidden: true },
+      fields: [
+        { name: 'firstName', type: 'text' as const },
+        { name: 'lastName', type: 'text' as const },
+        { name: 'phone', type: 'text' as const },
+        { name: 'city', type: 'text' as const },
+        { name: 'address1', type: 'text' as const },
+        { name: 'countryCode', type: 'text' as const, defaultValue: 'ua' },
+        { name: 'postalCode', type: 'text' as const },
+      ],
+    },
+    { name: 'discountTotal', type: 'number', defaultValue: 0, admin: { hidden: true } },
+    { name: 'loyaltyPointsUsed', type: 'number', defaultValue: 0, admin: { hidden: true } },
+    { name: 'loyaltyDiscount', type: 'number', defaultValue: 0, admin: { hidden: true } },
+    { name: 'cartId', type: 'text', admin: { hidden: true } },
   ],
   hooks: {
     beforeChange: [

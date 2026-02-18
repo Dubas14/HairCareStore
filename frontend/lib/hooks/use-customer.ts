@@ -4,6 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { useEffect } from 'react'
 import { updateCustomerProfile } from '@/lib/payload/customer-actions'
+import {
+  loginCustomer,
+  registerCustomer,
+  getCurrentCustomer,
+  logoutCustomer,
+} from '@/lib/payload/auth-actions'
+import { linkCartToCustomer } from '@/lib/payload/cart-actions'
 
 export function useCustomer() {
   const { customer, isAuthenticated, isLoading, setCustomer, setLoading } = useAuthStore()
@@ -12,11 +19,11 @@ export function useCustomer() {
     queryKey: ['customer'],
     queryFn: async () => {
       try {
-        const res = await fetch('/api/customers/me', { credentials: 'include' })
-        if (!res.ok) return null
-        const data = await res.json()
-        return data.user || null
-      } catch { return null }
+        const data = await getCurrentCustomer()
+        return data as any
+      } catch {
+        return null
+      }
     },
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -34,21 +41,22 @@ export function useCustomer() {
 
 export function useLogin() {
   const queryClient = useQueryClient()
+  const { setCustomer } = useAuthStore()
+
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
-      const res = await fetch('/api/customers/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.errors?.[0]?.message || 'Невірний email або пароль')
-      }
-      return res.json()
+      return loginCustomer(data.email, data.password)
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['customer'] }) },
+    onSuccess: async (customer) => {
+      setCustomer(customer as any)
+      queryClient.invalidateQueries({ queryKey: ['customer'] })
+      // Link the active cart to this customer
+      if (customer?.id) {
+        try {
+          await linkCartToCustomer(customer.id)
+        } catch { /* ignore */ }
+      }
+    },
   })
 }
 
@@ -58,29 +66,17 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (data: { email: string; password: string; firstName: string; lastName: string }) => {
-      const res = await fetch('/api/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: data.email, password: data.password, firstName: data.firstName, lastName: data.lastName }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.errors?.[0]?.message || 'Помилка реєстрації')
-      }
-      const result = await res.json()
-      // Auto-login after registration
-      await fetch('/api/customers/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: data.email, password: data.password }),
-      })
-      return result.doc || result
+      return registerCustomer(data)
     },
-    onSuccess: (customer) => {
-      setCustomer(customer)
+    onSuccess: async (customer) => {
+      setCustomer(customer as any)
       queryClient.setQueryData(['customer'], customer)
+      // Link the active cart to this customer
+      if (customer?.id) {
+        try {
+          await linkCartToCustomer(customer.id)
+        } catch { /* ignore */ }
+      }
     },
   })
 }
@@ -91,7 +87,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
-      await fetch('/api/customers/logout', { method: 'POST', credentials: 'include' })
+      await logoutCustomer()
     },
     onSuccess: () => {
       logout()

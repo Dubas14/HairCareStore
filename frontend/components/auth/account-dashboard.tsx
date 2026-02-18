@@ -73,8 +73,8 @@ function OverviewTab() {
   const updateCustomer = useUpdateCustomer()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: customer?.first_name || '',
-    lastName: customer?.last_name || '',
+    firstName: customer?.firstName || '',
+    lastName: customer?.lastName || '',
     phone: customer?.phone || '',
   })
 
@@ -96,7 +96,7 @@ function OverviewTab() {
 
         <div className="relative z-10">
           <h2 className="text-2xl font-semibold mb-2">
-            Вітаємо, {customer?.first_name || 'Користувач'}!
+            Вітаємо, {customer?.firstName || 'Користувач'}!
           </h2>
           <p className="text-white/80">
             Раді бачити вас знову. Переглядайте замовлення та керуйте своїм акаунтом.
@@ -193,7 +193,7 @@ function OverviewTab() {
               <div>
                 <p className="text-sm text-muted-foreground">Ім&apos;я</p>
                 <p className="font-medium">
-                  {customer?.first_name} {customer?.last_name}
+                  {customer?.firstName} {customer?.lastName}
                 </p>
               </div>
             </div>
@@ -613,8 +613,8 @@ function SettingsTab() {
             <div>
               <p className="font-medium">Акаунт створено</p>
               <p className="text-sm text-muted-foreground">
-                {customer?.created_at
-                  ? new Date(customer.created_at).toLocaleDateString('uk-UA', {
+                {customer?.createdAt
+                  ? new Date(customer.createdAt).toLocaleDateString('uk-UA', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',

@@ -657,11 +657,16 @@ export async function getCollectionListData(
  */
 export interface FieldSchema {
   name: string
+  label?: string
   type: string
   required?: boolean
+  hidden?: boolean
+  readOnly?: boolean
+  position?: string
   options?: { label: string; value: string }[]
   relationTo?: string
   hasMany?: boolean
+  labels?: { singular?: string; plural?: string }
   fields?: FieldSchema[] // for group/array sub-fields
 }
 
@@ -699,8 +704,15 @@ export async function getCollectionFieldDefaults(
 
     const meta: FieldSchema = {
       name: field.name,
+      label: field.label || undefined,
       type: field.type,
       required: field.required || false,
+      hidden: field.admin?.hidden || false,
+      readOnly: field.admin?.readOnly || false,
+      position: field.admin?.position || undefined,
+    }
+    if (field.labels) {
+      meta.labels = { singular: field.labels.singular, plural: field.labels.plural }
     }
 
     switch (field.type) {
@@ -783,8 +795,11 @@ export async function getCollectionFieldDefaults(
     if (!field.name) return null
     const meta: FieldSchema = {
       name: field.name,
+      label: field.label || undefined,
       type: field.type,
       required: field.required || false,
+      hidden: field.admin?.hidden || false,
+      readOnly: field.admin?.readOnly || false,
     }
     if (field.type === 'select') meta.options = normalizeOptions(field.options)
     if (field.type === 'upload') meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined

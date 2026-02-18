@@ -13,35 +13,34 @@ export interface LoyaltyStats {
 
 export interface LoyaltySettings {
   id: string
-  points_per_uah: number
-  point_value: number
-  max_spend_percentage: number
-  welcome_bonus: number
-  referral_bonus: number
-  bronze_min: number
-  bronze_multiplier: number
-  silver_min: number
-  silver_multiplier: number
-  gold_min: number
-  gold_multiplier: number
-  is_active: boolean
+  pointsPerUah: number
+  pointValue: number
+  maxSpendPercentage: number
+  welcomeBonus: number
+  referralBonus: number
+  bronzeMin: number
+  bronzeMultiplier: number
+  silverMin: number
+  silverMultiplier: number
+  goldMin: number
+  goldMultiplier: number
+  isActive: boolean
 }
 
 export interface LoyaltyCustomer {
   id: string
-  customer_id: string
-  points_balance: number
-  total_earned: number
-  total_spent: number
-  level: 'bronze' | 'silver' | 'gold'
-  referral_code: string
-  is_enabled: boolean
   customer: {
     id: string
     email: string
-    first_name: string | null
-    last_name: string | null
-  } | null
+    firstName: string | null
+    lastName: string | null
+  } | string | number | null
+  pointsBalance: number
+  totalEarned: number
+  totalSpent: number
+  level: 'bronze' | 'silver' | 'gold'
+  referralCode: string
+  isEnabled: boolean
 }
 
 export interface LoyaltySummary {
@@ -62,26 +61,25 @@ export interface LoyaltySummary {
 
 export interface Transaction {
   id: string
-  customer_id: string
-  transaction_type: string
-  points_amount: number
-  order_id: string | null
-  description: string | null
-  balance_after: number
-  created_at: string
-  customer?: {
+  customer: {
     id: string
     email: string
-    first_name: string | null
-    last_name: string | null
-  } | null
+    firstName: string | null
+    lastName: string | null
+  } | string | number | null
+  transactionType: string
+  pointsAmount: number
+  orderId: string | null
+  description: string | null
+  balanceAfter: number
+  createdAt: string
 }
 
 export interface CustomerData {
   id: string
   email: string
-  first_name: string | null
-  last_name: string | null
+  firstName: string | null
+  lastName: string | null
 }
 
 export const transactionTypeLabels: Record<string, string> = {

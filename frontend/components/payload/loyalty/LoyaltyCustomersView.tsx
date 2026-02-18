@@ -43,9 +43,10 @@ const LoyaltyCustomersView: React.FC = () => {
     try {
       await toggleCustomerLoyalty(customerId, !currentValue)
       setCustomers((prev) =>
-        prev.map((c) =>
-          c.customer_id === customerId ? { ...c, is_enabled: !currentValue } : c
-        )
+        prev.map((c) => {
+          const cId = typeof c.customer === 'object' && c.customer ? c.customer.id : c.customer
+          return String(cId) === customerId ? { ...c, isEnabled: !currentValue } : c
+        })
       )
     } catch (err) {
       console.error(err)
@@ -94,28 +95,31 @@ const LoyaltyCustomersView: React.FC = () => {
                   <td colSpan={7} className="loyalty-admin__empty">Клієнтів не знайдено</td>
                 </tr>
               ) : (
-                customers.map((customer) => (
+                customers.map((customer) => {
+                  const customerId = typeof customer.customer === 'object' && customer.customer ? customer.customer.id : String(customer.customer)
+                  const customerObj = typeof customer.customer === 'object' ? customer.customer : null
+                  return (
                   <tr
                     key={customer.id}
                     className="clickable"
-                    onClick={() => router.push(`/admin/loyalty/customers/${customer.customer_id}`)}
+                    onClick={() => router.push(`/admin/loyalty/customers/${customerId}`)}
                   >
                     <td>
-                      <div onClick={(e) => handleToggle(customer.customer_id, customer.is_enabled, e)}>
+                      <div onClick={(e) => handleToggle(customerId, customer.isEnabled, e)}>
                         <button
                           type="button"
-                          className={`loyalty-admin__toggle loyalty-admin__toggle--${customer.is_enabled ? 'on' : 'off'}${toggling === customer.customer_id ? ' loyalty-admin__toggle--disabled' : ''}`}
-                          disabled={toggling === customer.customer_id}
+                          className={`loyalty-admin__toggle loyalty-admin__toggle--${customer.isEnabled ? 'on' : 'off'}${toggling === customerId ? ' loyalty-admin__toggle--disabled' : ''}`}
+                          disabled={toggling === customerId}
                         />
                       </div>
                     </td>
                     <td>
                       <div style={{ fontWeight: 500 }}>
-                        {customer.customer?.first_name || ''} {customer.customer?.last_name || ''}
-                        {!customer.customer?.first_name && !customer.customer?.last_name && '—'}
+                        {customerObj?.firstName || ''} {customerObj?.lastName || ''}
+                        {!customerObj?.firstName && !customerObj?.lastName && '—'}
                       </div>
                       <div style={{ fontSize: 13, color: 'var(--color-base-400)' }}>
-                        {customer.customer?.email || customer.customer_id}
+                        {customerObj?.email || customerId}
                       </div>
                     </td>
                     <td>
@@ -130,22 +134,23 @@ const LoyaltyCustomersView: React.FC = () => {
                       </span>
                     </td>
                     <td className="text-right" style={{ fontWeight: 500 }}>
-                      {customer.points_balance.toLocaleString()}
+                      {customer.pointsBalance.toLocaleString()}
                     </td>
                     <td className="text-right" style={{ color: '#4a9468' }}>
-                      +{customer.total_earned.toLocaleString()}
+                      +{customer.totalEarned.toLocaleString()}
                     </td>
                     <td className="text-right" style={{ color: '#b06060' }}>
-                      -{customer.total_spent.toLocaleString()}
+                      -{customer.totalSpent.toLocaleString()}
                     </td>
                     <td>
                       <code style={{ fontSize: 12, background: 'var(--color-base-100)', padding: '4px 8px', borderRadius: 4 }}>
-                        {customer.referral_code}
+                        {customer.referralCode}
                       </code>
                     </td>
                   </tr>
-                ))
-              )}
+                  )
+                }))
+              }
             </tbody>
           </table>
         </div>

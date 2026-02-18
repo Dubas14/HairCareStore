@@ -20,6 +20,7 @@ import {
   setCartShippingMethod,
   getShippingOptions,
   completeCart,
+  linkCartToCustomer,
 } from '@/lib/payload/cart-actions'
 
 interface ContactData {
@@ -85,6 +86,13 @@ export default function CheckoutPage() {
       )
   }, [])
 
+  // Link authenticated customer to the cart
+  useEffect(() => {
+    if (customer?.id) {
+      linkCartToCustomer(customer.id).catch(() => {})
+    }
+  }, [customer?.id])
+
   // Auto-populate contact data from customer profile
   useEffect(() => {
     if (!customer) return
@@ -98,8 +106,8 @@ export default function CheckoutPage() {
         contact: {
           email: customer.email,
           phone: customer.phone || '',
-          firstName: customer.first_name || '',
-          lastName: customer.last_name || '',
+          firstName: customer.firstName || '',
+          lastName: customer.lastName || '',
         },
       }
     })

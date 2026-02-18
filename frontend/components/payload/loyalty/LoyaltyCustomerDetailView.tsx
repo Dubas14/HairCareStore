@@ -102,7 +102,7 @@ const LoyaltyCustomerDetailView: React.FC = () => {
         <div className="loyalty-admin__header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 style={{ margin: 0 }}>
-              {customer?.first_name || ''} {customer?.last_name || 'Клієнт'}
+              {customer?.firstName || ''} {customer?.lastName || 'Клієнт'}
             </h1>
             <span
               className="loyalty-admin__type-badge"
@@ -196,17 +196,17 @@ const LoyaltyCustomerDetailView: React.FC = () => {
                     transactions.map((tx) => (
                       <tr key={tx.id}>
                         <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>
-                          {new Date(tx.created_at).toLocaleDateString('uk-UA')}
+                          {new Date(tx.createdAt).toLocaleDateString('uk-UA')}
                         </td>
                         <td>
                           <span
                             className="loyalty-admin__type-badge"
                             style={{
-                              backgroundColor: `${transactionTypeColors[tx.transaction_type] || '#6b7280'}20`,
-                              color: transactionTypeColors[tx.transaction_type] || '#6b7280',
+                              backgroundColor: `${transactionTypeColors[tx.transactionType] || '#6b7280'}20`,
+                              color: transactionTypeColors[tx.transactionType] || '#6b7280',
                             }}
                           >
-                            {transactionTypeLabels[tx.transaction_type] || tx.transaction_type}
+                            {transactionTypeLabels[tx.transactionType] || tx.transactionType}
                           </span>
                         </td>
                         <td style={{ fontSize: 13, color: 'var(--color-base-400)' }}>
@@ -214,11 +214,11 @@ const LoyaltyCustomerDetailView: React.FC = () => {
                         </td>
                         <td
                           className="text-right"
-                          style={{ fontWeight: 500, color: tx.points_amount > 0 ? '#4a9468' : '#b06060' }}
+                          style={{ fontWeight: 500, color: tx.pointsAmount > 0 ? '#4a9468' : '#b06060' }}
                         >
-                          {tx.points_amount > 0 ? '+' : ''}{tx.points_amount}
+                          {tx.pointsAmount > 0 ? '+' : ''}{tx.pointsAmount}
                         </td>
-                        <td className="text-right">{tx.balance_after}</td>
+                        <td className="text-right">{tx.balanceAfter}</td>
                       </tr>
                     ))
                   )}
