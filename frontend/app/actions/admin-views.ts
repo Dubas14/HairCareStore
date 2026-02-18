@@ -752,8 +752,20 @@ export async function getCollectionFieldDefaults(
 
   function normalizeOptions(opts: any[]): { label: string; value: string }[] {
     return (opts || []).map((o: any) =>
-      typeof o === 'string' ? { label: o, value: o } : { label: o.label || o.value, value: o.value }
+      typeof o === 'string'
+        ? { label: o, value: o }
+        : { label: typeof o.label === 'string' ? o.label : String(o.value), value: String(o.value) }
     )
+  }
+
+  function safeLabel(val: unknown): string | undefined {
+    if (typeof val === 'string') return val
+    return undefined
+  }
+
+  function safeDefault(val: unknown, fallback: any): any {
+    if (typeof val === 'function') return fallback
+    return val ?? fallback
   }
 
   function processField(field: any): FieldSchema | null {
@@ -761,7 +773,7 @@ export async function getCollectionFieldDefaults(
 
     const meta: FieldSchema = {
       name: field.name,
-      label: field.label || undefined,
+      label: safeLabel(field.label),
       type: field.type,
       required: field.required || false,
       hidden: field.admin?.hidden || false,
@@ -769,7 +781,10 @@ export async function getCollectionFieldDefaults(
       position: field.admin?.position || undefined,
     }
     if (field.labels) {
-      meta.labels = { singular: field.labels.singular, plural: field.labels.plural }
+      meta.labels = {
+        singular: safeLabel(field.labels.singular),
+        plural: safeLabel(field.labels.plural),
+      }
     }
 
     switch (field.type) {
@@ -777,26 +792,26 @@ export async function getCollectionFieldDefaults(
       case 'textarea':
       case 'email':
       case 'code':
-        defaults[field.name] = field.defaultValue ?? ''
+        defaults[field.name] = safeDefault(field.defaultValue, '')
         break
       case 'number':
-        defaults[field.name] = field.defaultValue ?? 0
+        defaults[field.name] = safeDefault(field.defaultValue, 0)
         break
       case 'checkbox':
-        defaults[field.name] = field.defaultValue ?? false
+        defaults[field.name] = safeDefault(field.defaultValue, false)
         break
       case 'select':
         meta.options = normalizeOptions(field.options)
-        defaults[field.name] = field.defaultValue ?? (meta.options[0]?.value || '')
+        defaults[field.name] = safeDefault(field.defaultValue, meta.options[0]?.value || '')
         break
       case 'date':
-        defaults[field.name] = field.defaultValue ?? ''
+        defaults[field.name] = safeDefault(field.defaultValue, '')
         break
       case 'richText':
-        defaults[field.name] = field.defaultValue ?? ''
+        defaults[field.name] = safeDefault(field.defaultValue, '')
         break
       case 'json':
-        defaults[field.name] = field.defaultValue ?? null
+        defaults[field.name] = safeDefault(field.defaultValue, null)
         break
       case 'upload':
         meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
@@ -825,24 +840,24 @@ export async function getCollectionFieldDefaults(
             if (subMeta) meta.fields.push(subMeta)
             switch (sf.type) {
               case 'text': case 'textarea': case 'email': case 'code':
-                groupDefaults[sf.name] = sf.defaultValue ?? ''; break
+                groupDefaults[sf.name] = safeDefault(sf.defaultValue, ''); break
               case 'number':
-                groupDefaults[sf.name] = sf.defaultValue ?? 0; break
+                groupDefaults[sf.name] = safeDefault(sf.defaultValue, 0); break
               case 'checkbox':
-                groupDefaults[sf.name] = sf.defaultValue ?? false; break
+                groupDefaults[sf.name] = safeDefault(sf.defaultValue, false); break
               case 'select':
-                groupDefaults[sf.name] = sf.defaultValue ?? (normalizeOptions(sf.options)[0]?.value || ''); break
+                groupDefaults[sf.name] = safeDefault(sf.defaultValue, normalizeOptions(sf.options)[0]?.value || ''); break
               case 'upload': case 'relationship':
                 groupDefaults[sf.name] = null; break
               default:
-                groupDefaults[sf.name] = sf.defaultValue ?? ''
+                groupDefaults[sf.name] = safeDefault(sf.defaultValue, '')
             }
           }
           defaults[field.name] = groupDefaults
         }
         break
       default:
-        defaults[field.name] = field.defaultValue ?? ''
+        defaults[field.name] = safeDefault(field.defaultValue, '')
     }
 
     return meta
@@ -852,7 +867,7 @@ export async function getCollectionFieldDefaults(
     if (!field.name) return null
     const meta: FieldSchema = {
       name: field.name,
-      label: field.label || undefined,
+      label: safeLabel(field.label),
       type: field.type,
       required: field.required || false,
       hidden: field.admin?.hidden || false,

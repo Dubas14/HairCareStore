@@ -21,7 +21,7 @@ export const Customers: CollectionConfig = {
         },
         edit: {
           root: {
-            Component: '/components/payload/views/custom-edit',
+            Component: '/components/payload/views/customers/CustomerEditView',
           },
         },
       },

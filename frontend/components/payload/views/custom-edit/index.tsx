@@ -287,6 +287,9 @@ export default function CustomEditView() {
         } else {
           setDoc(result.doc || result)
           showToast('Збережено успішно')
+          setTimeout(() => {
+            router.push(`/admin/collections/${slug}`)
+          }, 600)
         }
       } else {
         const err = await res.json().catch(() => null)

@@ -174,7 +174,10 @@ function getColumns(slug: string): Column[] {
       ]
     case 'customers':
       return [
-        { key: 'name', label: 'Ім\'я', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'firstName', label: 'Ім\'я', render: (_v: string, doc: any) => {
+          const name = [doc.firstName, doc.lastName].filter(Boolean).join(' ')
+          return <strong style={{ color: 'var(--color-base-700)' }}>{name || doc.email || '—'}</strong>
+        }},
         { key: 'email', label: 'Email' },
         { key: 'phone', label: 'Телефон', width: '140px' },
         dateCol,

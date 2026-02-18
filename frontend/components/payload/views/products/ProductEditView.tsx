@@ -405,9 +405,9 @@ function buildPayload(form: FormState, isCreate: boolean): Record<string, any> {
     description:     form.description || undefined,
     handle:          form.handle,
     status:          form.status,
-    categories:      form.categoryId ? [form.categoryId] : [],
-    brand:           form.brandId || undefined,
-    thumbnail:       form.thumbnail?.id ?? undefined,
+    categories:      form.categoryId ? [Number(form.categoryId)] : [],
+    brand:           form.brandId ? Number(form.brandId) : undefined,
+    thumbnail:       form.thumbnail?.id != null ? Number(form.thumbnail.id) : undefined,
     variants,
   }
 }
@@ -1067,11 +1067,13 @@ export default function ProductEditView() {
       }
       const saved = await res.json()
       if (isCreate && saved.doc?.id) {
-        // Redirect to edit page of the newly created product
         window.location.href = `/admin/collections/products/${saved.doc.id}`
         return
       }
       showToast('Збережено успішно', 'success')
+      setTimeout(() => {
+        window.location.href = '/admin/collections/products'
+      }, 600)
     } catch (err) {
       console.error('Save error:', err)
       showToast('Помилка збереження', 'error')
