@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { notFound } from 'next/navigation'
 import { getPageBySlug, getPages, getSiteSettings } from '@/lib/payload/client'
 import type { SiteSettingsData } from '@/lib/payload/client'
@@ -21,20 +23,6 @@ import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 interface PageProps {
   params: Promise<{ slug: string }>
-}
-
-// Generate static paths for all pages
-export async function generateStaticParams() {
-  const knownSlugs = Object.keys(pageConfig)
-
-  try {
-    const pages = await getPages()
-    const cmsSlugs = pages.map(page => page.slug)
-    const allSlugs = [...new Set([...knownSlugs, ...cmsSlugs])]
-    return allSlugs.map(slug => ({ slug }))
-  } catch {
-    return knownSlugs.map(slug => ({ slug }))
-  }
 }
 
 // Generate metadata for SEO

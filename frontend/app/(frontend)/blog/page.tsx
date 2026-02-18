@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getBlogPosts } from '@/lib/payload/client'
 import { BlogList } from '@/components/blog/blog-list'
 
