@@ -23,6 +23,7 @@ export const Carts: CollectionConfig = {
     read: () => true,
     create: () => true,
     update: () => true,
+    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [
     { name: 'customer', type: 'relationship', relationTo: 'customers' },

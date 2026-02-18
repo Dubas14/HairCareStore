@@ -25,9 +25,9 @@ export function useCustomer() {
         return null
       }
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: false,
   })
 

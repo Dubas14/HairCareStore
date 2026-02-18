@@ -25,7 +25,6 @@ export async function subscribeToNewsletter(formData: FormData) {
   }
 
   // TODO: Integrate with email service (SendGrid/Resend)
-  console.log('Newsletter subscription:', validation.data.email)
 
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))

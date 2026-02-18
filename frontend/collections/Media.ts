@@ -20,6 +20,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   upload: {
     staticDir: '../media',

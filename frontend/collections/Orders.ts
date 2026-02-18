@@ -183,10 +183,12 @@ export const Orders: CollectionConfig = {
       async ({ data, operation, req }) => {
         if (operation === 'create' && !data?.displayId) {
           const payload = req.payload
+          // Use req for transaction safety to prevent duplicate displayId
           const lastOrder = await payload.find({
             collection: 'orders',
             sort: '-displayId',
             limit: 1,
+            req,
           })
           data!.displayId = (lastOrder.docs[0]?.displayId || 0) + 1
         }

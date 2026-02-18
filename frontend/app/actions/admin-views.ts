@@ -12,6 +12,23 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { headers } from 'next/headers'
+
+async function requireAdmin(): Promise<void> {
+  const payload = await getPayload({ config })
+  const headersList = await headers()
+  const cookieHeader = headersList.get('cookie') || ''
+
+  // Try to find Payload admin user from the request
+  try {
+    const { user } = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
+    if (!user || (user as any).collection !== 'users') {
+      throw new Error('Unauthorized: admin access required')
+    }
+  } catch {
+    throw new Error('Unauthorized: admin access required')
+  }
+}
 
 // ─── Shared internal helpers ──────────────────────────────────────────────────
 
@@ -520,6 +537,7 @@ export interface DeleteResult {
  * Delete a product by ID.
  */
 export async function deleteProduct(id: string | number): Promise<DeleteResult> {
+  await requireAdmin()
   const payload = await getPayload({ config })
 
   await payload.delete({ collection: 'products', id })
@@ -535,6 +553,7 @@ export async function deleteProduct(id: string | number): Promise<DeleteResult> 
  * Delete a banner by ID.
  */
 export async function deleteBanner(id: string | number): Promise<DeleteResult> {
+  await requireAdmin()
   const payload = await getPayload({ config })
 
   await payload.delete({ collection: 'banners', id })
@@ -550,6 +569,7 @@ export async function deleteBanner(id: string | number): Promise<DeleteResult> {
  * Delete a media file by ID.
  */
 export async function deleteMediaFile(id: string | number): Promise<DeleteResult> {
+  await requireAdmin()
   const payload = await getPayload({ config })
 
   await payload.delete({ collection: 'media', id })
@@ -580,6 +600,7 @@ export async function getCollectionListData(
     status?: string
   } = {}
 ) {
+  await requireAdmin()
   const payload = await getPayload({ config })
   const { page = 1, limit = 10, search, sort = '-updatedAt', status } = params
 
@@ -819,6 +840,7 @@ export async function getCollectionFieldDefaults(
 }
 
 export async function deleteCollectionDoc(collectionSlug: string, id: string | number) {
+  await requireAdmin()
   const payload = await getPayload({ config })
   try {
     await payload.delete({ collection: collectionSlug as any, id })

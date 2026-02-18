@@ -63,10 +63,11 @@ export async function addToCart(productId: number | string, variantIndex: number
   if (!product) throw new Error('Product not found')
   const variant = (product as any).variants?.[variantIndex]
   if (!variant) throw new Error('Variant not found')
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw new Error('Invalid quantity')
 
   const items = [...(cart.items || [])] as any[]
   const existingIndex = items.findIndex(
-    (item: any) => (typeof item.product === 'object' ? item.product.id : item.product) == productId && item.variantIndex === variantIndex
+    (item: any) => (typeof item.product === 'object' ? item.product.id : item.product) === Number(productId) && item.variantIndex === variantIndex
   )
 
   if (existingIndex >= 0) {
@@ -95,6 +96,18 @@ export async function removeCartItem(itemIndex: number): Promise<PayloadCart> {
 }
 
 export async function updateCartAddresses(data: { email?: string; shippingAddress?: CartAddress; billingAddress?: CartAddress }): Promise<PayloadCart> {
+  // Server-side validation
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    throw new Error('Невірний формат email')
+  }
+  if (data.shippingAddress) {
+    const addr = data.shippingAddress
+    if (addr.firstName && addr.firstName.length > 100) throw new Error('Занадто довге ім\'я')
+    if (addr.lastName && addr.lastName.length > 100) throw new Error('Занадто довге прізвище')
+    if (addr.phone && !/^[\d\s+()-]{7,20}$/.test(addr.phone)) throw new Error('Невірний формат телефону')
+    if (addr.city && addr.city.length > 100) throw new Error('Занадто довга назва міста')
+  }
+
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
   const updateData: Record<string, any> = {}
@@ -126,17 +139,41 @@ export async function getShippingOptions(): Promise<Array<{ methodId: string; na
 export async function completeCart(): Promise<{ orderId: number | string; displayId: number }> {
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
+  if ((cart as any).status === 'completed') throw new Error('Cart already completed')
   if (!cart.items || cart.items.length === 0) throw new Error('Cart is empty')
 
-  const orderItems = cart.items.map((item: any) => ({
-    productId: typeof item.product === 'object' ? item.product.id : item.product,
-    productTitle: item.productTitle || 'Product',
-    variantTitle: item.variantTitle || '',
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-    subtotal: item.unitPrice * item.quantity,
-    thumbnail: item.productThumbnail || '',
-  }))
+  // Re-validate prices from database
+  let recalculatedSubtotal = 0
+  const orderItems = await Promise.all(
+    cart.items.map(async (item: any) => {
+      const productId = typeof item.product === 'object' ? item.product.id : item.product
+      const product = await payload.findByID({ collection: 'products', id: productId, depth: 0 })
+      if (!product) throw new Error(`Product ${productId} not found`)
+
+      const variant = (product as any).variants?.[item.variantIndex]
+      if (!variant) throw new Error(`Variant ${item.variantIndex} not found for product ${productId}`)
+
+      const quantity = Math.max(1, Math.min(Math.round(item.quantity), 10))
+      const verifiedPrice = variant.price
+      const itemSubtotal = verifiedPrice * quantity
+      recalculatedSubtotal += itemSubtotal
+
+      return {
+        productId,
+        productTitle: product.title || 'Product',
+        variantTitle: variant.title || '',
+        quantity,
+        unitPrice: verifiedPrice,
+        subtotal: itemSubtotal,
+        thumbnail: item.productThumbnail || '',
+      }
+    })
+  )
+
+  const shippingTotal = cart.shippingTotal || 0
+  const discountTotal = cart.discountTotal || 0
+  const loyaltyDiscount = cart.loyaltyDiscount || 0
+  const recalculatedTotal = recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount
 
   const order = await payload.create({
     collection: 'orders',
@@ -151,12 +188,12 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       billingAddress: cart.billingAddress || cart.shippingAddress || {},
       paymentMethod: 'cod',
       shippingMethod: cart.shippingMethod || '',
-      subtotal: cart.subtotal,
-      shippingTotal: cart.shippingTotal,
-      discountTotal: cart.discountTotal,
-      loyaltyPointsUsed: cart.loyaltyPointsUsed,
-      loyaltyDiscount: cart.loyaltyDiscount,
-      total: cart.total,
+      subtotal: recalculatedSubtotal,
+      shippingTotal,
+      discountTotal,
+      loyaltyPointsUsed: cart.loyaltyPointsUsed || 0,
+      loyaltyDiscount,
+      total: recalculatedTotal,
       cartId: String(cart.id),
     },
   })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -53,9 +54,11 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             aria-label={`Перейти до зображення ${index + 1}`}
             aria-current={activeIndex === index}
           >
-            <img
+            <Image
               src={image}
               alt={`${productName} - зображення ${index + 1}`}
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           </button>
@@ -74,9 +77,11 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           onMouseLeave={() => setIsZoomed(false)}
           onMouseMove={handleMouseMove}
         >
-          <img
+          <Image
             src={displayImages[activeIndex]}
             alt={`${productName} - зображення ${activeIndex + 1}`}
+            width={600}
+            height={600}
             className={cn(
               "w-full h-full object-cover transition-transform duration-200",
               isZoomed && "scale-150"

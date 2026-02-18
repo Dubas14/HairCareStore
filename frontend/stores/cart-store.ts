@@ -1,5 +1,17 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, type StateStorage } from 'zustand/middleware'
+
+const safeStorage: StateStorage = {
+  getItem: (name) => {
+    try { return localStorage.getItem(name) } catch { return null }
+  },
+  setItem: (name, value) => {
+    try { localStorage.setItem(name, value) } catch { /* quota exceeded or unavailable */ }
+  },
+  removeItem: (name) => {
+    try { localStorage.removeItem(name) } catch { /* ignore */ }
+  },
+}
 
 export interface CartItem {
   id: string
@@ -103,6 +115,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'cart-storage',
+      storage: safeStorage,
       partialize: (state) => ({
         cartId: state.cartId,
         items: state.items,

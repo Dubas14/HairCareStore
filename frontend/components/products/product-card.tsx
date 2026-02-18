@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Heart, Star, Loader2 } from 'lucide-react'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { ShimmerBadge } from '@/components/ui/shimmer-badge'
@@ -14,7 +15,9 @@ interface ProductCardProps {
   product: Product
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+import { memo } from 'react'
+
+export const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [showAuthToast, setShowAuthToast] = useState(false)
@@ -76,9 +79,11 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       {/* Image Container */}
       <div className="relative aspect-square mb-4 overflow-hidden rounded-card bg-muted">
-        <img
+        <Image
           src={product.imageUrl}
           alt={product.name}
+          width={600}
+          height={600}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -191,4 +196,4 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
     </Link>
   )
-}
+})

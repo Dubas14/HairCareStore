@@ -39,7 +39,11 @@ function MagneticIconButton({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
 
+  const lastMoveRef = useRef(0)
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const now = Date.now()
+    if (now - lastMoveRef.current < 16) return // ~60fps throttle
+    lastMoveRef.current = now
     if (!ref.current) return
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2

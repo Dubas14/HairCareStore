@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { heroSlides } from '@/lib/constants/home-data'
 import { Button } from '@/components/ui/button'
@@ -32,10 +33,12 @@ export function HeroSlider() {
               {/* Background */}
               <div className="absolute inset-0">
                 {slide.type === 'image' ? (
-                  <img
+                  <Image
                     src={slide.backgroundUrl}
                     alt={slide.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    priority
                   />
                 ) : (
                   <video

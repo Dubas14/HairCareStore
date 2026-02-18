@@ -11,22 +11,33 @@ function getSecret(): string {
   return process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production'
 }
 
+const TOKEN_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
 function signCustomerId(customerId: string): string {
+  const timestamp = Date.now().toString(36)
+  const data = `${customerId}.${timestamp}`
   const hmac = crypto.createHmac('sha256', getSecret())
-  hmac.update(customerId)
+  hmac.update(data)
   const signature = hmac.digest('hex')
-  return `${customerId}.${signature}`
+  return `${data}.${signature}`
 }
 
 function verifyCustomerId(value: string): string | null {
-  const dotIndex = value.indexOf('.')
-  if (dotIndex < 1) return null
-  const customerId = value.substring(0, dotIndex)
-  const signature = value.substring(dotIndex + 1)
+  const parts = value.split('.')
+  if (parts.length !== 3) return null
+  const [customerId, timestamp, signature] = parts
+
+  // Verify HMAC
+  const data = `${customerId}.${timestamp}`
   const hmac = crypto.createHmac('sha256', getSecret())
-  hmac.update(customerId)
+  hmac.update(data)
   const expectedSignature = hmac.digest('hex')
   if (signature !== expectedSignature) return null
+
+  // Verify token age
+  const tokenTime = parseInt(timestamp, 36)
+  if (isNaN(tokenTime) || Date.now() - tokenTime > TOKEN_MAX_AGE_MS) return null
+
   return customerId
 }
 
@@ -106,13 +117,13 @@ export async function getCurrentCustomer() {
   const token = cookieStore.get(CUSTOMER_TOKEN_COOKIE)?.value
   if (!token) return null
 
-  try {
-    const customerId = verifyCustomerId(token)
-    if (!customerId) {
-      cookieStore.delete(CUSTOMER_TOKEN_COOKIE)
-      return null
-    }
+  const customerId = verifyCustomerId(token)
+  if (!customerId) {
+    cookieStore.delete(CUSTOMER_TOKEN_COOKIE)
+    return null
+  }
 
+  try {
     const payload = await getPayload({ config })
     const customer = await payload.findByID({
       collection: 'customers',
@@ -122,9 +133,7 @@ export async function getCurrentCustomer() {
 
     return customer || null
   } catch {
-    // Customer not found or other error — clear cookie
-    const cookieStore2 = await cookies()
-    cookieStore2.delete(CUSTOMER_TOKEN_COOKIE)
+    cookieStore.delete(CUSTOMER_TOKEN_COOKIE)
     return null
   }
 }

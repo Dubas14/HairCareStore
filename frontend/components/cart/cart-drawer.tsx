@@ -46,7 +46,6 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             alt={productTitle}
             width={80}
             height={80}
-            unoptimized
             className="w-full h-full object-cover"
           />
         ) : (

@@ -22,6 +22,9 @@ export const Products: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [
     { name: 'title', type: 'text', required: true },

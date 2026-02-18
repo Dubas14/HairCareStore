@@ -56,7 +56,6 @@ export function BrandHero({ brand }: BrandHeroProps) {
                 alt={brand.name}
                 width={1920}
                 height={1080}
-                unoptimized
                 className="w-full h-auto max-h-[70vh] object-cover"
                 priority
               />
@@ -110,7 +109,6 @@ function BrandInfo({ brand, logoUrl, light }: BrandInfoProps) {
             alt={brand.name}
             width={80}
             height={80}
-            unoptimized
             className="object-contain"
           />
         </div>
