@@ -10,7 +10,7 @@ import { HomePageAnimations } from '@/components/home/home-page-animations'
 
 const HeroSliderCMS = dynamic(
   () => import('@/components/home/hero-slider-cms').then(mod => ({ default: mod.HeroSliderCMS })),
-  { ssr: false, loading: () => <div className="w-full h-[500px] md:h-[600px] bg-muted animate-pulse rounded-lg" /> }
+  { loading: () => <div className="w-full h-[500px] md:h-[600px] bg-muted animate-pulse rounded-lg" /> }
 )
 
 export default async function HomePage() {

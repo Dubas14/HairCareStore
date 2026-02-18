@@ -108,7 +108,7 @@ function BrandCard({ brand, delay = 0 }: BrandCardProps) {
               alt={brand.name}
               width={120}
               height={80}
-              className="object-contain max-h-20 group-hover:scale-105 transition-transform duration-300"
+              className="object-contain max-h-20 w-auto h-auto group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div
