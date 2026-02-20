@@ -23,10 +23,7 @@ import {
   getProductRating as _getProductRating,
   getBlogPosts as _getBlogPosts,
   getBlogPostBySlug as _getBlogPostBySlug,
-  getSiteSettings as _getSiteSettings,
 } from './client'
-
-import type { SiteSettingsData } from './client'
 
 import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost } from './client'
 import type { PayloadProduct } from './types'
@@ -99,10 +96,6 @@ export async function getBlogPosts(options?: { limit?: number; offset?: number }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   return _getBlogPostBySlug(slug)
-}
-
-export async function getSiteSettings(): Promise<SiteSettingsData | null> {
-  return _getSiteSettings()
 }
 
 export async function submitReview(data: {
