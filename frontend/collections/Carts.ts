@@ -51,6 +51,22 @@ export const Carts: CollectionConfig = {
     { name: 'loyaltyDiscount', type: 'number', defaultValue: 0 },
     { name: 'total', type: 'number', defaultValue: 0 },
     {
+      name: 'currency',
+      type: 'select',
+      defaultValue: 'UAH',
+      options: [
+        { label: 'UAH (₴)', value: 'UAH' },
+        { label: 'EUR (€)', value: 'EUR' },
+        { label: 'PLN (zł)', value: 'PLN' },
+        { label: 'USD ($)', value: 'USD' },
+      ],
+    },
+    { name: 'paymentMethod', type: 'text' },
+    { name: 'stripePaymentIntentId', type: 'text' },
+    { name: 'stripeClientSecret', type: 'text' },
+    { name: 'promoCode', type: 'text', admin: { description: 'Застосований промокод' } },
+    { name: 'promoDiscount', type: 'number', defaultValue: 0, admin: { description: 'Сума знижки за промокодом' } },
+    {
       name: 'status',
       type: 'select',
       defaultValue: 'active',
@@ -73,7 +89,7 @@ export const Carts: CollectionConfig = {
             0,
           )
           data.subtotal = subtotal
-          data.total = subtotal + (data.shippingTotal || 0) - (data.discountTotal || 0) - (data.loyaltyDiscount || 0)
+          data.total = subtotal + (data.shippingTotal || 0) - (data.discountTotal || 0) - (data.loyaltyDiscount || 0) - (data.promoDiscount || 0)
         }
         return data
       },

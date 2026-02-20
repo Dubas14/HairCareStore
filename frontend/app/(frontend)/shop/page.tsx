@@ -1,26 +1,36 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Search, X, Loader2 } from 'lucide-react'
-import { FilterSidebar, FilterState } from '@/components/shop/filter-sidebar'
+import { FilterSidebar, type FilterState } from '@/components/shop/filter-sidebar'
 import { ProductGrid } from '@/components/shop/product-grid'
-import { SortSelect, SortOption } from '@/components/shop/sort-select'
+import { SortSelect, type SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
-import { useProducts, useSearchProducts, transformProducts } from '@/lib/hooks/use-products'
+import { useProducts } from '@/lib/hooks/use-products'
+import { transformProducts } from '@/lib/payload/types'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
-const PRODUCTS_PER_PAGE = 12
+const PRODUCTS_PER_PAGE = 24
 
+/** Convert URL search params → internal FilterState */
 function parseFiltersFromParams(params: URLSearchParams): FilterState {
   return {
-    concerns: params.get('concerns')?.split(',').filter(Boolean) || [],
-    hairTypes: params.get('hairTypes')?.split(',').filter(Boolean) || [],
     brands: params.get('brands')?.split(',').filter(Boolean) || [],
     priceRange: [
       Number(params.get('priceMin')) || 0,
       Number(params.get('priceMax')) || 5000,
     ],
+    categoryIds: params.get('categories')?.split(',').filter(Boolean) || [],
+  }
+}
+
+/** Map UI sort keys to Payload API sort keys */
+function toApiSort(sort: SortOption): 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest' {
+  switch (sort) {
+    case 'price-asc': return 'price_asc'
+    case 'price-desc': return 'price_desc'
+    default: return sort
   }
 }
 
@@ -29,7 +39,7 @@ function ShopContent() {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Read state from URL
+  // ── State from URL ─────────────────────────────────────────────
   const searchQuery = searchParams.get('search') || ''
   const urlPage = Number(searchParams.get('page')) || 1
   const urlSort = (searchParams.get('sort') as SortOption) || 'popular'
@@ -38,125 +48,89 @@ function ShopContent() {
   const [sortBy, setSortBy] = useState<SortOption>(urlSort)
   const [currentPage, setCurrentPage] = useState(urlPage)
   const [localSearch, setLocalSearch] = useState(searchQuery)
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
 
-  // Sync URL params when state changes
-  const updateUrl = useCallback((newFilters: FilterState, newSort: SortOption, newPage: number, newSearch: string) => {
-    const params = new URLSearchParams()
+  // ── Debounce search input ──────────────────────────────────────
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(localSearch), 400)
+    return () => clearTimeout(timer)
+  }, [localSearch])
 
-    if (newSearch) params.set('search', newSearch)
-    if (newSort !== 'popular') params.set('sort', newSort)
-    if (newPage > 1) params.set('page', String(newPage))
-    if (newFilters.brands.length > 0) params.set('brands', newFilters.brands.join(','))
-    if (newFilters.concerns.length > 0) params.set('concerns', newFilters.concerns.join(','))
-    if (newFilters.hairTypes.length > 0) params.set('hairTypes', newFilters.hairTypes.join(','))
-    if (newFilters.priceRange[0] > 0) params.set('priceMin', String(newFilters.priceRange[0]))
-    if (newFilters.priceRange[1] < 5000) params.set('priceMax', String(newFilters.priceRange[1]))
+  // ── Sync URL ↔ State ──────────────────────────────────────────
+  const updateUrl = useCallback(
+    (newFilters: FilterState, newSort: SortOption, newPage: number, newSearch: string) => {
+      const params = new URLSearchParams()
+      if (newSearch) params.set('search', newSearch)
+      if (newSort !== 'popular') params.set('sort', newSort)
+      if (newPage > 1) params.set('page', String(newPage))
+      if (newFilters.brands.length > 0) params.set('brands', newFilters.brands.join(','))
+      if (newFilters.categoryIds && newFilters.categoryIds.length > 0) params.set('categories', newFilters.categoryIds.join(','))
+      if (newFilters.priceRange[0] > 0) params.set('priceMin', String(newFilters.priceRange[0]))
+      if (newFilters.priceRange[1] < 5000) params.set('priceMax', String(newFilters.priceRange[1]))
 
-    const qs = params.toString()
-    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [router, pathname])
+      const qs = params.toString()
+      router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false })
+    },
+    [router, pathname],
+  )
 
-  // Sync from URL on browser back/forward
+  // Browser back/forward sync
   useEffect(() => {
     setFilters(parseFiltersFromParams(searchParams))
     setSortBy((searchParams.get('sort') as SortOption) || 'popular')
     setCurrentPage(Number(searchParams.get('page')) || 1)
-    setLocalSearch(searchParams.get('search') || '')
+    const search = searchParams.get('search') || ''
+    setLocalSearch(search)
+    setDebouncedSearch(search)
   }, [searchParams])
 
-  // Fetch products
-  // limit: 500 is a practical cap for client-side filtering; ideally migrate to server-side filtering/pagination via Payload API
-  const { data, isLoading, error } = useProducts({ limit: 500 })
+  // ── Server-side filtered query ─────────────────────────────────
+  const { data, isLoading, error } = useProducts({
+    limit: PRODUCTS_PER_PAGE,
+    page: currentPage,
+    search: debouncedSearch || undefined,
+    brandIds: filters.brands.length > 0 ? filters.brands : undefined,
+    categoryIds: filters.categoryIds && filters.categoryIds.length > 0 ? filters.categoryIds : undefined,
+    minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+    maxPrice: filters.priceRange[1] < 5000 ? filters.priceRange[1] : undefined,
+    sortBy: toApiSort(sortBy),
+  })
 
-  // Search results if there's a query
-  const { data: searchData, isLoading: isSearching } = useSearchProducts(localSearch)
+  const products = data ? transformProducts(data.products) : []
+  const totalPages = data?.totalPages || 0
+  const totalCount = data?.count || 0
 
-  // Convert products to frontend format
-  const allProducts = useMemo(() => {
-    if (localSearch && searchData?.products) {
-      return transformProducts(searchData.products)
-    }
-    if (!data?.products) return []
-    return transformProducts(data.products)
-  }, [data?.products, searchData?.products, localSearch])
-
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let result = [...allProducts]
-
-    // Apply brand filter
-    if (filters.brands.length > 0) {
-      result = result.filter((product) =>
-        filters.brands.some(
-          (brand) => product.brand.toLowerCase().replace(/\s+/g, '-') === brand
-        )
-      )
-    }
-
-    // Apply price filter
-    result = result.filter(
-      (product) =>
-        product.price >= filters.priceRange[0] &&
-        product.price <= filters.priceRange[1]
-    )
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price)
-        break
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price)
-        break
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
-        break
-      case 'newest':
-        result.sort((a, b) => (b.badge === 'Новинка' ? 1 : 0) - (a.badge === 'Новинка' ? 1 : 0))
-        break
-      case 'popular':
-      default:
-        result.sort((a, b) => b.reviewCount - a.reviewCount)
-        break
-    }
-
-    return result
-  }, [allProducts, filters, sortBy])
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
-  const safePage = Math.min(currentPage, Math.max(totalPages, 1))
-  const paginatedProducts = filteredProducts.slice(
-    (safePage - 1) * PRODUCTS_PER_PAGE,
-    safePage * PRODUCTS_PER_PAGE
-  )
-
-  // Handlers that update both state and URL
+  // ── Handlers ───────────────────────────────────────────────────
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters)
     setCurrentPage(1)
-    updateUrl(newFilters, sortBy, 1, localSearch)
+    updateUrl(newFilters, sortBy, 1, debouncedSearch)
   }
 
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort)
     setCurrentPage(1)
-    updateUrl(filters, newSort, 1, localSearch)
+    updateUrl(filters, newSort, 1, debouncedSearch)
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    updateUrl(filters, sortBy, page, localSearch)
+    updateUrl(filters, sortBy, page, debouncedSearch)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSearchSubmit = () => {
+    setCurrentPage(1)
+    setDebouncedSearch(localSearch)
+    updateUrl(filters, sortBy, 1, localSearch)
   }
 
   const clearSearch = () => {
     setLocalSearch('')
+    setDebouncedSearch('')
     setCurrentPage(1)
     updateUrl(filters, sortBy, 1, '')
   }
-
-  const isLoadingProducts = localSearch ? isSearching : isLoading
 
   return (
     <main className="min-h-screen bg-background">
@@ -165,17 +139,23 @@ function ShopContent() {
         <div className="bg-muted/50 border-b">
           <div className="container mx-auto px-4 py-8 md:py-12">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              {localSearch ? `Результати пошуку: "${localSearch}"` : 'Каталог товарів'}
+              {debouncedSearch ? `Результати пошуку: "${debouncedSearch}"` : 'Каталог товарів'}
             </h1>
             <p className="text-muted-foreground">
-              {localSearch
-                ? `Знайдено ${filteredProducts.length} товарів`
+              {debouncedSearch
+                ? `Знайдено ${totalCount} товарів`
                 : 'Професійна косметика для догляду за волоссям'}
             </p>
 
             {/* Search Bar */}
             <div className="mt-6 max-w-md">
-              <div className="relative">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleSearchSubmit()
+                }}
+                className="relative"
+              >
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
@@ -186,6 +166,7 @@ function ShopContent() {
                 />
                 {localSearch && (
                   <button
+                    type="button"
                     onClick={clearSearch}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full"
                     aria-label="Очистити пошук"
@@ -193,7 +174,7 @@ function ShopContent() {
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
                 )}
-              </div>
+              </form>
             </div>
           </div>
         </div>
@@ -222,17 +203,22 @@ function ShopContent() {
           <ScrollReveal variant="fade-up" delay={200} duration={600} className="flex-1">
             <div>
               {/* Toolbar */}
-              <div className="flex sm:items-center justify-end mb-6">
+              <div className="flex items-center justify-between mb-6">
+                {!isLoading && (
+                  <p className="text-sm text-muted-foreground">
+                    {totalCount > 0 ? `${totalCount} товарів` : ''}
+                  </p>
+                )}
                 <SortSelect value={sortBy} onChange={handleSortChange} />
               </div>
 
               {/* Product Grid */}
-              <ProductGrid products={paginatedProducts} isLoading={isLoadingProducts} />
+              <ProductGrid products={products} isLoading={isLoading} />
 
               {/* Pagination */}
-              {!isLoadingProducts && totalPages > 1 && (
+              {!isLoading && totalPages > 1 && (
                 <Pagination
-                  currentPage={safePage}
+                  currentPage={currentPage}
                   totalPages={totalPages}
                   onPageChange={handlePageChange}
                 />

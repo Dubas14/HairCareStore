@@ -3,7 +3,10 @@
 /**
  * Server Actions for Payload CMS data fetching
  * Used by 'use client' components that need to call Payload Local API
+ * Automatically passes current locale from next-intl to Payload queries
  */
+
+import { getLocale } from 'next-intl/server'
 
 import {
   getCategoryBySlug as _getCategoryBySlug,
@@ -23,63 +26,95 @@ import {
   getProductRating as _getProductRating,
   getBlogPosts as _getBlogPosts,
   getBlogPostBySlug as _getBlogPostBySlug,
+  getSiteSettings as _getSiteSettings,
 } from './client'
 
 import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost } from './client'
 import type { PayloadProduct } from './types'
+import type { SiteSettingsData } from './client'
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  return _getCategoryBySlug(slug)
+  const locale = await getLocale()
+  return _getCategoryBySlug(slug, locale)
 }
 
 export async function getCategories(): Promise<Category[]> {
-  return _getCategories()
+  const locale = await getLocale()
+  return _getCategories(locale)
 }
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
-  return _getBrandBySlug(slug)
+  const locale = await getLocale()
+  return _getBrandBySlug(slug, locale)
 }
 
 export async function getBrands(): Promise<Brand[]> {
-  return _getBrands()
+  const locale = await getLocale()
+  return _getBrands(locale)
 }
 
 export async function getBanners(position?: Banner['position']): Promise<Banner[]> {
-  return _getBanners(position)
+  const locale = await getLocale()
+  return _getBanners(position, locale)
 }
 
 export async function getPromoBlocks(): Promise<PromoBlock[]> {
-  return _getPromoBlocks()
+  const locale = await getLocale()
+  return _getPromoBlocks(locale)
 }
 
 export async function getPageBySlug(slug: string): Promise<Page | null> {
-  return _getPageBySlug(slug)
+  const locale = await getLocale()
+  return _getPageBySlug(slug, locale)
 }
 
 export async function getPages(): Promise<Page[]> {
-  return _getPages()
+  const locale = await getLocale()
+  return _getPages(locale)
 }
 
 export async function getProducts(options?: {
-  limit?: number; offset?: number; categoryId?: number | string; brandId?: number | string
-}): Promise<{ products: PayloadProduct[]; count: number }> {
-  return _getProducts(options)
+  limit?: number
+  offset?: number
+  page?: number
+  categoryId?: number | string
+  categoryIds?: (string | number)[]
+  brandId?: number | string
+  brandIds?: (string | number)[]
+  search?: string
+  minPrice?: number
+  maxPrice?: number
+  tags?: string[]
+  sortBy?: 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest'
+}): Promise<{
+  products: PayloadProduct[]
+  count: number
+  totalPages: number
+  currentPage: number
+  hasNextPage: boolean
+}> {
+  const locale = await getLocale()
+  return _getProducts({ ...options, locale })
 }
 
 export async function getProductByHandle(handle: string): Promise<PayloadProduct | null> {
-  return _getProductByHandle(handle)
+  const locale = await getLocale()
+  return _getProductByHandle(handle, locale)
 }
 
 export async function searchProducts(query: string): Promise<{ products: PayloadProduct[]; count: number }> {
-  return _searchProducts(query)
+  const locale = await getLocale()
+  return _searchProducts(query, locale)
 }
 
 export async function getProductsByCategory(categorySlug: string): Promise<{ products: PayloadProduct[]; count: number }> {
-  return _getProductsByCategory(categorySlug)
+  const locale = await getLocale()
+  return _getProductsByCategory(categorySlug, locale)
 }
 
 export async function getProductsByBrand(brandSlug: string): Promise<{ products: PayloadProduct[]; count: number }> {
-  return _getProductsByBrand(brandSlug)
+  const locale = await getLocale()
+  return _getProductsByBrand(brandSlug, locale)
 }
 
 export async function getReviewsByProduct(productId: number | string): Promise<Review[]> {
@@ -91,11 +126,18 @@ export async function getProductRating(productId: number | string): Promise<{ av
 }
 
 export async function getBlogPosts(options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; count: number }> {
-  return _getBlogPosts(options)
+  const locale = await getLocale()
+  return _getBlogPosts({ ...options, locale })
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-  return _getBlogPostBySlug(slug)
+  const locale = await getLocale()
+  return _getBlogPostBySlug(slug, locale)
+}
+
+export async function getSiteSettings(): Promise<SiteSettingsData | null> {
+  const locale = await getLocale()
+  return _getSiteSettings(locale)
 }
 
 export async function submitReview(data: {

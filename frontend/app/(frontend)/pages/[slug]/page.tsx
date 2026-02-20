@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
 import { getPageBySlug, getPages, getSiteSettings } from '@/lib/payload/client'
 import type { SiteSettingsData } from '@/lib/payload/client'
 import { Metadata } from 'next'
@@ -28,7 +29,8 @@ interface PageProps {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const page = await getPageBySlug(slug)
+  const locale = await getLocale()
+  const page = await getPageBySlug(slug, locale)
   const config = pageConfig[slug]
 
   const title = page?.metaTitle || page?.title || config?.fallbackTitle || slug
@@ -450,10 +452,11 @@ export default async function StaticPage({ params }: PageProps) {
   const { slug } = await params
   const pageType = getPageType(slug)
 
+  const locale = await getLocale()
   // Fetch CMS data and site settings in parallel
   const [page, settings] = await Promise.all([
-    getPageBySlug(slug),
-    pageType !== 'generic' ? getSiteSettings() : Promise.resolve(null),
+    getPageBySlug(slug, locale),
+    pageType !== 'generic' ? getSiteSettings(locale) : Promise.resolve(null),
   ])
 
   const config = pageConfig[slug]

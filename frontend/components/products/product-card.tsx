@@ -9,6 +9,7 @@ import { ShimmerBadge } from '@/components/ui/shimmer-badge'
 import { useCartContext } from '@/components/providers/cart-provider'
 import { useWishlist, useToggleWishlist } from '@/lib/hooks/use-wishlist'
 import { useAuthStore } from '@/stores/auth-store'
+import { CompareButton } from '@/components/compare/compare-button'
 import type { Product } from '@/lib/constants/home-data'
 
 interface ProductCardProps {
@@ -110,23 +111,29 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
           </div>
         )}
 
-        {/* Wishlist Button */}
-        <button
-          onClick={handleWishlistClick}
-          disabled={toggleWishlist.isPending}
-          className="absolute top-3 right-3 p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
-          aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
-        >
-          {toggleWishlist.isPending ? (
-            <Loader2 className="w-5 h-5 animate-spin text-secondary" />
-          ) : (
-            <Heart
-              className={`w-5 h-5 transition-colors duration-300 ${
-                isWishlisted ? 'fill-destructive text-destructive' : 'text-secondary'
-              }`}
-            />
-          )}
-        </button>
+        {/* Action Buttons */}
+        <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+          <button
+            onClick={handleWishlistClick}
+            disabled={toggleWishlist.isPending}
+            className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
+            aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
+          >
+            {toggleWishlist.isPending ? (
+              <Loader2 className="w-5 h-5 animate-spin text-secondary" />
+            ) : (
+              <Heart
+                className={`w-5 h-5 transition-colors duration-300 ${
+                  isWishlisted ? 'fill-destructive text-destructive' : 'text-secondary'
+                }`}
+              />
+            )}
+          </button>
+          <CompareButton
+            product={product}
+            className="shadow-soft"
+          />
+        </div>
 
         {/* Auth toast */}
         {showAuthToast && (

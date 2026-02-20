@@ -5,7 +5,22 @@ import { getProducts, getProductByHandle, searchProducts, getProductsByCategory,
 import type { PayloadProduct } from '@/lib/payload/types'
 import { transformProducts } from '@/lib/payload/types'
 
-export function useProducts(options: { limit?: number; offset?: number } = {}) {
+export interface UseProductsOptions {
+  limit?: number
+  offset?: number
+  page?: number
+  categoryId?: number | string
+  categoryIds?: (string | number)[]
+  brandId?: number | string
+  brandIds?: (string | number)[]
+  search?: string
+  minPrice?: number
+  maxPrice?: number
+  tags?: string[]
+  sortBy?: 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest'
+}
+
+export function useProducts(options: UseProductsOptions = {}) {
   return useQuery({
     queryKey: ['products', options],
     queryFn: () => getProducts(options),

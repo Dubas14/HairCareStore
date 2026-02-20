@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, User, Send, CheckCircle, LogIn } from 'lucide-react'
+import Image from 'next/image'
+import { Star, User, Send, CheckCircle, LogIn, Camera, X, BadgeCheck, ImageIcon } from 'lucide-react'
 import type { Review } from '@/lib/payload/types'
+import { getImageUrl } from '@/lib/payload/types'
 import { submitReview } from '@/lib/payload/actions'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -210,11 +212,146 @@ function LoginPrompt() {
   )
 }
 
+function ReviewImageLightbox({ images, initialIndex, onClose }: {
+  images: Array<{ image: { url?: string; alt?: string } }>
+  initialIndex: number
+  onClose: () => void
+}) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex)
+  const current = images[currentIndex]
+  const url = current?.image?.url
+
+  if (!url) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-black/40 rounded-full z-10"
+        aria-label="Закрити"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      <div className="relative max-w-3xl max-h-[85vh] w-full" onClick={e => e.stopPropagation()}>
+        <Image
+          src={url}
+          alt={current.image.alt || 'Фото відгуку'}
+          width={800}
+          height={600}
+          className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+        />
+
+        {images.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-3">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentIndex(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i === currentIndex ? 'bg-white' : 'bg-white/40'
+                }`}
+                aria-label={`Фото ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ReviewCard({ review }: { review: Review }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const reviewImages = review.images?.filter(img => img.image && getImageUrl(img.image)) || []
+
+  return (
+    <div className="bg-card rounded-card p-5 border border-border">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-foreground text-sm">
+                {review.customerName}
+              </p>
+              {review.verifiedPurchase && (
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  <BadgeCheck className="w-3.5 h-3.5" />
+                  Підтверджена покупка
+                </span>
+              )}
+            </div>
+            {review.publishedAt && (
+              <p className="text-xs text-muted-foreground">
+                {formatDate(review.publishedAt)}
+              </p>
+            )}
+          </div>
+        </div>
+        <StarRating rating={review.rating} />
+      </div>
+
+      <p className="text-foreground/90 text-sm leading-relaxed">
+        {review.text}
+      </p>
+
+      {reviewImages.length > 0 && (
+        <div className="flex gap-2 mt-3 flex-wrap">
+          {reviewImages.map((img, idx) => {
+            const url = getImageUrl(img.image)
+            if (!url) return null
+            return (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className="relative w-16 h-16 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors group"
+              >
+                <Image
+                  src={url}
+                  alt={img.image?.alt || `Фото ${idx + 1}`}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform"
+                  sizes="64px"
+                />
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {lightboxIndex !== null && (
+        <ReviewImageLightbox
+          images={reviewImages as Array<{ image: { url?: string; alt?: string } }>}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+type ReviewFilter = 'all' | 'with_photos' | 'verified' | '5' | '4' | '3' | '2' | '1'
+
 export function ProductReviews({ reviews, productId }: ProductReviewsProps) {
   const { isAuthenticated } = useAuthStore()
   const [showAll, setShowAll] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const displayedReviews = showAll ? reviews : reviews.slice(0, 3)
+  const [filter, setFilter] = useState<ReviewFilter>('all')
+
+  const filteredReviews = reviews.filter(r => {
+    if (filter === 'with_photos') return r.images && r.images.length > 0
+    if (filter === 'verified') return r.verifiedPurchase
+    if (['1','2','3','4','5'].includes(filter)) return r.rating === Number(filter)
+    return true
+  })
+
+  const displayedReviews = showAll ? filteredReviews : filteredReviews.slice(0, 3)
 
   const averageRating = reviews.length > 0
     ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
@@ -256,6 +393,33 @@ export function ProductReviews({ reviews, productId }: ProductReviewsProps) {
         </div>
       )}
 
+      {reviews.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {([
+            { key: 'all' as ReviewFilter, label: 'Всі' },
+            { key: 'with_photos' as ReviewFilter, label: 'З фото', icon: <ImageIcon className="w-3.5 h-3.5" /> },
+            { key: 'verified' as ReviewFilter, label: 'Підтверджені', icon: <BadgeCheck className="w-3.5 h-3.5" /> },
+            { key: '5' as ReviewFilter, label: '5' },
+            { key: '4' as ReviewFilter, label: '4' },
+            { key: '3' as ReviewFilter, label: '3' },
+          ]).map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => { setFilter(key); setShowAll(false) }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                filter === key
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/50'
+              }`}
+            >
+              {icon}
+              {['5','4','3'].includes(key) && <Star className="w-3 h-3 fill-current" />}
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {reviews.length === 0 && !showForm ? (
         <div className="text-center py-12 bg-muted/30 rounded-card">
           <p className="text-muted-foreground mb-2">Відгуків поки немає</p>
@@ -281,40 +445,15 @@ export function ProductReviews({ reviews, productId }: ProductReviewsProps) {
       ) : reviews.length > 0 ? (
         <div className="space-y-4">
           {displayedReviews.map((review) => (
-            <div
-              key={review.id}
-              className="bg-card rounded-card p-5 border border-border"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">
-                      {review.customerName}
-                    </p>
-                    {review.publishedAt && (
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(review.publishedAt)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <StarRating rating={review.rating} />
-              </div>
-              <p className="text-foreground/90 text-sm leading-relaxed">
-                {review.text}
-              </p>
-            </div>
+            <ReviewCard key={review.id} review={review} />
           ))}
 
-          {reviews.length > 3 && !showAll && (
+          {filteredReviews.length > 3 && !showAll && (
             <button
               onClick={() => setShowAll(true)}
               className="w-full py-3 text-sm font-medium text-primary hover:text-primary/80 transition-colors border border-border rounded-card hover:bg-muted/50"
             >
-              Показати всі відгуки ({reviews.length})
+              Показати всі відгуки ({filteredReviews.length})
             </button>
           )}
         </div>

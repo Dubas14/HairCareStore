@@ -2,6 +2,8 @@
 
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limiter'
 
 const newsletterSchema = z.object({
@@ -34,13 +36,50 @@ export async function subscribeToNewsletter(formData: FormData) {
     }
   }
 
-  // TODO: Integrate with email service (SendGrid/Resend)
+  try {
+    const payload = await getPayload({ config })
+    const email = validation.data.email
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+    // Check if already subscribed
+    const existing = await payload.find({
+      collection: 'subscribers',
+      where: { email: { equals: email } },
+      limit: 1,
+    })
 
-  return {
-    success: true,
-    message: 'Дякуємо! Перевірте вашу пошту'
+    if (existing.docs.length > 0) {
+      const sub = existing.docs[0] as any
+      if (sub.status === 'unsubscribed') {
+        // Re-subscribe
+        await payload.update({
+          collection: 'subscribers',
+          id: sub.id,
+          data: { status: 'active' },
+        })
+        return { success: true, message: 'Вашу підписку відновлено!' }
+      }
+      return { success: true, message: 'Ви вже підписані на розсилку' }
+    }
+
+    // Create new subscriber
+    await payload.create({
+      collection: 'subscribers',
+      data: {
+        email,
+        status: 'active',
+        source: 'website',
+      },
+    })
+
+    return {
+      success: true,
+      message: 'Дякуємо! Ви підписані на розсилку'
+    }
+  } catch (error) {
+    console.error('Newsletter subscription error:', error)
+    return {
+      success: false,
+      error: 'Помилка підписки. Спробуйте пізніше.'
+    }
   }
 }

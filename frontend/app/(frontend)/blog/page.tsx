@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import { getLocale } from 'next-intl/server'
 import { getBlogPosts } from '@/lib/payload/client'
 import { BlogList } from '@/components/blog/blog-list'
 
@@ -9,7 +10,8 @@ export const metadata = {
 }
 
 export default async function BlogPage() {
-  const { posts } = await getBlogPosts({ limit: 20 })
+  const locale = await getLocale()
+  const { posts } = await getBlogPosts({ limit: 20, locale })
 
   return (
     <main className="min-h-screen bg-background">

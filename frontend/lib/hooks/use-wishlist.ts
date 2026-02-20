@@ -43,7 +43,7 @@ export function useAddToWishlist() {
   return useMutation({
     mutationFn: async (productId: number | string) => {
       if (!customer) throw new Error('Not authenticated')
-      return addToWishlist(customer.id, productId)
+      return addToWishlist(customer.id, String(productId))
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['wishlist'] }) },
   })
@@ -55,7 +55,7 @@ export function useRemoveFromWishlist() {
   return useMutation({
     mutationFn: async (productId: number | string) => {
       if (!customer) throw new Error('Not authenticated')
-      return removeFromWishlist(customer.id, productId)
+      return removeFromWishlist(customer.id, String(productId))
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['wishlist'] }) },
   })

@@ -7,13 +7,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Slider } from '@/components/ui/slider'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { getBrands } from '@/lib/payload/actions'
+import { getBrands, getCategories } from '@/lib/payload/actions'
 
 export interface FilterState {
-  concerns: string[]
-  hairTypes: string[]
   brands: string[]
   priceRange: [number, number]
+  categoryIds?: string[]
 }
 
 interface FilterSidebarProps {
@@ -22,26 +21,10 @@ interface FilterSidebarProps {
   maxPrice?: number
   className?: string
   hideBrandFilter?: boolean
+  hideCategoryFilter?: boolean
 }
 
-const concerns = [
-  { id: 'repair', label: 'Відновлення' },
-  { id: 'hydrate', label: 'Зволоження' },
-  { id: 'volume', label: "Об'єм" },
-  { id: 'color', label: 'Захист кольору' },
-  { id: 'oil-control', label: 'Контроль жирності' },
-  { id: 'anti-dandruff', label: 'Проти лупи' },
-  { id: 'hair-loss', label: 'Проти випадіння' },
-]
-
-const hairTypes = [
-  { id: 'straight', label: 'Пряме' },
-  { id: 'wavy', label: 'Хвилясте' },
-  { id: 'curly', label: 'Кучеряве' },
-  { id: 'coily', label: 'Туге кучеряве' },
-]
-
-interface BrandOption {
+interface FilterOption {
   id: string
   label: string
 }
@@ -74,34 +57,22 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   )
 }
 
-function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter }: FilterSidebarProps) {
-  const [brandOptions, setBrandOptions] = useState<BrandOption[]>([])
+function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter, hideCategoryFilter }: FilterSidebarProps) {
+  const [brandOptions, setBrandOptions] = useState<FilterOption[]>([])
+  const [categoryOptions, setCategoryOptions] = useState<FilterOption[]>([])
 
   useEffect(() => {
-    if (hideBrandFilter) return
-    getBrands().then((brands) => {
-      setBrandOptions(
-        brands.map((b) => ({
-          id: b.slug,
-          label: b.name,
-        }))
-      )
-    })
-  }, [hideBrandFilter])
-
-  const handleConcernChange = (concernId: string, checked: boolean) => {
-    const newConcerns = checked
-      ? [...filters.concerns, concernId]
-      : filters.concerns.filter((c) => c !== concernId)
-    onFiltersChange({ ...filters, concerns: newConcerns })
-  }
-
-  const handleHairTypeChange = (typeId: string, checked: boolean) => {
-    const newTypes = checked
-      ? [...filters.hairTypes, typeId]
-      : filters.hairTypes.filter((t) => t !== typeId)
-    onFiltersChange({ ...filters, hairTypes: newTypes })
-  }
+    if (!hideBrandFilter) {
+      getBrands().then((brands) => {
+        setBrandOptions(brands.map((b) => ({ id: b.slug, label: b.name })))
+      })
+    }
+    if (!hideCategoryFilter) {
+      getCategories().then((categories) => {
+        setCategoryOptions(categories.map((c) => ({ id: String(c.id), label: c.name })))
+      })
+    }
+  }, [hideBrandFilter, hideCategoryFilter])
 
   const handleBrandChange = (brandId: string, checked: boolean) => {
     const newBrands = checked
@@ -110,22 +81,28 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
     onFiltersChange({ ...filters, brands: newBrands })
   }
 
+  const handleCategoryChange = (catId: string, checked: boolean) => {
+    const current = filters.categoryIds || []
+    const newCats = checked
+      ? [...current, catId]
+      : current.filter((c) => c !== catId)
+    onFiltersChange({ ...filters, categoryIds: newCats })
+  }
+
   const handlePriceChange = (value: [number, number]) => {
     onFiltersChange({ ...filters, priceRange: value })
   }
 
   const activeFiltersCount =
-    filters.concerns.length +
-    filters.hairTypes.length +
     filters.brands.length +
+    (filters.categoryIds?.length || 0) +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0)
 
   const clearAllFilters = () => {
     onFiltersChange({
-      concerns: [],
-      hairTypes: [],
       brands: [],
       priceRange: [0, maxPrice],
+      categoryIds: [],
     })
   }
 
@@ -148,27 +125,22 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
         </div>
       )}
 
-      <FilterSection title="Проблема">
-        {concerns.map((concern) => (
-          <Checkbox
-            key={concern.id}
-            label={concern.label}
-            checked={filters.concerns.includes(concern.id)}
-            onChange={(e) => handleConcernChange(concern.id, e.target.checked)}
-          />
-        ))}
-      </FilterSection>
-
-      <FilterSection title="Тип волосся">
-        {hairTypes.map((type) => (
-          <Checkbox
-            key={type.id}
-            label={type.label}
-            checked={filters.hairTypes.includes(type.id)}
-            onChange={(e) => handleHairTypeChange(type.id, e.target.checked)}
-          />
-        ))}
-      </FilterSection>
+      {!hideCategoryFilter && (
+        <FilterSection title="Категорія">
+          {categoryOptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Завантаження...</p>
+          ) : (
+            categoryOptions.map((cat) => (
+              <Checkbox
+                key={cat.id}
+                label={cat.label}
+                checked={(filters.categoryIds || []).includes(cat.id)}
+                onChange={(e) => handleCategoryChange(cat.id, e.target.checked)}
+              />
+            ))
+          )}
+        </FilterSection>
+      )}
 
       {!hideBrandFilter && (
         <FilterSection title="Бренд">
@@ -214,13 +186,10 @@ export function FilterSidebar(props: FilterSidebarProps) {
         >
           <SlidersHorizontal className="h-4 w-4 mr-2" />
           Фільтри
-          {(props.filters.concerns.length > 0 ||
-            props.filters.hairTypes.length > 0 ||
-            props.filters.brands.length > 0) && (
+          {(props.filters.brands.length > 0 ||
+            (props.filters.categoryIds?.length || 0) > 0) && (
             <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-              {props.filters.concerns.length +
-                props.filters.hairTypes.length +
-                props.filters.brands.length}
+              {props.filters.brands.length + (props.filters.categoryIds?.length || 0)}
             </span>
           )}
         </Button>

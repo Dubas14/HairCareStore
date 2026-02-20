@@ -12,6 +12,7 @@ import {
   ShippingForm,
   PaymentForm,
 } from '@/components/checkout'
+import { PromoCodeInput } from '@/components/checkout/promo-code-input'
 import { useCartContext } from '@/components/providers/cart-provider'
 import { useCartStore } from '@/stores/cart-store'
 import { useCustomer } from '@/lib/hooks/use-customer'
@@ -22,7 +23,9 @@ import {
   getShippingOptions,
   completeCart,
   linkCartToCustomer,
+  clearCartAfterPayment,
 } from '@/lib/payload/cart-actions'
+import { completeStripePayment } from '@/lib/payload/payment-actions'
 
 interface ContactData {
   email: string
@@ -38,7 +41,7 @@ interface ShippingData {
 }
 
 interface PaymentData {
-  method: 'cod' | 'online'
+  method: 'cod' | 'online' | 'stripe'
 }
 
 interface CheckoutData {
@@ -68,6 +71,10 @@ export default function CheckoutPage() {
     shipping: null,
     payment: null,
   })
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState<string | undefined>(cart?.promoCode || undefined)
+  const [promoDiscount, setPromoDiscount] = useState<number>(cart?.promoDiscount || 0)
 
   // Customer & addresses for autofill
   const { customer, isAuthenticated } = useCustomer()
@@ -333,7 +340,7 @@ export default function CheckoutPage() {
     }
   }
 
-  // Handle payment form submit
+  // Handle COD payment submit
   const handlePaymentSubmit = async (data: PaymentData) => {
     if (!cart) return
     setError(null)
@@ -358,8 +365,42 @@ export default function CheckoutPage() {
 
       setIsComplete(true)
     } catch (err) {
-      setError('Не вдалося оформити замовлення. Спробуйте ще раз.')
+      const message = err instanceof Error ? err.message : 'Не вдалося оформити замовлення.'
+      setError(message)
       console.error('Payment submit error:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handle Stripe payment success
+  const handleStripeSuccess = async (paymentIntentId: string) => {
+    if (!cart) return
+    setError(null)
+    setIsProcessing(true)
+
+    try {
+      const result = await completeStripePayment(cart.id, paymentIntentId)
+
+      setCheckoutData((prev) => ({ ...prev, payment: { method: 'online' } }))
+
+      setOrder({
+        orderId: result.orderId,
+        displayId: result.displayId,
+        email: checkoutData.contact?.email || cart.email || '',
+        total: cart.total,
+      })
+
+      // Clear cart state
+      clearCart()
+      clearCartStorage()
+      await clearCartAfterPayment()
+
+      setIsComplete(true)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Помилка при завершенні замовлення.'
+      setError(message)
+      console.error('Stripe completion error:', err)
     } finally {
       setIsProcessing(false)
     }
@@ -425,9 +466,12 @@ export default function CheckoutPage() {
               {currentStep === 'payment' && (
                 <PaymentForm
                   onSubmit={handlePaymentSubmit}
+                  onStripeSuccess={handleStripeSuccess}
                   onBack={() => setCurrentStep('shipping')}
                   isProcessing={isProcessing}
                   total={cart ? cart.total : 0}
+                  cartId={cart?.id}
+                  currency={(cart as any)?.currency || 'UAH'}
                 />
               )}
             </div>
@@ -451,8 +495,29 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-24">
+            <div className="lg:sticky lg:top-24 space-y-4">
               <OrderSummary cart={cart} />
+              {cart && (
+                <div className="bg-card rounded-card p-4 shadow-soft">
+                  <PromoCodeInput
+                    cartId={cart.id}
+                    email={checkoutData.contact?.email || cart.email}
+                    appliedCode={promoCode}
+                    appliedDiscount={promoDiscount}
+                    currency={cart.currency || 'UAH'}
+                    onApplied={(code, discount) => {
+                      setPromoCode(code)
+                      setPromoDiscount(discount)
+                      refreshCart()
+                    }}
+                    onRemoved={() => {
+                      setPromoCode(undefined)
+                      setPromoDiscount(0)
+                      refreshCart()
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

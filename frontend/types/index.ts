@@ -48,10 +48,9 @@ export interface CartItem {
 
 // Filter types
 export interface FilterState {
-  concerns: string[]
-  hairTypes: string[]
   brands: string[]
   priceRange: [number, number]
+  categoryIds?: string[]
 }
 
 // Checkout types

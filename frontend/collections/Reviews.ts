@@ -50,6 +50,27 @@ export const Reviews: CollectionConfig = {
       relationTo: 'products',
     },
     {
+      name: 'images',
+      label: 'Фото',
+      type: 'array',
+      maxRows: 5,
+      labels: { singular: 'Фото', plural: 'Фото' },
+      fields: [
+        { name: 'image', type: 'upload', relationTo: 'media', required: true },
+      ],
+    },
+    {
+      name: 'verifiedPurchase',
+      label: 'Підтверджена покупка',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Автоматично встановлюється, якщо клієнт купував цей товар',
+      },
+    },
+    {
       name: 'isApproved',
       type: 'checkbox',
       defaultValue: false,

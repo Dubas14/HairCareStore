@@ -4,19 +4,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
 import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { cn } from "@/lib/utils"
-
-const navigation = [
-  { name: "Каталог", href: "/shop" },
-  { name: "Бренди", href: "/brands" },
-  { name: "Блог", href: "/blog" },
-  { name: "Про нас", href: "/pages/about" },
-  { name: "Доставка", href: "/pages/delivery" },
-  { name: "Контакти", href: "/pages/contacts" },
-]
 
 // Magnetic Icon Button Component
 function MagneticIconButton({
@@ -173,6 +166,17 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const { openCart, getItemCount } = useCartContext()
   const { openSearch } = useUIStore()
+  const t = useTranslations('nav')
+  const tCommon = useTranslations('common')
+
+  const navigation = [
+    { name: t('shop'), href: "/shop" },
+    { name: t('brands'), href: "/brands" },
+    { name: t('blog'), href: "/blog" },
+    { name: t('about'), href: "/pages/about" },
+    { name: t('delivery'), href: "/pages/delivery" },
+    { name: t('contacts'), href: "/pages/contacts" },
+  ]
 
   useEffect(() => {
     setMounted(true)
@@ -288,13 +292,15 @@ export function Header() {
 
           {/* Right side icons */}
           <div className="flex items-center gap-1">
-            <MagneticIconButton onClick={openSearch} ariaLabel="Пошук">
+            <LocaleSwitcher />
+
+            <MagneticIconButton onClick={openSearch} ariaLabel={tCommon('search')}>
               <Search className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
             </MagneticIconButton>
 
             <MagneticIconButton
               href="/account"
-              ariaLabel="Акаунт"
+              ariaLabel={t('account')}
               className="hidden sm:flex"
             >
               <User className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
@@ -302,7 +308,7 @@ export function Header() {
 
             <MagneticIconButton
               onClick={openCart}
-              ariaLabel="Кошик"
+              ariaLabel={t('cart')}
               badge={itemCount}
               dataCartIcon
             >
@@ -378,7 +384,7 @@ export function Header() {
                 }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Акаунт
+                {t('account')}
               </Link>
             </div>
           </div>

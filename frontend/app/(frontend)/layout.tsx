@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import '../../styles/globals.css'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CartProvider } from '@/components/providers/cart-provider'
@@ -8,6 +10,10 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/cart'
 import { SearchDialog } from '@/components/search'
+import { CompareBar } from '@/components/compare/compare-bar'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { FacebookPixel } from '@/components/analytics/facebook-pixel'
+import { CookieConsent } from '@/components/cookie-consent'
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -47,28 +53,41 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'),
 }
 
-export default function FrontendLayout({
+export default async function FrontendLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="uk" className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}>
       <body>
-        <QueryProvider>
-          <CartProvider>
-            <CustomerInitializer />
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <CartDrawer />
-            <SearchDialog />
-          </CartProvider>
-        </QueryProvider>
+        <NextIntlClientProvider messages={messages}>
+          <QueryProvider>
+            <CartProvider>
+              <CustomerInitializer />
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <CartDrawer />
+              <SearchDialog />
+              <CompareBar />
+              {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+                <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+              )}
+              {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+                <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
+              )}
+              <CookieConsent />
+            </CartProvider>
+          </QueryProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getLocale } from 'next-intl/server'
 import { getProductByHandle, getProductRating } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'
 import ProductPageContent from './ProductPageContent'
@@ -11,7 +12,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
-  const product = await getProductByHandle(handle)
+  const locale = await getLocale()
+  const product = await getProductByHandle(handle, locale)
 
   if (!product) {
     return { title: 'Товар не знайдено | HAIR LAB' }
@@ -115,7 +117,8 @@ function buildBreadcrumbJsonLd(product: NonNullable<Awaited<ReturnType<typeof ge
 
 export default async function ProductPage({ params }: Props) {
   const { handle } = await params
-  const product = await getProductByHandle(handle)
+  const locale = await getLocale()
+  const product = await getProductByHandle(handle, locale)
 
   const brand = product
     ? (product.subtitle

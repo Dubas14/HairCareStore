@@ -136,6 +136,9 @@ export async function getShippingOptions(): Promise<Array<{ methodId: string; na
   }
 }
 
+/**
+ * Complete cart with COD payment (no online payment needed).
+ */
 export async function completeCart(): Promise<{ orderId: number | string; displayId: number }> {
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
@@ -195,6 +198,7 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       billingAddress: cart.billingAddress || cart.shippingAddress || {},
       paymentMethod: 'cod',
       shippingMethod: cart.shippingMethod || '',
+      currency: (cart as any).currency || 'UAH',
       subtotal: recalculatedSubtotal,
       shippingTotal,
       discountTotal,
@@ -207,7 +211,70 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
 
   await payload.update({ collection: 'carts', id: cart.id, data: { status: 'completed', completedAt: new Date().toISOString() } })
   await clearCartCookie()
-  return { orderId: order.id, displayId: (order as any).displayId }
+
+  // Send order confirmation email (fire-and-forget)
+  const displayId = (order as any).displayId
+  try {
+    const { sendOrderConfirmationEmail } = await import('@/lib/email/email-actions')
+    const shippingAddr = cart.shippingAddress
+    sendOrderConfirmationEmail({
+      email: cart.email || '',
+      customerName: shippingAddr?.firstName || '',
+      orderNumber: displayId,
+      items: cart.items as any,
+      subtotal: recalculatedSubtotal,
+      shipping: shippingTotal,
+      discount: discountTotal + loyaltyDiscount,
+      total: recalculatedTotal,
+      currency: (cart as any).currency || 'UAH',
+      shippingCity: shippingAddr?.city,
+      shippingWarehouse: shippingAddr?.address1,
+      paymentMethod: 'Накладений платіж',
+    }).catch((err) => console.error('[Email] Order confirmation failed:', err))
+  } catch (err) {
+    console.error('[Email] Import failed:', err)
+  }
+
+  return { orderId: order.id, displayId }
+}
+
+/**
+ * Set payment method on the cart.
+ */
+export async function setCartPaymentMethod(method: 'cod' | 'stripe'): Promise<PayloadCart> {
+  const payload = await getPayload({ config })
+  const cart = await getOrCreateCart()
+  const updated = await payload.update({
+    collection: 'carts',
+    id: cart.id,
+    data: { paymentMethod: method },
+    depth: 1,
+  })
+  return updated as unknown as PayloadCart
+}
+
+/**
+ * Set currency on the cart.
+ */
+export async function setCartCurrency(currency: string): Promise<PayloadCart> {
+  const validCurrencies = ['UAH', 'EUR', 'PLN', 'USD']
+  if (!validCurrencies.includes(currency)) throw new Error('Непідтримувана валюта')
+  const payload = await getPayload({ config })
+  const cart = await getOrCreateCart()
+  const updated = await payload.update({
+    collection: 'carts',
+    id: cart.id,
+    data: { currency },
+    depth: 1,
+  })
+  return updated as unknown as PayloadCart
+}
+
+/**
+ * Clear the cart cookie (exposed for use after Stripe payment completes on frontend).
+ */
+export async function clearCartAfterPayment(): Promise<void> {
+  await clearCartCookie()
 }
 
 export async function linkCartToCustomer(customerId: number | string): Promise<void> {

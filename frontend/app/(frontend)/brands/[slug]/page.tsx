@@ -1,19 +1,27 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { BrandHero, BrandInfo } from '@/components/brands'
-import { FilterSidebar, FilterState } from '@/components/shop/filter-sidebar'
+import { FilterSidebar, type FilterState } from '@/components/shop/filter-sidebar'
 import { ProductGrid } from '@/components/shop/product-grid'
-import { SortSelect, SortOption } from '@/components/shop/sort-select'
+import { SortSelect, type SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
-import { useProductsByBrand, transformProducts } from '@/lib/hooks/use-products'
+import { useProducts, transformProducts } from '@/lib/hooks/use-products'
 import { getBrandBySlug } from '@/lib/payload/actions'
 import type { Brand } from '@/lib/payload/types'
 
-const PRODUCTS_PER_PAGE = 12
+const PRODUCTS_PER_PAGE = 24
+
+function toApiSort(sort: SortOption): 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest' {
+  switch (sort) {
+    case 'price-asc': return 'price_asc'
+    case 'price-desc': return 'price_desc'
+    default: return sort
+  }
+}
 
 export default function BrandPage() {
   const params = useParams()
@@ -25,8 +33,6 @@ export default function BrandPage() {
 
   // Filters and sorting
   const [filters, setFilters] = useState<FilterState>({
-    concerns: [],
-    hairTypes: [],
     brands: [],
     priceRange: [0, 5000],
   })
@@ -51,55 +57,19 @@ export default function BrandPage() {
     }
   }, [slug])
 
-  // Fetch products by brand
-  const { data: productsData, isLoading: isLoadingProducts } = useProductsByBrand(slug)
+  // Server-side filtered products
+  const { data, isLoading: isLoadingProducts } = useProducts({
+    limit: PRODUCTS_PER_PAGE,
+    page: currentPage,
+    brandIds: brand ? [brand.id] : undefined,
+    minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+    maxPrice: filters.priceRange[1] < 5000 ? filters.priceRange[1] : undefined,
+    sortBy: toApiSort(sortBy),
+  })
 
-  // Convert to frontend format
-  const allProducts = useMemo(() => {
-    if (!productsData?.products) return []
-    return transformProducts(productsData.products)
-  }, [productsData?.products])
-
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let result = [...allProducts]
-
-    // Apply price filter
-    result = result.filter(
-      (product) =>
-        product.price >= filters.priceRange[0] &&
-        product.price <= filters.priceRange[1]
-    )
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price)
-        break
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price)
-        break
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
-        break
-      case 'newest':
-        result.sort((a, b) => (b.badge === 'Новинка' ? 1 : 0) - (a.badge === 'Новинка' ? 1 : 0))
-        break
-      case 'popular':
-      default:
-        result.sort((a, b) => b.reviewCount - a.reviewCount)
-        break
-    }
-
-    return result
-  }, [allProducts, filters, sortBy])
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
-  )
+  const products = data ? transformProducts(data.products) : []
+  const totalPages = data?.totalPages || 0
+  const totalCount = data?.count || 0
 
   // Reset page when filters change
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -110,6 +80,11 @@ export default function BrandPage() {
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort)
     setCurrentPage(1)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Loading state
@@ -163,6 +138,7 @@ export default function BrandPage() {
                 maxPrice={5000}
                 className="w-full lg:w-64 flex-shrink-0"
                 hideBrandFilter
+                hideCategoryFilter
               />
             </ScrollReveal>
 
@@ -178,11 +154,11 @@ export default function BrandPage() {
                       <>
                         Знайдено{' '}
                         <span className="font-medium text-foreground">
-                          {filteredProducts.length}
+                          {totalCount}
                         </span>{' '}
-                        {filteredProducts.length === 1
+                        {totalCount === 1
                           ? 'товар'
-                          : filteredProducts.length < 5
+                          : totalCount < 5
                           ? 'товари'
                           : 'товарів'}
                       </>
@@ -193,14 +169,14 @@ export default function BrandPage() {
                 </div>
 
                 {/* Product Grid */}
-                <ProductGrid products={paginatedProducts} isLoading={isLoadingProducts} />
+                <ProductGrid products={products} isLoading={isLoadingProducts} />
 
                 {/* Pagination */}
                 {!isLoadingProducts && totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={setCurrentPage}
+                    onPageChange={handlePageChange}
                   />
                 )}
               </div>

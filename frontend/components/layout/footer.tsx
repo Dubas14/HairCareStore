@@ -1,31 +1,9 @@
+'use client'
+
 import Link from "next/link"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { Instagram, Facebook, Youtube } from "lucide-react"
-
-const footerLinks = {
-  shop: {
-    title: "Магазин",
-    links: [
-      { name: "Каталог", href: "/shop" },
-      { name: "Новинки", href: "/shop" },
-      { name: "Акції", href: "/shop" },
-    ],
-  },
-  help: {
-    title: "Допомога",
-    links: [
-      { name: "Доставка", href: "/pages/delivery" },
-      { name: "Оплата", href: "/pages/payment" },
-      { name: "Контакти", href: "/pages/contacts" },
-    ],
-  },
-  company: {
-    title: "Компанія",
-    links: [
-      { name: "Про нас", href: "/pages/about" },
-    ],
-  },
-}
 
 // TODO: Замінити на реальні URL соціальних мереж магазину
 const socialLinks = [
@@ -35,6 +13,30 @@ const socialLinks = [
 ]
 
 export function Footer() {
+  const t = useTranslations('footer')
+  const tNav = useTranslations('nav')
+
+  const footerLinks = {
+    shop: {
+      title: tNav('shop'),
+      links: [
+        { name: tNav('shop'), href: "/shop" },
+      ],
+    },
+    help: {
+      title: t('support'),
+      links: [
+        { name: tNav('delivery'), href: "/pages/delivery" },
+        { name: tNav('contacts'), href: "/pages/contacts" },
+      ],
+    },
+    company: {
+      title: t('about'),
+      links: [
+        { name: tNav('about'), href: "/pages/about" },
+      ],
+    },
+  }
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="container mx-auto px-4 py-16">
@@ -69,8 +71,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-footer-foreground/70 leading-relaxed max-w-sm">
-              Професійна косметика для волосся з науково підтвердженими інгредієнтами.
-              Знайдіть ідеальний догляд для вашого волосся.
+              {t('aboutText')}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => {
@@ -114,14 +115,14 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-footer-foreground/60 text-sm">
-            © 2026 HAIR LAB. Всі права захищені.
+            © 2026 HAIR LAB. {t('rights')}.
           </p>
           <div className="flex gap-6 text-sm text-footer-foreground/60">
             <Link href="/pages/delivery" className="hover:text-footer-foreground transition-colors">
-              Доставка та оплата
+              {tNav('delivery')}
             </Link>
             <Link href="/pages/contacts" className="hover:text-footer-foreground transition-colors">
-              Контакти
+              {tNav('contacts')}
             </Link>
           </div>
         </div>

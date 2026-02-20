@@ -1,4 +1,5 @@
 import dynamicImport from 'next/dynamic'
+import { getLocale } from 'next-intl/server'
 import { CategoriesSection } from '@/components/home/categories-section'
 import { FeaturedProducts } from '@/components/home/featured-products'
 import { BrandsSection } from '@/components/home/brands-section'
@@ -7,6 +8,7 @@ import { NewsletterSection } from '@/components/home/newsletter-section'
 import { PromoBlocks } from '@/components/home/promo-blocks'
 import { getBanners, getPromoBlocks, getCategories, getBrands } from '@/lib/payload/client'
 import { HomePageAnimations } from '@/components/home/home-page-animations'
+import { buildWebSiteJsonLd, buildSiteNavigationJsonLd } from '@/lib/structured-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,21 +39,31 @@ const HeroSliderCMS = dynamicImport(
 )
 
 export default async function HomePage() {
+  const locale = await getLocale()
   // Завантажуємо контент з Payload CMS
   const [banners, promoBlocks, categories, brands] = await Promise.all([
-    getBanners('home'),
-    getPromoBlocks(),
-    getCategories(),
-    getBrands(),
+    getBanners('home', locale),
+    getPromoBlocks(locale),
+    getCategories(locale),
+    getBrands(locale),
   ])
 
-  // Organization JSON-LD is built from trusted static server-side data only
+  // WebSite + SiteNavigation JSON-LD for Google Search/Sitelinks
+  const webSiteJsonLd = buildWebSiteJsonLd()
+  const navJsonLd = buildSiteNavigationJsonLd([
+    { name: 'Каталог', url: '/shop' },
+    { name: 'Категорії', url: '/categories' },
+    { name: 'Бренди', url: '/brands' },
+    { name: 'Блог', url: '/blog' },
+  ])
+
+  // All JSON-LD below is built from trusted static server-side data only (no user input)
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: organizationJsonLd }}
-      />
+      {/* Safe: all JSON-LD built from trusted server-side constants, not user input */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: organizationJsonLd }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: webSiteJsonLd }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: navJsonLd }} />
       <HomePageAnimations>
         <HeroSliderCMS banners={banners} />
         <CategoriesSection categories={categories} />

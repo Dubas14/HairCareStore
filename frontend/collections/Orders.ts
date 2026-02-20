@@ -91,6 +91,15 @@ export const Orders: CollectionConfig = {
       ],
       admin: { position: 'sidebar' },
     },
+    {
+      name: 'trackingNumber',
+      label: 'Номер ТТН',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        description: 'Номер для відстеження посилки',
+      },
+    },
 
     // --- Товари ---
     {
@@ -129,13 +138,43 @@ export const Orders: CollectionConfig = {
     {
       name: 'paymentMethod',
       label: 'Спосіб оплати',
-      type: 'text',
+      type: 'select',
       defaultValue: 'cod',
+      options: [
+        { label: 'Накладений платіж', value: 'cod' },
+        { label: 'Онлайн оплата (Stripe)', value: 'stripe' },
+      ],
+      admin: { position: 'sidebar' },
     },
     {
       name: 'shippingMethod',
       label: 'Спосіб доставки',
       type: 'text',
+    },
+    {
+      name: 'currency',
+      label: 'Валюта',
+      type: 'select',
+      defaultValue: 'UAH',
+      options: [
+        { label: 'UAH (₴)', value: 'UAH' },
+        { label: 'EUR (€)', value: 'EUR' },
+        { label: 'PLN (zł)', value: 'PLN' },
+        { label: 'USD ($)', value: 'USD' },
+      ],
+      admin: { position: 'sidebar' },
+    },
+
+    // --- Stripe ---
+    {
+      name: 'stripePaymentIntentId',
+      label: 'Stripe Payment Intent',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'ID платіжного наміру Stripe',
+      },
     },
 
     // --- Суми ---
@@ -174,6 +213,8 @@ export const Orders: CollectionConfig = {
       ],
     },
     { name: 'discountTotal', type: 'number', defaultValue: 0, admin: { hidden: true } },
+    { name: 'promoCode', type: 'text', admin: { description: 'Застосований промокод' } },
+    { name: 'promoDiscount', type: 'number', defaultValue: 0, admin: { description: 'Знижка за промокодом' } },
     { name: 'loyaltyPointsUsed', type: 'number', defaultValue: 0, admin: { hidden: true } },
     { name: 'loyaltyDiscount', type: 'number', defaultValue: 0, admin: { hidden: true } },
     { name: 'cartId', type: 'text', admin: { hidden: true } },
@@ -193,6 +234,31 @@ export const Orders: CollectionConfig = {
           data!.displayId = (lastOrder.docs[0]?.displayId || 0) + 1
         }
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, operation }) => {
+        // Send shipping notification when fulfillmentStatus changes to 'shipped'
+        if (
+          operation === 'update' &&
+          doc.fulfillmentStatus === 'shipped' &&
+          previousDoc?.fulfillmentStatus !== 'shipped' &&
+          doc.email
+        ) {
+          try {
+            const { sendShippingNotificationEmail } = await import('@/lib/email/email-actions')
+            const shippingAddr = doc.shippingAddress || {}
+            sendShippingNotificationEmail({
+              email: doc.email,
+              customerName: shippingAddr.firstName || '',
+              orderNumber: doc.displayId,
+              trackingNumber: doc.trackingNumber,
+              carrier: doc.shippingMethod || 'Нова Пошта',
+            }).catch((err: any) => console.error('[Email] Shipping notification failed:', err))
+          } catch (err) {
+            console.error('[Email] Import failed:', err)
+          }
+        }
       },
     ],
   },

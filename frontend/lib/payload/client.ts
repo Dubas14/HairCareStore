@@ -183,7 +183,7 @@ function transformBlogPost(doc: any): BlogPost {
 
 // ─── Data fetching functions (Server-only) ───────────────────────
 
-export async function getBanners(position?: Banner['position']): Promise<Banner[]> {
+export async function getBanners(position?: Banner['position'], locale?: string): Promise<Banner[]> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -194,6 +194,7 @@ export async function getBanners(position?: Banner['position']): Promise<Banner[
       },
       sort: 'order',
       limit: 100,
+      locale: locale as any,
     })
     return result.docs.map(transformBanner)
   } catch (error) {
@@ -202,7 +203,7 @@ export async function getBanners(position?: Banner['position']): Promise<Banner[
   }
 }
 
-export async function getPromoBlocks(): Promise<PromoBlock[]> {
+export async function getPromoBlocks(locale?: string): Promise<PromoBlock[]> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -211,6 +212,7 @@ export async function getPromoBlocks(): Promise<PromoBlock[]> {
         isActive: { equals: true },
       },
       limit: 100,
+      locale: locale as any,
     })
     return result.docs.map(transformPromoBlock)
   } catch (error) {
@@ -219,7 +221,7 @@ export async function getPromoBlocks(): Promise<PromoBlock[]> {
   }
 }
 
-export async function getPageBySlug(slug: string): Promise<Page | null> {
+export async function getPageBySlug(slug: string, locale?: string): Promise<Page | null> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -229,6 +231,7 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
         isPublished: { equals: true },
       },
       limit: 1,
+      locale: locale as any,
     })
     return result.docs[0] ? transformPage(result.docs[0]) : null
   } catch (error) {
@@ -237,7 +240,7 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
   }
 }
 
-export async function getPages(): Promise<Page[]> {
+export async function getPages(locale?: string): Promise<Page[]> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -246,6 +249,7 @@ export async function getPages(): Promise<Page[]> {
         isPublished: { equals: true },
       },
       limit: 100,
+      locale: locale as any,
     })
     return result.docs.map(transformPage)
   } catch (error) {
@@ -254,7 +258,7 @@ export async function getPages(): Promise<Page[]> {
   }
 }
 
-export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+export async function getCategoryBySlug(slug: string, locale?: string): Promise<Category | null> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -265,6 +269,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
       },
       limit: 1,
       depth: 2,
+      locale: locale as any,
     })
     return result.docs[0] ? transformCategory(result.docs[0]) : null
   } catch (error) {
@@ -273,7 +278,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
   }
 }
 
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(locale?: string): Promise<Category[]> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -285,6 +290,7 @@ export async function getCategories(): Promise<Category[]> {
       sort: 'order',
       limit: 100,
       depth: 1,
+      locale: locale as any,
     })
     return result.docs.map(transformCategory)
   } catch (error) {
@@ -293,7 +299,7 @@ export async function getCategories(): Promise<Category[]> {
   }
 }
 
-export async function getBrandBySlug(slug: string): Promise<Brand | null> {
+export async function getBrandBySlug(slug: string, locale?: string): Promise<Brand | null> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -304,6 +310,7 @@ export async function getBrandBySlug(slug: string): Promise<Brand | null> {
       },
       limit: 1,
       depth: 1,
+      locale: locale as any,
     })
     return result.docs[0] ? transformBrand(result.docs[0]) : null
   } catch (error) {
@@ -312,7 +319,7 @@ export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   }
 }
 
-export async function getBrands(): Promise<Brand[]> {
+export async function getBrands(locale?: string): Promise<Brand[]> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -323,6 +330,7 @@ export async function getBrands(): Promise<Brand[]> {
       sort: 'order',
       limit: 100,
       depth: 1,
+      locale: locale as any,
     })
     return result.docs.map(transformBrand)
   } catch (error) {
@@ -336,30 +344,103 @@ export async function getBrands(): Promise<Brand[]> {
 export async function getProducts(options: {
   limit?: number
   offset?: number
+  page?: number
   categoryId?: number | string
+  categoryIds?: (string | number)[]
   brandId?: number | string
-} = {}): Promise<{ products: PayloadProduct[]; count: number }> {
+  brandIds?: (string | number)[]
+  search?: string
+  minPrice?: number
+  maxPrice?: number
+  tags?: string[]
+  sortBy?: 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest'
+  locale?: string
+} = {}): Promise<{
+  products: PayloadProduct[]
+  count: number
+  totalPages: number
+  currentPage: number
+  hasNextPage: boolean
+}> {
   try {
     const payload = await getPayload({ config })
-    const where: Record<string, any> = { status: { equals: 'active' } }
-    if (options.categoryId) where.categories = { contains: options.categoryId }
-    if (options.brandId) where.brand = { equals: options.brandId }
+    const andConditions: Record<string, any>[] = [{ status: { equals: 'active' } }]
+
+    // Search by title/subtitle
+    if (options.search) {
+      andConditions.push({
+        or: [
+          { title: { like: options.search } },
+          { subtitle: { like: options.search } },
+        ],
+      })
+    }
+
+    // Category filter (single or multiple)
+    if (options.categoryIds?.length) {
+      andConditions.push({ categories: { in: options.categoryIds } })
+    } else if (options.categoryId) {
+      andConditions.push({ categories: { contains: options.categoryId } })
+    }
+
+    // Brand filter (single or multiple)
+    if (options.brandIds?.length) {
+      andConditions.push({ brand: { in: options.brandIds } })
+    } else if (options.brandId) {
+      andConditions.push({ brand: { equals: options.brandId } })
+    }
+
+    // Price range filter (on first variant)
+    if (options.minPrice !== undefined) {
+      andConditions.push({ 'variants.price': { greater_than_equal: options.minPrice } })
+    }
+    if (options.maxPrice !== undefined) {
+      andConditions.push({ 'variants.price': { less_than_equal: options.maxPrice } })
+    }
+
+    // Tags filter
+    if (options.tags?.length) {
+      andConditions.push({ 'tags.tag': { in: options.tags } })
+    }
+
+    const where = andConditions.length === 1 ? andConditions[0] : { and: andConditions }
+
+    // Sort mapping
+    let sort: string = '-createdAt'
+    switch (options.sortBy) {
+      case 'price_asc': sort = 'variants.price'; break
+      case 'price_desc': sort = '-variants.price'; break
+      case 'newest': sort = '-createdAt'; break
+      case 'popular': sort = '-createdAt'; break // TODO: add popularity/sales field
+      case 'rating': sort = '-createdAt'; break // TODO: add rating field
+    }
+
+    const limit = options.limit || 24
+    const pageNum = options.page || (options.offset ? Math.floor(options.offset / limit) + 1 : 1)
+
     const result = await payload.find({
       collection: 'products',
       where,
-      limit: options.limit || 20,
-      page: options.offset ? Math.floor(options.offset / (options.limit || 20)) + 1 : 1,
+      limit,
+      page: pageNum,
       depth: 1,
-      sort: '-createdAt',
+      sort,
+      locale: options.locale as any,
     })
-    return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
+    return {
+      products: result.docs as unknown as PayloadProduct[],
+      count: result.totalDocs,
+      totalPages: result.totalPages,
+      currentPage: result.page || 1,
+      hasNextPage: result.hasNextPage,
+    }
   } catch (error) {
     console.error('Error fetching products:', error)
-    return { products: [], count: 0 }
+    return { products: [], count: 0, totalPages: 0, currentPage: 1, hasNextPage: false }
   }
 }
 
-export async function getProductByHandle(handle: string): Promise<PayloadProduct | null> {
+export async function getProductByHandle(handle: string, locale?: string): Promise<PayloadProduct | null> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -367,6 +448,7 @@ export async function getProductByHandle(handle: string): Promise<PayloadProduct
       where: { handle: { equals: handle }, status: { equals: 'active' } },
       limit: 1,
       depth: 2,
+      locale: locale as any,
     })
     return result.docs[0] ? (result.docs[0] as unknown as PayloadProduct) : null
   } catch (error) {
@@ -375,7 +457,7 @@ export async function getProductByHandle(handle: string): Promise<PayloadProduct
   }
 }
 
-export async function searchProducts(query: string): Promise<{ products: PayloadProduct[]; count: number }> {
+export async function searchProducts(query: string, locale?: string): Promise<{ products: PayloadProduct[]; count: number }> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -388,6 +470,7 @@ export async function searchProducts(query: string): Promise<{ products: Payload
       },
       limit: 20,
       depth: 1,
+      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -396,7 +479,7 @@ export async function searchProducts(query: string): Promise<{ products: Payload
   }
 }
 
-export async function getProductsByCategory(categorySlug: string): Promise<{ products: PayloadProduct[]; count: number }> {
+export async function getProductsByCategory(categorySlug: string, locale?: string): Promise<{ products: PayloadProduct[]; count: number }> {
   try {
     const payload = await getPayload({ config })
     const catResult = await payload.find({ collection: 'categories', where: { slug: { equals: categorySlug } }, limit: 1 })
@@ -406,6 +489,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<{ pro
       where: { status: { equals: 'active' }, categories: { contains: catResult.docs[0].id } },
       limit: 100,
       depth: 1,
+      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -414,7 +498,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<{ pro
   }
 }
 
-export async function getProductsByBrand(brandSlug: string): Promise<{ products: PayloadProduct[]; count: number }> {
+export async function getProductsByBrand(brandSlug: string, locale?: string): Promise<{ products: PayloadProduct[]; count: number }> {
   try {
     const payload = await getPayload({ config })
     const brandResult = await payload.find({ collection: 'brands', where: { slug: { equals: brandSlug } }, limit: 1 })
@@ -424,6 +508,7 @@ export async function getProductsByBrand(brandSlug: string): Promise<{ products:
       where: { status: { equals: 'active' }, brand: { equals: brandResult.docs[0].id } },
       limit: 100,
       depth: 1,
+      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -467,7 +552,7 @@ export async function getProductRating(productId: number | string): Promise<{ av
 
 // ─── Blog data fetching ─────────────────────────────────────────
 
-export async function getBlogPosts(options: { limit?: number; offset?: number } = {}): Promise<{ posts: BlogPost[]; count: number }> {
+export async function getBlogPosts(options: { limit?: number; offset?: number; locale?: string } = {}): Promise<{ posts: BlogPost[]; count: number }> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -479,6 +564,7 @@ export async function getBlogPosts(options: { limit?: number; offset?: number } 
       limit: options.limit || 20,
       page: options.offset ? Math.floor(options.offset / (options.limit || 20)) + 1 : 1,
       depth: 1,
+      locale: options.locale as any,
     })
     return { posts: result.docs.map(transformBlogPost), count: result.totalDocs }
   } catch (error) {
@@ -487,7 +573,7 @@ export async function getBlogPosts(options: { limit?: number; offset?: number } 
   }
 }
 
-export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+export async function getBlogPostBySlug(slug: string, locale?: string): Promise<BlogPost | null> {
   try {
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -498,6 +584,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       },
       limit: 1,
       depth: 1,
+      locale: locale as any,
     })
     return result.docs[0] ? transformBlogPost(result.docs[0]) : null
   } catch (error) {
@@ -544,10 +631,10 @@ export interface SiteSettingsData {
   }
 }
 
-export async function getSiteSettings(): Promise<SiteSettingsData | null> {
+export async function getSiteSettings(locale?: string): Promise<SiteSettingsData | null> {
   try {
     const payload = await getPayload({ config })
-    const result = await payload.findGlobal({ slug: 'site-settings' })
+    const result = await payload.findGlobal({ slug: 'site-settings', locale: locale as any })
     return result as unknown as SiteSettingsData
   } catch (error) {
     console.error('Error fetching site settings:', error)

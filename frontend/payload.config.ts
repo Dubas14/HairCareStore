@@ -18,6 +18,9 @@ import {
   Orders,
   LoyaltyPoints,
   LoyaltyTransactions,
+  Promotions,
+  PromotionUsages,
+  Subscribers,
 } from './collections'
 import { LoyaltySettings } from './globals/LoyaltySettings'
 import { ShippingConfig } from './globals/ShippingConfig'
@@ -26,6 +29,17 @@ import { SiteSettings } from './globals/SiteSettings'
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
 
+  localization: {
+    locales: [
+      { label: 'Українська', code: 'uk' },
+      { label: 'English', code: 'en' },
+      { label: 'Polski', code: 'pl' },
+      { label: 'Deutsch', code: 'de' },
+      { label: 'Русский', code: 'ru' },
+    ],
+    defaultLocale: 'uk',
+    fallback: true,
+  },
 
   db: postgresAdapter({
     pool: {
@@ -52,6 +66,9 @@ export default buildConfig({
     Orders,
     LoyaltyPoints,
     LoyaltyTransactions,
+    Promotions,
+    PromotionUsages,
+    Subscribers,
   ],
 
   globals: [

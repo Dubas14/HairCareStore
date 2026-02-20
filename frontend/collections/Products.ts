@@ -1,8 +1,53 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionAfterChangeHook } from 'payload'
+
+const LOW_STOCK_THRESHOLD = 5
+
+const autoInventoryHook: CollectionAfterChangeHook = async ({ doc, previousDoc, req }) => {
+  if (!doc?.variants || !Array.isArray(doc.variants)) return doc
+
+  let needsUpdate = false
+  const updatedVariants = doc.variants.map((variant: Record<string, unknown>, idx: number) => {
+    const inventory = (variant.inventory as number) ?? 0
+    const wasInStock = previousDoc?.variants?.[idx]?.inStock
+
+    // Auto-set inStock based on inventory
+    if (inventory <= 0 && variant.inStock) {
+      needsUpdate = true
+      return { ...variant, inStock: false }
+    }
+    if (inventory > 0 && !variant.inStock && wasInStock === false) {
+      needsUpdate = true
+      return { ...variant, inStock: true }
+    }
+
+    // Log low stock warning
+    if (inventory > 0 && inventory <= LOW_STOCK_THRESHOLD) {
+      req.payload.logger.warn(
+        `Low stock: "${doc.title}" variant "${variant.title}" has only ${inventory} units`
+      )
+    }
+
+    return variant
+  })
+
+  if (needsUpdate) {
+    await req.payload.update({
+      collection: 'products',
+      id: doc.id,
+      data: { variants: updatedVariants },
+      depth: 0,
+    })
+  }
+
+  return doc
+}
 
 export const Products: CollectionConfig = {
   slug: 'products',
   labels: { singular: 'Товар', plural: 'Товари' },
+  hooks: {
+    afterChange: [autoInventoryHook],
+  },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'handle', 'status', 'updatedAt'],
@@ -27,7 +72,7 @@ export const Products: CollectionConfig = {
     delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [
-    { name: 'title', type: 'text', required: true },
+    { name: 'title', type: 'text', required: true, localized: true },
     { name: 'handle', type: 'text', required: true, unique: true, admin: { position: 'sidebar' } },
     {
       name: 'barcode',
@@ -39,8 +84,8 @@ export const Products: CollectionConfig = {
         description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
       },
     },
-    { name: 'subtitle', type: 'text', admin: { description: 'Brand name or short tagline' } },
-    { name: 'description', type: 'richText' },
+    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Brand name or short tagline' } },
+    { name: 'description', type: 'richText', localized: true },
     { name: 'thumbnail', type: 'upload', relationTo: 'media' },
     {
       name: 'images',

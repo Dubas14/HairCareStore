@@ -136,6 +136,8 @@ export interface Review {
   rating: number
   text: string
   product?: PayloadProduct | number | string
+  images?: Array<{ image: PayloadMedia }>
+  verifiedPurchase?: boolean
   isApproved: boolean
   publishedAt?: string
 }
@@ -288,6 +290,8 @@ export interface CartAddress {
   postalCode?: string
 }
 
+export type CurrencyCode = 'UAH' | 'EUR' | 'PLN' | 'USD'
+
 export interface PayloadCart {
   id: number | string
   customer?: PayloadCustomer | number | string
@@ -301,7 +305,13 @@ export interface PayloadCart {
   discountTotal: number
   loyaltyPointsUsed: number
   loyaltyDiscount: number
+  promoCode?: string
+  promoDiscount: number
   total: number
+  currency: CurrencyCode
+  paymentMethod?: string
+  stripePaymentIntentId?: string
+  stripeClientSecret?: string
   status: 'active' | 'completed' | 'abandoned'
   completedAt?: string
 }
@@ -329,9 +339,13 @@ export interface PayloadOrder {
   billingAddress?: CartAddress
   paymentMethod: string
   shippingMethod?: string
+  currency: CurrencyCode
+  stripePaymentIntentId?: string
   subtotal: number
   shippingTotal: number
   discountTotal: number
+  promoCode?: string
+  promoDiscount: number
   loyaltyPointsUsed: number
   loyaltyDiscount: number
   total: number

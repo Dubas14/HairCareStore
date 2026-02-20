@@ -126,6 +126,11 @@ export async function registerCustomer(data: {
         maxAge: 60 * 60 * 24 * 30,
         path: '/',
       })
+
+      // Send welcome email (fire-and-forget)
+      import('@/lib/email/email-actions')
+        .then(({ sendWelcomeEmail }) => sendWelcomeEmail(data.email, data.firstName))
+        .catch((err) => console.error('[Email] Welcome email failed:', err))
     }
 
     return loginResult.user

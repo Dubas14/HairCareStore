@@ -4,22 +4,28 @@ import { useState, useMemo, useEffect, useCallback, Suspense } from 'react'
 import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { CategoryHero, Subcategories, PopularProducts, CategoryPromo } from '@/components/categories'
-import { FilterSidebar, FilterState } from '@/components/shop/filter-sidebar'
+import { FilterSidebar, type FilterState } from '@/components/shop/filter-sidebar'
 import { ProductGrid } from '@/components/shop/product-grid'
-import { SortSelect, SortOption } from '@/components/shop/sort-select'
+import { SortSelect, type SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
-import { useProductsByCategory, transformProducts } from '@/lib/hooks/use-products'
+import { useProducts, transformProducts } from '@/lib/hooks/use-products'
 import { getCategoryBySlug } from '@/lib/payload/actions'
 import type { Category } from '@/lib/payload/types'
 
-const PRODUCTS_PER_PAGE = 12
+const PRODUCTS_PER_PAGE = 24
+
+function toApiSort(sort: SortOption): 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'newest' {
+  switch (sort) {
+    case 'price-asc': return 'price_asc'
+    case 'price-desc': return 'price_desc'
+    default: return sort
+  }
+}
 
 function parseFiltersFromParams(params: URLSearchParams): FilterState {
   return {
-    concerns: params.get('concerns')?.split(',').filter(Boolean) || [],
-    hairTypes: params.get('hairTypes')?.split(',').filter(Boolean) || [],
     brands: params.get('brands')?.split(',').filter(Boolean) || [],
     priceRange: [
       Number(params.get('priceMin')) || 0,
@@ -43,20 +49,16 @@ function CategoryContent() {
   const urlPage = Number(searchParams.get('page')) || 1
   const urlSort = (searchParams.get('sort') as SortOption) || 'popular'
 
-  // Filters and sorting — initialized from URL params
   const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams))
   const [sortBy, setSortBy] = useState<SortOption>(urlSort)
   const [currentPage, setCurrentPage] = useState(urlPage)
 
-  // Sync URL params when state changes
+  // Sync URL params
   const updateUrl = useCallback((newFilters: FilterState, newSort: SortOption, newPage: number) => {
     const params = new URLSearchParams()
-
     if (newSort !== 'popular') params.set('sort', newSort)
     if (newPage > 1) params.set('page', String(newPage))
     if (newFilters.brands.length > 0) params.set('brands', newFilters.brands.join(','))
-    if (newFilters.concerns.length > 0) params.set('concerns', newFilters.concerns.join(','))
-    if (newFilters.hairTypes.length > 0) params.set('hairTypes', newFilters.hairTypes.join(','))
     if (newFilters.priceRange[0] > 0) params.set('priceMin', String(newFilters.priceRange[0]))
     if (newFilters.priceRange[1] < 5000) params.set('priceMax', String(newFilters.priceRange[1]))
 
@@ -89,74 +91,30 @@ function CategoryContent() {
     }
   }, [slug])
 
-  // Fetch products by category
-  const { data: productsData, isLoading: isLoadingProducts } = useProductsByCategory(slug)
+  // Server-side filtered products
+  const { data, isLoading: isLoadingProducts } = useProducts({
+    limit: PRODUCTS_PER_PAGE,
+    page: currentPage,
+    categoryIds: category ? [category.id] : undefined,
+    brandIds: filters.brands.length > 0 ? filters.brands : undefined,
+    minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+    maxPrice: filters.priceRange[1] < 5000 ? filters.priceRange[1] : undefined,
+    sortBy: toApiSort(sortBy),
+  })
 
-  // Convert to frontend format
-  const allProducts = useMemo(() => {
-    if (!productsData?.products) return []
-    return transformProducts(productsData.products)
-  }, [productsData?.products])
+  const products = data ? transformProducts(data.products) : []
+  const totalPages = data?.totalPages || 0
+  const totalCount = data?.count || 0
 
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let result = [...allProducts]
+  // Popular products (first page, sorted by popular, limited to 4)
+  const { data: popularData } = useProducts({
+    limit: 4,
+    categoryIds: category ? [category.id] : undefined,
+    sortBy: 'popular',
+  })
+  const popularProducts = popularData ? transformProducts(popularData.products) : []
 
-    // Apply brand filter
-    if (filters.brands.length > 0) {
-      result = result.filter((product) =>
-        filters.brands.some(
-          (brand) => product.brand.toLowerCase().replace(/\s+/g, '-') === brand
-        )
-      )
-    }
-
-    // Apply price filter
-    result = result.filter(
-      (product) =>
-        product.price >= filters.priceRange[0] &&
-        product.price <= filters.priceRange[1]
-    )
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-asc':
-        result.sort((a, b) => a.price - b.price)
-        break
-      case 'price-desc':
-        result.sort((a, b) => b.price - a.price)
-        break
-      case 'rating':
-        result.sort((a, b) => b.rating - a.rating)
-        break
-      case 'newest':
-        result.sort((a, b) => (b.badge === 'Новинка' ? 1 : 0) - (a.badge === 'Новинка' ? 1 : 0))
-        break
-      case 'popular':
-      default:
-        result.sort((a, b) => b.reviewCount - a.reviewCount)
-        break
-    }
-
-    return result
-  }, [allProducts, filters, sortBy])
-
-  // Popular products (first 4 with highest rating)
-  const popularProducts = useMemo(() => {
-    return [...allProducts]
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, 4)
-  }, [allProducts])
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
-  const safePage = Math.min(currentPage, Math.max(totalPages, 1))
-  const paginatedProducts = filteredProducts.slice(
-    (safePage - 1) * PRODUCTS_PER_PAGE,
-    safePage * PRODUCTS_PER_PAGE
-  )
-
-  // Handlers that update both state and URL
+  // Handlers
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters)
     setCurrentPage(1)
@@ -255,6 +213,7 @@ function CategoryContent() {
                 onFiltersChange={handleFiltersChange}
                 maxPrice={5000}
                 className="w-full lg:w-64 flex-shrink-0"
+                hideCategoryFilter
               />
             </ScrollReveal>
 
@@ -270,11 +229,11 @@ function CategoryContent() {
                       <>
                         Знайдено{' '}
                         <span className="font-medium text-foreground">
-                          {filteredProducts.length}
+                          {totalCount}
                         </span>{' '}
-                        {filteredProducts.length === 1
+                        {totalCount === 1
                           ? 'товар'
-                          : filteredProducts.length < 5
+                          : totalCount < 5
                           ? 'товари'
                           : 'товарів'}
                       </>
@@ -285,12 +244,12 @@ function CategoryContent() {
                 </div>
 
                 {/* Product Grid */}
-                <ProductGrid products={paginatedProducts} isLoading={isLoadingProducts} />
+                <ProductGrid products={products} isLoading={isLoadingProducts} />
 
                 {/* Pagination */}
                 {!isLoadingProducts && totalPages > 1 && (
                   <Pagination
-                    currentPage={safePage}
+                    currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                   />
@@ -304,7 +263,7 @@ function CategoryContent() {
   )
 }
 
-// Loading fallback for Suspense (required when using useSearchParams)
+// Loading fallback for Suspense
 function CategoryLoading() {
   return (
     <main className="min-h-screen bg-background flex items-center justify-center">
