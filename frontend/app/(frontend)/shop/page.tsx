@@ -65,7 +65,8 @@ function ShopContent() {
   }, [searchParams])
 
   // Fetch products
-  const { data, isLoading, error } = useProducts({ limit: 1000 })
+  // limit: 500 is a practical cap for client-side filtering; ideally migrate to server-side filtering/pagination via Payload API
+  const { data, isLoading, error } = useProducts({ limit: 500 })
 
   // Search results if there's a query
   const { data: searchData, isLoading: isSearching } = useSearchProducts(localSearch)
@@ -222,8 +223,23 @@ function ShopContent() {
             <div>
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div />
-
+                <p className="text-sm text-muted-foreground">
+                  {isLoadingProducts ? (
+                    'Завантаження...'
+                  ) : (
+                    <>
+                      Знайдено{' '}
+                      <span className="font-medium text-foreground">
+                        {filteredProducts.length}
+                      </span>{' '}
+                      {filteredProducts.length === 1
+                        ? 'товар'
+                        : filteredProducts.length < 5
+                        ? 'товари'
+                        : 'товарів'}
+                    </>
+                  )}
+                </p>
                 <SortSelect value={sortBy} onChange={handleSortChange} />
               </div>
 

@@ -27,10 +27,11 @@ const footerLinks = {
   },
 }
 
+// TODO: Замінити на реальні URL соціальних мереж магазину
 const socialLinks = [
-  { name: "Instagram", href: "https://instagram.com", icon: Instagram },
-  { name: "Facebook", href: "https://facebook.com", icon: Facebook },
-  { name: "YouTube", href: "https://youtube.com", icon: Youtube },
+  { name: "Instagram", href: "https://instagram.com/hairlab.ua", icon: Instagram },
+  { name: "Facebook", href: "https://facebook.com/hairlab.ua", icon: Facebook },
+  { name: "YouTube", href: "https://youtube.com/@hairlab", icon: Youtube },
 ]
 
 export function Footer() {

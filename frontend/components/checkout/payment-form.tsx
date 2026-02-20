@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { CreditCard, Banknote, Lock, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -38,6 +39,8 @@ export function PaymentForm({ onSubmit, onBack, isProcessing, total }: PaymentFo
   const [formData, setFormData] = useState<PaymentFormData>({
     method: 'cod',
   })
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [termsError, setTermsError] = useState(false)
 
   const handleMethodChange = (method: PaymentMethod) => {
     if (method === 'online') return // Disabled for now
@@ -46,6 +49,10 @@ export function PaymentForm({ onSubmit, onBack, isProcessing, total }: PaymentFo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!agreedToTerms) {
+      setTermsError(true)
+      return
+    }
     onSubmit(formData)
   }
 
@@ -133,6 +140,36 @@ export function PaymentForm({ onSubmit, onBack, isProcessing, total }: PaymentFo
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Lock className="w-4 h-4" />
         <span>Ваші дані захищені SSL шифруванням</span>
+      </div>
+
+      {/* Terms agreement */}
+      <div className="space-y-1">
+        <label className="flex items-start gap-3 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={(e) => {
+              setAgreedToTerms(e.target.checked)
+              if (e.target.checked) setTermsError(false)
+            }}
+            className="mt-1 w-4 h-4 rounded border-border accent-primary"
+          />
+          <span className="text-muted-foreground">
+            Я погоджуюсь з{' '}
+            <Link href="/pages/delivery" className="text-primary hover:underline">
+              умовами доставки
+            </Link>
+            {' '}та{' '}
+            <Link href="/pages/payment" className="text-primary hover:underline">
+              оплати
+            </Link>
+          </span>
+        </label>
+        {termsError && (
+          <p className="text-sm text-destructive ml-7" role="alert">
+            Необхідно погодитись з умовами
+          </p>
+        )}
       </div>
 
       {/* Actions */}

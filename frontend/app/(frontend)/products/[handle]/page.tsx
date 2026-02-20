@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getProductByHandle } from '@/lib/payload/client'
+import { getProductByHandle, getProductRating } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'
 import ProductPageContent from './ProductPageContent'
 
@@ -30,6 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title,
       description,
@@ -49,7 +52,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function buildProductJsonLd(product: NonNullable<Awaited<ReturnType<typeof getProductByHandle>>>, brand: string, url: string, imageUrl: string | null) {
+function buildProductJsonLd(
+  product: NonNullable<Awaited<ReturnType<typeof getProductByHandle>>>,
+  brand: string,
+  url: string,
+  imageUrl: string | null,
+  ratingAverage?: number,
+  ratingCount?: number,
+) {
   const variant = product.variants?.[0]
   const price = variant?.price || 0
   const compareAtPrice = variant?.compareAtPrice
@@ -65,6 +75,15 @@ function buildProductJsonLd(product: NonNullable<Awaited<ReturnType<typeof getPr
     ...(imageUrl && { image: imageUrl }),
     brand: { '@type': 'Brand', name: brand },
     sku: variant?.sku || product.handle,
+    ...(ratingCount && ratingCount > 0 && ratingAverage && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: ratingAverage.toFixed(1),
+        reviewCount: ratingCount,
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }),
     offers: {
       '@type': 'Offer',
       url,
@@ -106,8 +125,21 @@ export default async function ProductPage({ params }: Props) {
   const imageUrl = product ? getImageUrl(product.thumbnail) : null
   const url = `${BASE_URL}/products/${handle}`
 
+  // Fetch rating data server-side for JSON-LD aggregateRating
+  let ratingAverage = 0
+  let ratingCount = 0
+  if (product) {
+    try {
+      const rating = await getProductRating(product.id)
+      ratingAverage = rating.average
+      ratingCount = rating.count
+    } catch {
+      // Rating data is optional, skip gracefully
+    }
+  }
+
   // JSON-LD is built from trusted server-side CMS data only (no user input)
-  const productJsonLd = product ? buildProductJsonLd(product, brand, url, imageUrl) : null
+  const productJsonLd = product ? buildProductJsonLd(product, brand, url, imageUrl, ratingAverage, ratingCount) : null
   const breadcrumbJsonLd = product ? buildBreadcrumbJsonLd(product, brand) : null
 
   return (

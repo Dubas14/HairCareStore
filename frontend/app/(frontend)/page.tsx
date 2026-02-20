@@ -10,6 +10,27 @@ import { HomePageAnimations } from '@/components/home/home-page-animations'
 
 export const dynamic = 'force-dynamic'
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
+
+const organizationJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'HAIR LAB',
+  url: BASE_URL,
+  logo: `${BASE_URL}/logo.png`,
+  description: 'Інтернет-магазин професійної косметики для волосся',
+  sameAs: [
+    'https://www.instagram.com/hairlab.ua',
+    'https://www.facebook.com/hairlab.ua',
+    'https://www.youtube.com/@hairlab.ua',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer service',
+    availableLanguage: 'Ukrainian',
+  },
+})
+
 const HeroSliderCMS = dynamicImport(
   () => import('@/components/home/hero-slider-cms').then(mod => ({ default: mod.HeroSliderCMS })),
   { loading: () => <div className="w-full h-[500px] md:h-[600px] bg-muted animate-pulse rounded-lg" /> }
@@ -24,15 +45,22 @@ export default async function HomePage() {
     getBrands(),
   ])
 
+  // Organization JSON-LD is built from trusted static server-side data only
   return (
-    <HomePageAnimations>
-      <HeroSliderCMS banners={banners} />
-      <CategoriesSection categories={categories} />
-      <PromoBlocks blocks={promoBlocks} />
-      <FeaturedProducts />
-      <BrandsSection brands={brands} />
-      <BenefitsSection />
-      <NewsletterSection />
-    </HomePageAnimations>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: organizationJsonLd }}
+      />
+      <HomePageAnimations>
+        <HeroSliderCMS banners={banners} />
+        <CategoriesSection categories={categories} />
+        <PromoBlocks blocks={promoBlocks} />
+        <FeaturedProducts />
+        <BrandsSection brands={brands} />
+        <BenefitsSection />
+        <NewsletterSection />
+      </HomePageAnimations>
+    </>
   )
 }

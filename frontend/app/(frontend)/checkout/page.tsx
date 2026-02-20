@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, Package, AlertCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Package, AlertCircle, ShieldCheck, Truck, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   CheckoutSteps,
@@ -13,6 +13,7 @@ import {
   PaymentForm,
 } from '@/components/checkout'
 import { useCartContext } from '@/components/providers/cart-provider'
+import { useCartStore } from '@/stores/cart-store'
 import { useCustomer } from '@/lib/hooks/use-customer'
 import { useAddresses } from '@/lib/hooks/use-addresses'
 import {
@@ -33,6 +34,7 @@ interface ContactData {
 interface ShippingData {
   city: string
   warehouse: string
+  shippingMethodId: string
 }
 
 interface PaymentData {
@@ -53,7 +55,8 @@ interface CompletedOrder {
 }
 
 export default function CheckoutPage() {
-  const { cart, isLoading: isCartLoading, refreshCart } = useCartContext()
+  const { cart, isLoading: isCartLoading, refreshCart, clearCart } = useCartContext()
+  const clearCartStorage = useCartStore((s) => s.clearCart)
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('contact')
   const [isComplete, setIsComplete] = useState(false)
   const [order, setOrder] = useState<CompletedOrder | null>(null)
@@ -144,6 +147,7 @@ export default function CheckoutPage() {
         shipping: {
           city: defaultAddress.city || '',
           warehouse: defaultAddress.address1 || '',
+          shippingMethodId: '',
         },
       }
     })
@@ -304,8 +308,14 @@ export default function CheckoutPage() {
         billingAddress: addressData,
       })
 
-      // Add shipping method (use first available option - Nova Poshta)
-      if (shippingOptions.length > 0) {
+      // Set shipping method based on user selection
+      const selectedOption = shippingOptions.find(
+        (opt) => opt.methodId === data.shippingMethodId
+      )
+      if (selectedOption) {
+        await setCartShippingMethod(selectedOption.methodId, selectedOption.price)
+      } else if (shippingOptions.length > 0) {
+        // Fallback to first option if somehow none matched
         await setCartShippingMethod(
           shippingOptions[0].methodId,
           shippingOptions[0].price
@@ -341,6 +351,11 @@ export default function CheckoutPage() {
         email: checkoutData.contact?.email || cart.email || '',
         total: cart.total,
       })
+
+      // Clear cart state after successful order
+      clearCart()
+      clearCartStorage()
+
       setIsComplete(true)
     } catch (err) {
       setError('Не вдалося оформити замовлення. Спробуйте ще раз.')
@@ -403,6 +418,7 @@ export default function CheckoutPage() {
                   isLoading={isProcessing}
                   addresses={addresses}
                   isAuthenticated={isAuthenticated}
+                  shippingOptions={shippingOptions}
                 />
               )}
 
@@ -414,6 +430,22 @@ export default function CheckoutPage() {
                   total={cart ? cart.total : 0}
                 />
               )}
+            </div>
+
+            {/* Trust signals */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <span>Безпечна оплата</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-primary" />
+                <span>Швидка доставка</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-primary" />
+                <span>Повернення 14 днів</span>
+              </div>
             </div>
           </div>
 

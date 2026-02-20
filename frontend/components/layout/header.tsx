@@ -317,7 +317,8 @@ export function Header() {
                 mobileMenuOpen && "bg-muted"
               )}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Меню"
+              aria-label={mobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
+              aria-expanded={mobileMenuOpen}
             >
               <div className="relative w-5 h-5">
                 <Menu

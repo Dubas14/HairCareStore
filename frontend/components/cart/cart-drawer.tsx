@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react'
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Loader2, PartyPopper } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { useCartContext } from '@/components/providers/cart-provider'
@@ -66,19 +66,19 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onUpdateQuantity(index, item.quantity - 1)}
               disabled={isUpdating}
-              className="p-2.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Зменшити кількість"
             >
-              <Minus className="w-3 h-3" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
             <span className="w-8 text-center text-sm">{item.quantity}</span>
             <button
               onClick={() => onUpdateQuantity(index, item.quantity + 1)}
               disabled={isUpdating}
-              className="p-2.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Збільшити кількість"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -116,7 +116,7 @@ function FreeShippingProgress({ subtotal }: { subtotal: number }) {
       <div className="flex items-center justify-between text-sm mb-3">
         {isFree ? (
           <span className="text-[#606C38] font-semibold flex items-center gap-2">
-            <span className="text-lg">🎉</span>
+            <PartyPopper className="w-5 h-5" />
             Безкоштовна доставка!
           </span>
         ) : (
