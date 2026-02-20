@@ -31,6 +31,20 @@ export const metadata: Metadata = {
   title: 'HAIR LAB - Професійна косметика для волосся',
   description: 'Інтернет-магазин професійної косметики для волосся. Науковий підхід до догляду з клінічно перевіреними інгредієнтами.',
   keywords: 'косметика для волосся, професійна косметика, шампунь, кондиціонер, маска для волосся, кератин, арганова олія',
+  openGraph: {
+    title: 'HAIR LAB - Професійна косметика для волосся',
+    description: 'Інтернет-магазин професійної косметики для волосся. Науковий підхід до догляду.',
+    url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200',
+    siteName: 'HAIR LAB',
+    type: 'website',
+    locale: 'uk_UA',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'HAIR LAB - Професійна косметика для волосся',
+    description: 'Інтернет-магазин професійної косметики для волосся.',
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'),
 }
 
 export default function FrontendLayout({

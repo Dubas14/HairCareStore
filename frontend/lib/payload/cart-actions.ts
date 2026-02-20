@@ -153,7 +153,14 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       const variant = (product as any).variants?.[item.variantIndex]
       if (!variant) throw new Error(`Variant ${item.variantIndex} not found for product ${productId}`)
 
+      // Inventory check
+      if (variant.inStock === false) {
+        throw new Error(`"${product.title}" (${variant.title || 'стандартний'}) немає в наявності`)
+      }
       const quantity = Math.max(1, Math.min(Math.round(item.quantity), 10))
+      if (typeof variant.inventory === 'number' && variant.inventory > 0 && quantity > variant.inventory) {
+        throw new Error(`"${product.title}" — доступно лише ${variant.inventory} шт.`)
+      }
       const verifiedPrice = variant.price
       const itemSubtotal = verifiedPrice * quantity
       recalculatedSubtotal += itemSubtotal

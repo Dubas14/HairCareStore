@@ -59,6 +59,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               alt={`${productName} - зображення ${index + 1}`}
               width={100}
               height={100}
+              loading="lazy"
               className="w-full h-full object-cover"
             />
           </button>
@@ -82,6 +83,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             alt={`${productName} - зображення ${activeIndex + 1}`}
             width={600}
             height={600}
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority={activeIndex === 0}
             className={cn(
               "w-full h-full object-cover transition-transform duration-200",
               isZoomed && "scale-150"

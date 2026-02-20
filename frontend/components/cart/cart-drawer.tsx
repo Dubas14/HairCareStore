@@ -66,7 +66,7 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onUpdateQuantity(index, item.quantity - 1)}
               disabled={isUpdating}
-              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Зменшити кількість"
             >
               <Minus className="w-3 h-3" />
@@ -75,7 +75,7 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onUpdateQuantity(index, item.quantity + 1)}
               disabled={isUpdating}
-              className="p-1.5 hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2.5 hover:bg-muted transition-colors disabled:opacity-50"
               aria-label="Збільшити кількість"
             >
               <Plus className="w-3 h-3" />
@@ -206,7 +206,8 @@ export function CartDrawer() {
           "bg-white/95 backdrop-blur-xl",
           "shadow-2xl shadow-black/20",
           "border-l border-white/20",
-          "animate-in slide-in-from-right duration-300"
+          "animate-in slide-in-from-right duration-300",
+          "pb-[env(safe-area-inset-bottom)]"
         )}
         role="dialog"
         aria-modal="true"

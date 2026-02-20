@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef, useCallback } from "react"
+import { usePathname } from "next/navigation"
 import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
 import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
@@ -95,6 +96,8 @@ function MagneticIconButton({
       </span>
       {badge !== undefined && badge > 0 && (
         <span
+          aria-live="polite"
+          aria-label={`Кошик: ${badge} товарів`}
           className={cn(
             "absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1",
             "rounded-full text-xs font-semibold",
@@ -136,23 +139,28 @@ function MagneticIconButton({
 
 // Animated Nav Link Component
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href))
+
   return (
     <Link
       href={href}
       className={cn(
-        "relative text-sm font-medium text-muted-foreground",
+        "relative text-sm font-medium",
         "transition-colors duration-300 hover:text-foreground",
-        "group py-1"
+        "group py-1",
+        isActive ? "text-foreground" : "text-muted-foreground"
       )}
+      aria-current={isActive ? 'page' : undefined}
     >
       {children}
       {/* Gradient underline */}
       <span
         className={cn(
-          "absolute -bottom-0.5 left-0 h-[2px] w-0",
+          "absolute -bottom-0.5 left-0 h-[2px]",
           "bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4]",
           "transition-all duration-300 ease-out",
-          "group-hover:w-full"
+          isActive ? "w-full" : "w-0 group-hover:w-full"
         )}
       />
     </Link>

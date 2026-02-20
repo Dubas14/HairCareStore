@@ -1,245 +1,124 @@
-'use client'
+import type { Metadata } from 'next'
+import { getProductByHandle } from '@/lib/payload/client'
+import { getImageUrl } from '@/lib/payload/types'
+import ProductPageContent from './ProductPageContent'
 
-import { useMemo } from 'react'
-import { useParams } from 'next/navigation'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { ProductGallery } from '@/components/products/product-gallery'
-import { BuyBox } from '@/components/products/buy-box'
-import { IngredientSpotlight } from '@/components/products/ingredient-spotlight'
-import { HowToUse } from '@/components/products/how-to-use'
-import { RelatedProducts } from '@/components/products/related-products'
-import { ProductReviews } from '@/components/products/product-reviews'
-import { useProduct, useProducts, useReviewsByProduct, useProductRating } from '@/lib/hooks/use-products'
-import { useToggleWishlist } from '@/lib/hooks/use-wishlist'
-import { useAuthStore } from '@/stores/auth-store'
-import { getImageUrl, transformProducts } from '@/lib/payload/types'
-import { useCartContext } from '@/components/providers/cart-provider'
-import { ScrollReveal } from '@/components/ui/scroll-reveal'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
 
-// Mock ingredients data
-const mockIngredients = [
-  { id: '1', name: 'Кератин', benefit: 'Відновлює структуру волосся', icon: 'sparkles' as const },
-  { id: '2', name: 'Гіалуронова кислота', benefit: 'Глибоке зволоження', icon: 'droplets' as const },
-  { id: '3', name: 'Аргінін', benefit: 'Зміцнює волосяну цибулину', icon: 'shield' as const },
-  { id: '4', name: 'Олія аргани', benefit: 'Живить та надає блиску', icon: 'leaf' as const },
-]
+interface Props {
+  params: Promise<{ handle: string }>
+}
 
-export default function ProductPage() {
-  const params = useParams()
-  const handle = params.handle as string
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { handle } = await params
+  const product = await getProductByHandle(handle)
 
-  // Fetch product from Payload CMS
-  const { data: product, isLoading, error } = useProduct(handle)
-
-  // Fetch all products for related section
-  const { data: allProductsData } = useProducts({ limit: 20 })
-
-  // Fetch reviews and rating from Payload CMS
-  const { data: reviews } = useReviewsByProduct(product?.id || '')
-  const { data: ratingData } = useProductRating(product?.id || '')
-
-  // Cart context
-  const { addToCart } = useCartContext()
-
-  // Wishlist
-  const { isAuthenticated } = useAuthStore()
-  const toggleWishlist = useToggleWishlist()
-
-  // Convert Payload variants to frontend format
-  const variants = useMemo(() => {
-    if (!product?.variants) return []
-    return product.variants.map((variant, index) => {
-      const price = variant.price || 0
-      const compareAtPrice = variant.compareAtPrice
-      const oldPrice =
-        compareAtPrice && compareAtPrice > price ? compareAtPrice : undefined
-
-      return {
-        id: variant.id || `variant-${index}`,
-        name: variant.title || 'Стандартний',
-        price,
-        oldPrice,
-        inStock: variant.inStock !== false,
-      }
-    })
-  }, [product?.variants])
-
-  // Get product images
-  const images = useMemo(() => {
-    if (!product) return []
-    const imgs: string[] = []
-    const thumbUrl = getImageUrl(product.thumbnail)
-    if (thumbUrl) imgs.push(thumbUrl)
-    if (product.images) {
-      for (const entry of product.images) {
-        const url = getImageUrl(entry.image)
-        if (url) imgs.push(url)
-      }
-    }
-    return imgs.length > 0 ? imgs : ['/placeholder-product.jpg']
-  }, [product])
-
-  // Get related products (excluding current)
-  const relatedProducts = useMemo(() => {
-    if (!allProductsData?.products || !product) return []
-    const otherProducts = allProductsData.products.filter(
-      (p) => String(p.id) !== String(product.id)
-    )
-    return transformProducts(otherProducts.slice(0, 4))
-  }, [allProductsData?.products, product])
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Завантаження...</p>
-        </div>
-      </main>
-    )
-  }
-
-  // Error or not found
-  if (error || !product) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Товар не знайдено</h1>
-          <p className="text-muted-foreground">Спробуйте пошукати інший товар</p>
-        </div>
-      </main>
-    )
+  if (!product) {
+    return { title: 'Товар не знайдено | HAIR LAB' }
   }
 
   const brand = product.subtitle
     || (typeof product.brand === 'object' && product.brand ? product.brand.name : null)
     || 'HAIR LAB'
-  const productName = product.title
+  const title = `${product.title} — ${brand} | HAIR LAB`
+  const description = typeof product.description === 'string'
+    ? product.description.slice(0, 160)
+    : `${product.title} від ${brand}. Професійна косметика для волосся в інтернет-магазині HAIR LAB.`
+  const imageUrl = getImageUrl(product.thumbnail)
+  const url = `${BASE_URL}/products/${handle}`
 
-  const handleAddToCart = async (variantId: string, quantity: number) => {
-    try {
-      const variantIndex = variants.findIndex(v => v.id === variantId)
-      await addToCart(product.id, variantIndex >= 0 ? variantIndex : 0, quantity)
-    } catch (error) {
-      console.error('Error adding to cart:', error)
-    }
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+      siteName: 'HAIR LAB',
+      ...(imageUrl && {
+        images: [{ url: imageUrl, width: 600, height: 600, alt: product.title }],
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(imageUrl && { images: [imageUrl] }),
+    },
   }
+}
 
-  const handleAddToWishlist = async () => {
-    if (!isAuthenticated) {
-      alert('Увійдіть, щоб зберегти товар')
-      return
-    }
+function buildProductJsonLd(product: NonNullable<Awaited<ReturnType<typeof getProductByHandle>>>, brand: string, url: string, imageUrl: string | null) {
+  const variant = product.variants?.[0]
+  const price = variant?.price || 0
+  const compareAtPrice = variant?.compareAtPrice
+  const inStock = variant?.inStock !== false
 
-    try {
-      await toggleWishlist.mutateAsync(product.id)
-    } catch (error) {
-      console.error('Error updating wishlist:', error)
-    }
-  }
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: typeof product.description === 'string'
+      ? product.description.slice(0, 500)
+      : `${product.title} від ${brand}`,
+    ...(imageUrl && { image: imageUrl }),
+    brand: { '@type': 'Brand', name: brand },
+    sku: variant?.sku || product.handle,
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'UAH',
+      price: price.toFixed(2),
+      ...(compareAtPrice && compareAtPrice > price && {
+        priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      }),
+      availability: inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'HAIR LAB' },
+    },
+  })
+}
+
+function buildBreadcrumbJsonLd(product: NonNullable<Awaited<ReturnType<typeof getProductByHandle>>>, brand: string) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Головна', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Каталог', item: `${BASE_URL}/shop` },
+      { '@type': 'ListItem', position: 3, name: brand, item: `${BASE_URL}/shop?brand=${encodeURIComponent(brand.toLowerCase().replace(/\s+/g, '-'))}` },
+      { '@type': 'ListItem', position: 4, name: product.title },
+    ],
+  })
+}
+
+export default async function ProductPage({ params }: Props) {
+  const { handle } = await params
+  const product = await getProductByHandle(handle)
+
+  const brand = product
+    ? (product.subtitle
+      || (typeof product.brand === 'object' && product.brand ? product.brand.name : null)
+      || 'HAIR LAB')
+    : ''
+  const imageUrl = product ? getImageUrl(product.thumbnail) : null
+  const url = `${BASE_URL}/products/${handle}`
+
+  // JSON-LD is built from trusted server-side CMS data only (no user input)
+  const productJsonLd = product ? buildProductJsonLd(product, brand, url, imageUrl) : null
+  const breadcrumbJsonLd = product ? buildBreadcrumbJsonLd(product, brand) : null
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Breadcrumb */}
-      <ScrollReveal variant="fade" duration={400}>
-        <div className="container mx-auto px-4 py-4">
-          <Breadcrumb
-            items={[
-              { label: 'Каталог', href: '/shop' },
-              { label: brand, href: `/shop?brand=${brand.toLowerCase().replace(/\s+/g, '-')}` },
-              { label: productName },
-            ]}
-          />
-        </div>
-      </ScrollReveal>
-
-      {/* Product Section */}
-      <div className="container mx-auto px-4 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Gallery */}
-          <ScrollReveal variant="fade-right" duration={600}>
-            <ProductGallery
-              images={images}
-              productName={productName}
-            />
-          </ScrollReveal>
-
-          {/* Buy Box - Sticky on desktop */}
-          <ScrollReveal variant="fade-left" delay={150} duration={600}>
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <BuyBox
-                productName={productName}
-                brand={brand}
-                rating={ratingData?.average || 0}
-                reviewCount={ratingData?.count || 0}
-                variants={variants}
-                badges={['Без сульфатів', 'Без парабенів', 'Vegan']}
-                productImage={images[0]}
-                onAddToCart={handleAddToCart}
-                onAddToWishlist={handleAddToWishlist}
-              />
-            </div>
-          </ScrollReveal>
-        </div>
-
-        {/* Divider */}
-        <hr className="my-12 border-border" />
-
-        {/* Ingredient Spotlight */}
-        <ScrollReveal variant="fade-up" duration={700}>
-          <IngredientSpotlight ingredients={mockIngredients} />
-        </ScrollReveal>
-
-        {/* Divider */}
-        <hr className="my-8 border-border" />
-
-        {/* How to Use */}
-        <ScrollReveal variant="fade-up" duration={700}>
-          <HowToUse steps={[
-            {
-              id: 'wet',
-              title: 'Зволожте',
-              description: 'Ретельно зволожте волосся теплою водою',
-              icon: '💧',
-            },
-            {
-              id: 'apply',
-              title: 'Нанесіть',
-              description: 'Нанесіть невелику кількість засобу на долоні та рівномірно розподіліть по волоссю',
-              icon: '✋',
-            },
-            {
-              id: 'massage',
-              title: 'Масажуйте',
-              description: 'Злегка помасажуйте шкіру голови протягом 2-3 хвилин',
-              icon: '🧘',
-            },
-            {
-              id: 'rinse',
-              title: 'Змийте',
-              description: 'Ретельно змийте теплою водою. За потреби повторіть',
-              icon: '🚿',
-            },
-          ]} />
-        </ScrollReveal>
-
-        {/* Divider */}
-        <hr className="my-8 border-border" />
-
-        {/* Reviews */}
-        <ScrollReveal variant="fade-up" duration={700}>
-          <ProductReviews reviews={reviews || []} productId={product.id} />
-        </ScrollReveal>
-
-        {/* Divider */}
-        <hr className="my-8 border-border" />
-
-        {/* Related Products */}
-        <ScrollReveal variant="fade-up" duration={700}>
-          <RelatedProducts products={relatedProducts} />
-        </ScrollReveal>
-      </div>
-    </main>
+    <>
+      {productJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: productJsonLd }} />
+      )}
+      {breadcrumbJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
+      )}
+      <ProductPageContent />
+    </>
   )
 }

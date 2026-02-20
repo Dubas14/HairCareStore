@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Banner, getImageUrl, isVideoMedia } from '@/lib/payload/types'
@@ -48,10 +49,13 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
               <div key={slide.id} className="embla__slide relative flex-[0_0_100%] min-w-0">
                 <div className="absolute inset-0">
                   {slide.type === 'image' ? (
-                    <img
+                    <Image
                       src={slide.backgroundUrl}
                       alt={slide.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="100vw"
+                      priority
+                      className="object-cover"
                     />
                   ) : (
                     <video
@@ -130,10 +134,13 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <img
+                      <Image
                         src={mediaUrl}
                         alt={banner.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="100vw"
+                        priority
+                        className="object-cover"
                       />
                     )
                   ) : (

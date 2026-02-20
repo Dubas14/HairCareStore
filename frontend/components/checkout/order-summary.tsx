@@ -132,24 +132,7 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
         </div>
       )}
 
-      {/* Promo code */}
-      <div className="mt-4 pt-4 border-t">
-        <details className="group">
-          <summary className="cursor-pointer text-sm text-primary hover:underline list-none">
-            Маєте промокод?
-          </summary>
-          <div className="mt-3 flex gap-2">
-            <input
-              type="text"
-              placeholder="Введіть код"
-              className="flex-1 h-10 px-3 rounded-input border border-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button className="px-4 h-10 bg-primary text-primary-foreground text-sm font-medium rounded-button hover:bg-primary/90 transition-colors">
-              Застосувати
-            </button>
-          </div>
-        </details>
-      </div>
+      {/* Promo code - TODO: implement backend validation */}
     </div>
   )
 }

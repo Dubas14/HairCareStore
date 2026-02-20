@@ -147,7 +147,7 @@ export function ShippingForm({
           disabled={isLoading}
         />
         {errors.city && (
-          <p className="text-sm text-destructive">{errors.city}</p>
+          <p className="text-sm text-destructive" role="alert">{errors.city}</p>
         )}
       </div>
 
@@ -166,7 +166,7 @@ export function ShippingForm({
           disabled={isLoading}
         />
         {errors.warehouse && (
-          <p className="text-sm text-destructive">{errors.warehouse}</p>
+          <p className="text-sm text-destructive" role="alert">{errors.warehouse}</p>
         )}
         <p className="text-xs text-muted-foreground">
           Наприклад: Відділення №5, вул. Шевченка, 10

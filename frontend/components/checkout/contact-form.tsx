@@ -100,7 +100,7 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
           className={errors.email ? 'border-destructive' : ''}
         />
         {errors.email && (
-          <p className="text-sm text-destructive">{errors.email}</p>
+          <p className="text-sm text-destructive" role="alert">{errors.email}</p>
         )}
       </div>
 
@@ -119,7 +119,7 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
           className={errors.phone ? 'border-destructive' : ''}
         />
         {errors.phone && (
-          <p className="text-sm text-destructive">{errors.phone}</p>
+          <p className="text-sm text-destructive" role="alert">{errors.phone}</p>
         )}
       </div>
 
@@ -138,7 +138,7 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
             className={errors.firstName ? 'border-destructive' : ''}
           />
           {errors.firstName && (
-            <p className="text-sm text-destructive">{errors.firstName}</p>
+            <p className="text-sm text-destructive" role="alert">{errors.firstName}</p>
           )}
         </div>
 
@@ -155,7 +155,7 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
             className={errors.lastName ? 'border-destructive' : ''}
           />
           {errors.lastName && (
-            <p className="text-sm text-destructive">{errors.lastName}</p>
+            <p className="text-sm text-destructive" role="alert">{errors.lastName}</p>
           )}
         </div>
       </div>

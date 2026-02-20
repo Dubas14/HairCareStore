@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useMemo, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Search, X, Loader2 } from 'lucide-react'
 import { FilterSidebar, FilterState } from '@/components/shop/filter-sidebar'
 import { ProductGrid } from '@/components/shop/product-grid'
@@ -12,24 +12,57 @@ import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 const PRODUCTS_PER_PAGE = 12
 
+function parseFiltersFromParams(params: URLSearchParams): FilterState {
+  return {
+    concerns: params.get('concerns')?.split(',').filter(Boolean) || [],
+    hairTypes: params.get('hairTypes')?.split(',').filter(Boolean) || [],
+    brands: params.get('brands')?.split(',').filter(Boolean) || [],
+    priceRange: [
+      Number(params.get('priceMin')) || 0,
+      Number(params.get('priceMax')) || 5000,
+    ],
+  }
+}
+
 function ShopContent() {
   const searchParams = useSearchParams()
-  const searchQuery = searchParams.get('search') || ''
+  const router = useRouter()
+  const pathname = usePathname()
 
-  const [filters, setFilters] = useState<FilterState>({
-    concerns: [],
-    hairTypes: [],
-    brands: [],
-    priceRange: [0, 5000],
-  })
-  const [sortBy, setSortBy] = useState<SortOption>('popular')
-  const [currentPage, setCurrentPage] = useState(1)
+  // Read state from URL
+  const searchQuery = searchParams.get('search') || ''
+  const urlPage = Number(searchParams.get('page')) || 1
+  const urlSort = (searchParams.get('sort') as SortOption) || 'popular'
+
+  const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams))
+  const [sortBy, setSortBy] = useState<SortOption>(urlSort)
+  const [currentPage, setCurrentPage] = useState(urlPage)
   const [localSearch, setLocalSearch] = useState(searchQuery)
 
-  // Update local search when URL changes
+  // Sync URL params when state changes
+  const updateUrl = useCallback((newFilters: FilterState, newSort: SortOption, newPage: number, newSearch: string) => {
+    const params = new URLSearchParams()
+
+    if (newSearch) params.set('search', newSearch)
+    if (newSort !== 'popular') params.set('sort', newSort)
+    if (newPage > 1) params.set('page', String(newPage))
+    if (newFilters.brands.length > 0) params.set('brands', newFilters.brands.join(','))
+    if (newFilters.concerns.length > 0) params.set('concerns', newFilters.concerns.join(','))
+    if (newFilters.hairTypes.length > 0) params.set('hairTypes', newFilters.hairTypes.join(','))
+    if (newFilters.priceRange[0] > 0) params.set('priceMin', String(newFilters.priceRange[0]))
+    if (newFilters.priceRange[1] < 5000) params.set('priceMax', String(newFilters.priceRange[1]))
+
+    const qs = params.toString()
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [router, pathname])
+
+  // Sync from URL on browser back/forward
   useEffect(() => {
-    setLocalSearch(searchQuery)
-  }, [searchQuery])
+    setFilters(parseFiltersFromParams(searchParams))
+    setSortBy((searchParams.get('sort') as SortOption) || 'popular')
+    setCurrentPage(Number(searchParams.get('page')) || 1)
+    setLocalSearch(searchParams.get('search') || '')
+  }, [searchParams])
 
   // Fetch products
   const { data, isLoading, error } = useProducts({ limit: 1000 })
@@ -39,11 +72,9 @@ function ShopContent() {
 
   // Convert products to frontend format
   const allProducts = useMemo(() => {
-    // If searching, use search results
     if (localSearch && searchData?.products) {
       return transformProducts(searchData.products)
     }
-    // Otherwise use all products
     if (!data?.products) return []
     return transformProducts(data.products)
   }, [data?.products, searchData?.products, localSearch])
@@ -93,25 +124,35 @@ function ShopContent() {
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
+  const safePage = Math.min(currentPage, Math.max(totalPages, 1))
   const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
+    (safePage - 1) * PRODUCTS_PER_PAGE,
+    safePage * PRODUCTS_PER_PAGE
   )
 
-  // Reset page when filters change
+  // Handlers that update both state and URL
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters)
     setCurrentPage(1)
+    updateUrl(newFilters, sortBy, 1, localSearch)
   }
 
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort)
     setCurrentPage(1)
+    updateUrl(filters, newSort, 1, localSearch)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    updateUrl(filters, sortBy, page, localSearch)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const clearSearch = () => {
     setLocalSearch('')
-    window.history.replaceState({}, '', '/shop')
+    setCurrentPage(1)
+    updateUrl(filters, sortBy, 1, '')
   }
 
   const isLoadingProducts = localSearch ? isSearching : isLoading
@@ -160,7 +201,7 @@ function ShopContent() {
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
         {error && (
-          <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-card mb-6">
+          <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-card mb-6" role="alert">
             Помилка завантаження товарів. Перевірте підключення до сервера.
           </div>
         )}
@@ -192,9 +233,9 @@ function ShopContent() {
               {/* Pagination */}
               {!isLoadingProducts && totalPages > 1 && (
                 <Pagination
-                  currentPage={currentPage}
+                  currentPage={safePage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange}
                 />
               )}
             </div>
