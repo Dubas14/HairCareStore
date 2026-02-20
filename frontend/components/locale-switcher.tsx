@@ -1,10 +1,12 @@
 'use client'
 
 import { useLocale } from 'next-intl'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { Globe } from 'lucide-react'
-import { routing, type Locale } from '@/i18n/routing'
+
+const SUPPORTED_LOCALES = ['uk', 'en', 'pl', 'de', 'ru'] as const
+type Locale = typeof SUPPORTED_LOCALES[number]
 
 const localeLabels: Record<Locale, { flag: string; label: string; short: string }> = {
   uk: { flag: '🇺🇦', label: 'Українська', short: 'UA' },
@@ -17,27 +19,12 @@ const localeLabels: Record<Locale, { flag: string; label: string; short: string 
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale
   const router = useRouter()
-  const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
 
   const handleChange = (newLocale: string) => {
+    // Set cookie and refresh page to apply new locale
+    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`
     startTransition(() => {
-      // Remove current locale prefix from pathname
-      let path = pathname
-      for (const loc of routing.locales) {
-        if (path.startsWith(`/${loc}/`)) {
-          path = path.substring(loc.length + 1)
-          break
-        }
-        if (path === `/${loc}`) {
-          path = '/'
-          break
-        }
-      }
-
-      // Build new path with locale prefix
-      const newPath = newLocale === routing.defaultLocale ? path : `/${newLocale}${path}`
-      router.push(newPath)
       router.refresh()
     })
   }
@@ -56,7 +43,7 @@ export function LocaleSwitcher() {
       </button>
 
       <div className="absolute right-0 top-full mt-1 bg-card border rounded-card shadow-soft-lg py-1 min-w-[160px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-        {routing.locales.map((loc) => {
+        {SUPPORTED_LOCALES.map((loc) => {
           const info = localeLabels[loc]
           const isActive = loc === locale
 
