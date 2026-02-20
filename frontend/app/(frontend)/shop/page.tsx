@@ -222,24 +222,7 @@ function ShopContent() {
           <ScrollReveal variant="fade-up" delay={200} duration={600} className="flex-1">
             <div>
               {/* Toolbar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <p className="text-sm text-muted-foreground">
-                  {isLoadingProducts ? (
-                    'Завантаження...'
-                  ) : (
-                    <>
-                      Знайдено{' '}
-                      <span className="font-medium text-foreground">
-                        {filteredProducts.length}
-                      </span>{' '}
-                      {filteredProducts.length === 1
-                        ? 'товар'
-                        : filteredProducts.length < 5
-                        ? 'товари'
-                        : 'товарів'}
-                    </>
-                  )}
-                </p>
+              <div className="flex sm:items-center justify-end mb-6">
                 <SortSelect value={sortBy} onChange={handleSortChange} />
               </div>
 
