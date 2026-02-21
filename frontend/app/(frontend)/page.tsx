@@ -1,5 +1,4 @@
 import dynamicImport from 'next/dynamic'
-import { getLocale } from 'next-intl/server'
 import { CategoriesSection } from '@/components/home/categories-section'
 import { FeaturedProducts } from '@/components/home/featured-products'
 import { BrandsSection } from '@/components/home/brands-section'
@@ -39,13 +38,12 @@ const HeroSliderCMS = dynamicImport(
 )
 
 export default async function HomePage() {
-  const locale = await getLocale()
   // Завантажуємо контент з Payload CMS
   const [banners, promoBlocks, categories, brands] = await Promise.all([
-    getBanners('home', locale),
-    getPromoBlocks(locale),
-    getCategories(locale),
-    getBrands(locale),
+    getBanners('home'),
+    getPromoBlocks(),
+    getCategories(),
+    getBrands(),
   ])
 
   // WebSite + SiteNavigation JSON-LD for Google Search/Sitelinks

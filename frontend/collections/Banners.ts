@@ -31,7 +31,6 @@ export const Banners: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
-      localized: true,
     },
     {
       name: 'image',

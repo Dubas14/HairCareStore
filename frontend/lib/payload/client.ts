@@ -194,7 +194,6 @@ export async function getBanners(position?: Banner['position'], locale?: string)
       },
       sort: 'order',
       limit: 100,
-      locale: locale as any,
     })
     return result.docs.map(transformBanner)
   } catch (error) {
@@ -212,7 +211,6 @@ export async function getPromoBlocks(locale?: string): Promise<PromoBlock[]> {
         isActive: { equals: true },
       },
       limit: 100,
-      locale: locale as any,
     })
     return result.docs.map(transformPromoBlock)
   } catch (error) {
@@ -231,7 +229,6 @@ export async function getPageBySlug(slug: string, locale?: string): Promise<Page
         isPublished: { equals: true },
       },
       limit: 1,
-      locale: locale as any,
     })
     return result.docs[0] ? transformPage(result.docs[0]) : null
   } catch (error) {
@@ -249,7 +246,6 @@ export async function getPages(locale?: string): Promise<Page[]> {
         isPublished: { equals: true },
       },
       limit: 100,
-      locale: locale as any,
     })
     return result.docs.map(transformPage)
   } catch (error) {
@@ -269,7 +265,6 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
       },
       limit: 1,
       depth: 2,
-      locale: locale as any,
     })
     return result.docs[0] ? transformCategory(result.docs[0]) : null
   } catch (error) {
@@ -290,7 +285,6 @@ export async function getCategories(locale?: string): Promise<Category[]> {
       sort: 'order',
       limit: 100,
       depth: 1,
-      locale: locale as any,
     })
     return result.docs.map(transformCategory)
   } catch (error) {
@@ -310,7 +304,6 @@ export async function getBrandBySlug(slug: string, locale?: string): Promise<Bra
       },
       limit: 1,
       depth: 1,
-      locale: locale as any,
     })
     return result.docs[0] ? transformBrand(result.docs[0]) : null
   } catch (error) {
@@ -330,7 +323,6 @@ export async function getBrands(locale?: string): Promise<Brand[]> {
       sort: 'order',
       limit: 100,
       depth: 1,
-      locale: locale as any,
     })
     return result.docs.map(transformBrand)
   } catch (error) {
@@ -425,7 +417,6 @@ export async function getProducts(options: {
       page: pageNum,
       depth: 1,
       sort,
-      locale: options.locale as any,
     })
     return {
       products: result.docs as unknown as PayloadProduct[],
@@ -448,7 +439,6 @@ export async function getProductByHandle(handle: string, locale?: string): Promi
       where: { handle: { equals: handle }, status: { equals: 'active' } },
       limit: 1,
       depth: 2,
-      locale: locale as any,
     })
     return result.docs[0] ? (result.docs[0] as unknown as PayloadProduct) : null
   } catch (error) {
@@ -470,7 +460,6 @@ export async function searchProducts(query: string, locale?: string): Promise<{ 
       },
       limit: 20,
       depth: 1,
-      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -489,7 +478,6 @@ export async function getProductsByCategory(categorySlug: string, locale?: strin
       where: { status: { equals: 'active' }, categories: { contains: catResult.docs[0].id } },
       limit: 100,
       depth: 1,
-      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -508,7 +496,6 @@ export async function getProductsByBrand(brandSlug: string, locale?: string): Pr
       where: { status: { equals: 'active' }, brand: { equals: brandResult.docs[0].id } },
       limit: 100,
       depth: 1,
-      locale: locale as any,
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
@@ -564,7 +551,6 @@ export async function getBlogPosts(options: { limit?: number; offset?: number; l
       limit: options.limit || 20,
       page: options.offset ? Math.floor(options.offset / (options.limit || 20)) + 1 : 1,
       depth: 1,
-      locale: options.locale as any,
     })
     return { posts: result.docs.map(transformBlogPost), count: result.totalDocs }
   } catch (error) {
@@ -584,7 +570,6 @@ export async function getBlogPostBySlug(slug: string, locale?: string): Promise<
       },
       limit: 1,
       depth: 1,
-      locale: locale as any,
     })
     return result.docs[0] ? transformBlogPost(result.docs[0]) : null
   } catch (error) {
@@ -634,7 +619,7 @@ export interface SiteSettingsData {
 export async function getSiteSettings(locale?: string): Promise<SiteSettingsData | null> {
   try {
     const payload = await getPayload({ config })
-    const result = await payload.findGlobal({ slug: 'site-settings', locale: locale as any })
+    const result = await payload.findGlobal({ slug: 'site-settings' })
     return result as unknown as SiteSettingsData
   } catch (error) {
     console.error('Error fetching site settings:', error)

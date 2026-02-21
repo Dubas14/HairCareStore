@@ -27,8 +27,8 @@ export const Promotions: CollectionConfig = {
         beforeValidate: [({ value }) => value?.toUpperCase().trim()],
       },
     },
-    { name: 'title', label: 'Назва', type: 'text', localized: true },
-    { name: 'description', label: 'Опис', type: 'textarea', localized: true },
+    { name: 'title', label: 'Назва', type: 'text',},
+    { name: 'description', label: 'Опис', type: 'textarea',},
     {
       name: 'type',
       label: 'Тип знижки',

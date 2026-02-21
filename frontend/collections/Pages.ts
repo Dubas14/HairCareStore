@@ -31,7 +31,6 @@ export const Pages: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
-      localized: true,
     },
     {
       name: 'slug',
@@ -45,7 +44,6 @@ export const Pages: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
-      localized: true,
     },
     {
       name: 'featuredImage',
@@ -55,7 +53,6 @@ export const Pages: CollectionConfig = {
     {
       name: 'metaTitle',
       type: 'text',
-      localized: true,
       admin: {
         position: 'sidebar',
       },
@@ -63,7 +60,6 @@ export const Pages: CollectionConfig = {
     {
       name: 'metaDescription',
       type: 'textarea',
-      localized: true,
       admin: {
         position: 'sidebar',
       },

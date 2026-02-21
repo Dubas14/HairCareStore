@@ -72,7 +72,7 @@ export const Products: CollectionConfig = {
     delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [
-    { name: 'title', type: 'text', required: true, localized: true },
+    { name: 'title', type: 'text', required: true },
     { name: 'handle', type: 'text', required: true, unique: true, admin: { position: 'sidebar' } },
     {
       name: 'barcode',
@@ -84,8 +84,8 @@ export const Products: CollectionConfig = {
         description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
       },
     },
-    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Brand name or short tagline' } },
-    { name: 'description', type: 'richText', localized: true },
+    { name: 'subtitle', type: 'text', admin: { description: 'Brand name or short tagline' } },
+    { name: 'description', type: 'richText' },
     { name: 'thumbnail', type: 'upload', relationTo: 'media' },
     {
       name: 'images',

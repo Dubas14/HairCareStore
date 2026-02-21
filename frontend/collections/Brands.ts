@@ -31,7 +31,6 @@ export const Brands: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-      localized: true,
     },
     {
       name: 'slug',
@@ -45,13 +44,11 @@ export const Brands: CollectionConfig = {
     {
       name: 'description',
       type: 'richText',
-      localized: true,
     },
     {
       name: 'shortDescription',
       type: 'textarea',
       maxLength: 300,
-      localized: true,
     },
     {
       name: 'logo',
@@ -77,7 +74,6 @@ export const Brands: CollectionConfig = {
     {
       name: 'history',
       type: 'richText',
-      localized: true,
     },
     {
       name: 'countryOfOrigin',
@@ -105,14 +101,12 @@ export const Brands: CollectionConfig = {
           name: 'title',
           type: 'text',
           required: true,
-          localized: true,
-        },
+            },
         {
           name: 'description',
           type: 'textarea',
           maxLength: 300,
-          localized: true,
-        },
+            },
       ],
     },
     {
@@ -123,14 +117,12 @@ export const Brands: CollectionConfig = {
           name: 'metaTitle',
           type: 'text',
           maxLength: 60,
-          localized: true,
-        },
+            },
         {
           name: 'metaDescription',
           type: 'textarea',
           maxLength: 160,
-          localized: true,
-        },
+            },
         {
           name: 'ogImage',
           type: 'upload',

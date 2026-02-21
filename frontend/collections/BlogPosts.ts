@@ -31,7 +31,6 @@ export const BlogPosts: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
-      localized: true,
     },
     {
       name: 'slug',
@@ -45,13 +44,11 @@ export const BlogPosts: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
-      localized: true,
     },
     {
       name: 'excerpt',
       type: 'textarea',
       maxLength: 300,
-      localized: true,
     },
     {
       name: 'featuredImage',

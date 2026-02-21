@@ -12,7 +12,7 @@
   "dependencies": {
     "@payloadcms/db-postgres": "^3.76.1",
     "@payloadcms/next": "^3.76.1",
-    "@payloadcms/plugin-stripe": "^3.77.0",
+    "@payloadcms/plugin-stripe": "3.76.1",
     "@payloadcms/richtext-lexical": "^3.76.1",
     "@payloadcms/ui": "^3.76.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
