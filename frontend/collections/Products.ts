@@ -72,7 +72,7 @@ export const Products: CollectionConfig = {
     delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [
-    { name: 'title', type: 'text', required: true },
+    { name: 'title', type: 'text', required: true, localized: true },
     { name: 'handle', type: 'text', required: true, unique: true, admin: { position: 'sidebar' } },
     {
       name: 'barcode',
@@ -84,8 +84,8 @@ export const Products: CollectionConfig = {
         description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
       },
     },
-    { name: 'subtitle', type: 'text', admin: { description: 'Brand name or short tagline' } },
-    { name: 'description', type: 'richText' },
+    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Brand name or short tagline' } },
+    { name: 'description', type: 'richText', localized: true },
     { name: 'thumbnail', type: 'upload', relationTo: 'media' },
     {
       name: 'images',
@@ -98,7 +98,7 @@ export const Products: CollectionConfig = {
       required: true,
       minRows: 1,
       fields: [
-        { name: 'title', type: 'text', required: true },
+        { name: 'title', type: 'text', required: true, localized: true },
         { name: 'sku', type: 'text' },
         { name: 'price', type: 'number', required: true, min: 0, admin: { description: 'Price in UAH (major units)' } },
         { name: 'costPrice', type: 'number', min: 0, admin: { description: 'Ціна ходу/закупівлі (салонна ціна), грн' } },

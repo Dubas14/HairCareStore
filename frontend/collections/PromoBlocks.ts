@@ -31,10 +31,12 @@ export const PromoBlocks: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       name: 'description',
       type: 'richText',
+      localized: true,
     },
     {
       name: 'image',
@@ -44,6 +46,7 @@ export const PromoBlocks: CollectionConfig = {
     {
       name: 'buttonText',
       type: 'text',
+      localized: true,
     },
     {
       name: 'buttonLink',

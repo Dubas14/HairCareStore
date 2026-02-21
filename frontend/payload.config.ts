@@ -18,13 +18,16 @@ import {
   Orders,
   LoyaltyPoints,
   LoyaltyTransactions,
-  // Promotions,
-  // PromotionUsages,
-  // Subscribers,
+  Promotions,
+  PromotionUsages,
+  Subscribers,
+  AutomaticDiscounts,
+  ProductBundles,
 } from './collections'
 import { LoyaltySettings } from './globals/LoyaltySettings'
 import { ShippingConfig } from './globals/ShippingConfig'
 import { SiteSettings } from './globals/SiteSettings'
+import { InventorySettings } from './globals/InventorySettings'
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
@@ -34,6 +37,18 @@ export default buildConfig({
       connectionString: process.env.PAYLOAD_DATABASE_URL || 'postgres://postgres:postgres123@localhost:5450/payload',
     },
   }),
+
+  localization: {
+    locales: [
+      { label: 'Українська', code: 'uk' },
+      { label: 'English', code: 'en' },
+      { label: 'Polski', code: 'pl' },
+      { label: 'Deutsch', code: 'de' },
+      { label: 'Русский', code: 'ru' },
+    ],
+    defaultLocale: 'uk',
+    fallback: true,
+  },
 
   editor: lexicalEditor(),
   sharp,
@@ -54,16 +69,18 @@ export default buildConfig({
     Orders,
     LoyaltyPoints,
     LoyaltyTransactions,
-      // TODO: uncomment after running `payload migrate:create` to create tables
-    // Promotions,
-    // PromotionUsages,
-    // Subscribers,
+    Promotions,
+    PromotionUsages,
+    Subscribers,
+    AutomaticDiscounts,
+    ProductBundles,
   ],
 
   globals: [
     LoyaltySettings,
     ShippingConfig,
     SiteSettings,
+    InventorySettings,
   ],
 
   admin: {

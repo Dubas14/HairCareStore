@@ -178,9 +178,25 @@ export async function completeStripePayment(cartId: number | string, paymentInte
       loyaltyPointsUsed: cart.loyaltyPointsUsed || 0,
       loyaltyDiscount,
       total: recalculatedTotal,
+      promoCode: (cart as any).promoCode || '',
+      promoDiscount: (cart as any).promoDiscount || 0,
       cartId: String(cart.id),
     },
   })
+
+  // Record promo usage (fire-and-forget)
+  if ((cart as any).promoCode) {
+    import('@/lib/payload/promo-actions')
+      .then(({ recordPromoUsage }) => recordPromoUsage(
+        (cart as any).promoCode,
+        cart.email || '',
+        (order as any).id,
+        (cart as any).promoDiscount || 0,
+        cart.currency || 'UAH',
+        typeof cart.customer === 'object' ? (cart.customer as any)?.id : cart.customer,
+      ))
+      .catch(err => console.error('[Promo] Usage recording failed:', err))
+  }
 
   // Mark cart as completed
   await payload.update({

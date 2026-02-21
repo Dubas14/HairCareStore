@@ -205,12 +205,28 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       loyaltyPointsUsed: cart.loyaltyPointsUsed || 0,
       loyaltyDiscount,
       total: recalculatedTotal,
+      promoCode: (cart as any).promoCode || '',
+      promoDiscount: (cart as any).promoDiscount || 0,
       cartId: String(cart.id),
     },
   })
 
   await payload.update({ collection: 'carts', id: cart.id, data: { status: 'completed', completedAt: new Date().toISOString() } })
   await clearCartCookie()
+
+  // Record promo usage (fire-and-forget)
+  if ((cart as any).promoCode) {
+    import('@/lib/payload/promo-actions')
+      .then(({ recordPromoUsage }) => recordPromoUsage(
+        (cart as any).promoCode,
+        cart.email || '',
+        (order as any).id,
+        (cart as any).promoDiscount || 0,
+        (cart as any).currency || 'UAH',
+        typeof cart.customer === 'object' ? (cart.customer as any)?.id : cart.customer,
+      ))
+      .catch(err => console.error('[Promo] Usage recording failed:', err))
+  }
 
   // Send order confirmation email (fire-and-forget)
   const displayId = (order as any).displayId

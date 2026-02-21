@@ -78,6 +78,7 @@ export const Carts: CollectionConfig = {
       admin: { position: 'sidebar' },
     },
     { name: 'completedAt', type: 'date' },
+    { name: 'abandonedEmailsSent', type: 'number', defaultValue: 0, admin: { description: 'Кількість надісланих листів про покинутий кошик' } },
   ],
   hooks: {
     beforeChange: [
