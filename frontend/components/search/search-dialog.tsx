@@ -1,26 +1,49 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, X, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'
+import { Search, X, ArrowRight, TrendingUp, Loader2, Clock, Tag, Sparkles } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useSearchProducts } from '@/lib/hooks/use-products'
 import { getImageUrl } from '@/lib/payload/types'
-import { cn } from '@/lib/utils'
+import { trackSearch } from '@/lib/analytics/events'
+import { getCategories, getBrands } from '@/lib/payload/actions'
+import type { Category, Brand } from '@/lib/payload/types'
 
-const popularSearches = [
-  'Шампунь',
-  'Маска для волосся',
-  'Термозахист',
-  'Кондиціонер',
-  'Олія для волосся',
-]
+const RECENT_SEARCHES_KEY = 'hair-lab-recent-searches'
+const MAX_RECENT_SEARCHES = 5
+
+function getRecentSearches(): string[] {
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY)
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
+function saveRecentSearch(term: string): void {
+  try {
+    const searches = getRecentSearches().filter((s) => s !== term)
+    searches.unshift(term)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches.slice(0, MAX_RECENT_SEARCHES)))
+  } catch { /* ignore */ }
+}
+
+function clearRecentSearches(): void {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY)
+  } catch { /* ignore */ }
+}
 
 export function SearchDialog() {
   const { isSearchOpen, closeSearch } = useUIStore()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [brands, setBrands] = useState<Brand[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Debounce search query
@@ -35,10 +58,21 @@ export function SearchDialog() {
   const { data, isLoading } = useSearchProducts(debouncedQuery)
   const results = data?.products || []
 
-  // Focus input when opened
+  // Track search when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      trackSearch(debouncedQuery)
+    }
+  }, [debouncedQuery])
+
+  // Load recent searches and suggestions when opened
   useEffect(() => {
     if (isSearchOpen) {
       setTimeout(() => inputRef.current?.focus(), 100)
+      setRecentSearches(getRecentSearches())
+      // Load categories/brands for suggestions
+      getCategories().then(setCategories).catch(() => {})
+      getBrands().then(setBrands).catch(() => {})
     } else {
       setQuery('')
       setDebouncedQuery('')
@@ -68,19 +102,45 @@ export function SearchDialog() {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [isSearchOpen, closeSearch])
 
+  const handleSearch = useCallback((searchTerm: string) => {
+    setQuery(searchTerm)
+  }, [])
+
+  const handleResultClick = useCallback(() => {
+    if (debouncedQuery.length >= 2) {
+      saveRecentSearch(debouncedQuery)
+    }
+    closeSearch()
+  }, [debouncedQuery, closeSearch])
+
+  const handleViewAll = useCallback(() => {
+    if (debouncedQuery.length >= 2) {
+      saveRecentSearch(debouncedQuery)
+    }
+    closeSearch()
+  }, [debouncedQuery, closeSearch])
+
+  const handleClearRecent = useCallback(() => {
+    clearRecentSearches()
+    setRecentSearches([])
+  }, [])
+
   if (!isSearchOpen) return null
 
-  const handleSearch = (searchTerm: string) => {
-    setQuery(searchTerm)
-  }
+  // Filter categories/brands based on input (1+ chars)
+  const queryLower = query.toLowerCase().trim()
+  const matchedCategories = queryLower.length >= 1
+    ? categories.filter((c) => c.name.toLowerCase().includes(queryLower)).slice(0, 4)
+    : []
+  const matchedBrands = queryLower.length >= 1
+    ? brands.filter((b) => b.name.toLowerCase().includes(queryLower)).slice(0, 4)
+    : []
+  const hasSuggestions = matchedCategories.length > 0 || matchedBrands.length > 0
 
-  const handleResultClick = () => {
-    closeSearch()
-  }
-
-  const handleViewAll = () => {
-    closeSearch()
-  }
+  // Dynamic popular searches from categories
+  const popularSearches = categories.length > 0
+    ? categories.slice(0, 5).map((c) => c.name)
+    : ['Шампунь', 'Маска для волосся', 'Термозахист', 'Кондиціонер', 'Олія для волосся']
 
   return (
     <div className="fixed inset-0 z-50">
@@ -103,7 +163,7 @@ export function SearchDialog() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Пошук товарів..."
+                placeholder="Пошук товарів, категорій, брендів..."
                 className="w-full h-12 pl-12 pr-12 text-lg bg-muted rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {query && (
@@ -125,6 +185,34 @@ export function SearchDialog() {
             {debouncedQuery.length >= 2 ? (
               // Search Results
               <div>
+                {/* Quick category/brand suggestions */}
+                {hasSuggestions && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {matchedCategories.map((cat) => (
+                      <Link
+                        key={`cat-${cat.id}`}
+                        href={`/categories/${cat.slug}`}
+                        onClick={handleResultClick}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
+                      >
+                        <Tag className="w-3 h-3" />
+                        {cat.name}
+                      </Link>
+                    ))}
+                    {matchedBrands.map((brand) => (
+                      <Link
+                        key={`brand-${brand.id}`}
+                        href={`/brands/${brand.slug}`}
+                        onClick={handleResultClick}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm hover:bg-secondary/80 transition-colors"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        {brand.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -199,9 +287,83 @@ export function SearchDialog() {
                   </div>
                 )}
               </div>
+            ) : queryLower.length >= 1 && hasSuggestions ? (
+              // Category/Brand suggestions for short queries
+              <div className="space-y-4">
+                {matchedCategories.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
+                      <Tag className="w-4 h-4" />
+                      Категорії
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {matchedCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/categories/${cat.slug}`}
+                          onClick={handleResultClick}
+                          className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {matchedBrands.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
+                      <Sparkles className="w-4 h-4" />
+                      Бренди
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {matchedBrands.map((brand) => (
+                        <Link
+                          key={brand.id}
+                          href={`/brands/${brand.slug}`}
+                          onClick={handleResultClick}
+                          className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm hover:bg-secondary/80 transition-colors"
+                        >
+                          {brand.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
-              // Suggestions
-              <div>
+              // Default: Recent + Popular Searches
+              <div className="space-y-6">
+                {/* Recent Searches */}
+                {recentSearches.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        Недавні пошуки
+                      </h3>
+                      <button
+                        onClick={handleClearRecent}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Очистити
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {recentSearches.map((term) => (
+                        <button
+                          key={term}
+                          onClick={() => handleSearch(term)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground text-sm transition-colors"
+                        >
+                          <Clock className="w-3 h-3 opacity-50" />
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Popular Searches */}
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-4">

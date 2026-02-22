@@ -486,8 +486,8 @@ export default async function StaticPage({ params }: PageProps) {
         {pageType === 'contacts' && <ContactsContent settings={settings} />}
         {pageType === 'about' && <AboutContent settings={settings} />}
 
-        {pageType === 'generic' && page?.content && (
-          <RichTextRenderer content={page.content} />
+        {pageType === 'generic' && page?.content && Array.isArray(page.content) && (
+          <RichTextRenderer content={page.content as Parameters<typeof RichTextRenderer>[0]['content']} />
         )}
       </div>
     </main>

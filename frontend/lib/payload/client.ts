@@ -9,6 +9,9 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('payload-client')
 
 // Re-export types and utilities so server components can import from one place
 export type {
@@ -36,11 +39,17 @@ import type {
   Page,
   Category,
   Brand,
+  BenefitItem,
   PayloadMedia,
   PayloadProduct,
   Review,
   BlogPost,
 } from './types'
+
+// ─── Payload document types (from Local API) ────────────────────
+
+/** Loose record type representing a raw Payload document before transformation */
+type PayloadDoc = Record<string, unknown>
 
 // ─── Transform helpers ───────────────────────────────────────────
 
@@ -49,135 +58,143 @@ function resolveMedia(field: unknown): PayloadMedia | undefined {
   return field as PayloadMedia
 }
 
-function transformBanner(doc: any): Banner {
+function transformBanner(doc: PayloadDoc): Banner {
   return {
-    id: doc.id,
-    title: doc.title,
+    id: doc.id as number | string,
+    title: doc.title as string,
     image: resolveMedia(doc.image),
-    link: doc.link || undefined,
-    position: doc.position,
-    order: doc.order ?? 0,
-    isActive: doc.isActive ?? true,
-    mediaType: doc.mediaType || undefined,
+    link: (doc.link as string) || undefined,
+    position: doc.position as Banner['position'],
+    order: (doc.order as number) ?? 0,
+    isActive: (doc.isActive as boolean) ?? true,
+    mediaType: (doc.mediaType as Banner['mediaType']) || undefined,
   }
 }
 
-function transformPromoBlock(doc: any): PromoBlock {
+function transformPromoBlock(doc: PayloadDoc): PromoBlock {
   return {
-    id: doc.id,
-    title: doc.title,
-    description: doc.description || undefined,
+    id: doc.id as number | string,
+    title: doc.title as string,
+    description: (doc.description as PromoBlock['description']) || undefined,
     image: resolveMedia(doc.image),
-    buttonText: doc.buttonText || undefined,
-    buttonLink: doc.buttonLink || undefined,
-    backgroundColor: doc.backgroundColor || undefined,
-    isActive: doc.isActive ?? true,
+    buttonText: (doc.buttonText as string) || undefined,
+    buttonLink: (doc.buttonLink as string) || undefined,
+    backgroundColor: (doc.backgroundColor as string) || undefined,
+    isActive: (doc.isActive as boolean) ?? true,
   }
 }
 
-function transformPage(doc: any): Page {
+function transformPage(doc: PayloadDoc): Page {
   return {
-    id: doc.id,
-    title: doc.title,
-    slug: doc.slug,
-    content: doc.content || undefined,
+    id: doc.id as number | string,
+    title: doc.title as string,
+    slug: doc.slug as string,
+    content: (doc.content as Page['content']) || undefined,
     featuredImage: resolveMedia(doc.featuredImage),
-    metaTitle: doc.metaTitle || undefined,
-    metaDescription: doc.metaDescription || undefined,
-    isPublished: doc.isPublished ?? false,
+    metaTitle: (doc.metaTitle as string) || undefined,
+    metaDescription: (doc.metaDescription as string) || undefined,
+    isPublished: (doc.isPublished as boolean) ?? false,
   }
 }
 
-function transformCategory(doc: any): Category {
+function transformCategory(doc: PayloadDoc): Category {
+  const seo = doc.seo as PayloadDoc | undefined
+  const promoBlock = doc.promoBlock as PayloadDoc | undefined
+  const subcategories = doc.subcategories as PayloadDoc[] | undefined
+  const parentCategory = doc.parentCategory as PayloadDoc | undefined
+
   return {
-    id: doc.id,
-    name: doc.name,
-    slug: doc.slug,
-    description: doc.description || undefined,
-    shortDescription: doc.shortDescription || undefined,
+    id: doc.id as number | string,
+    name: doc.name as string,
+    slug: doc.slug as string,
+    description: (doc.description as Category['description']) || undefined,
+    shortDescription: (doc.shortDescription as string) || undefined,
     banner: resolveMedia(doc.banner),
     icon: resolveMedia(doc.icon),
-    accentColor: doc.accentColor || undefined,
-    subcategories: Array.isArray(doc.subcategories)
-      ? doc.subcategories.filter((s: any) => typeof s === 'object').map(transformCategory)
+    accentColor: (doc.accentColor as string) || undefined,
+    subcategories: Array.isArray(subcategories)
+      ? subcategories.filter((s) => typeof s === 'object').map(transformCategory)
       : undefined,
-    parentCategory: doc.parentCategory && typeof doc.parentCategory === 'object'
-      ? transformCategory(doc.parentCategory)
+    parentCategory: parentCategory && typeof parentCategory === 'object'
+      ? transformCategory(parentCategory)
       : undefined,
-    promoBlock: doc.promoBlock?.title ? {
-      id: doc.promoBlock.id,
-      title: doc.promoBlock.title,
-      description: doc.promoBlock.description || undefined,
-      image: resolveMedia(doc.promoBlock.image),
-      link: doc.promoBlock.link || undefined,
-      buttonText: doc.promoBlock.buttonText || undefined,
+    promoBlock: promoBlock?.title ? {
+      id: promoBlock.id as number | string | undefined,
+      title: promoBlock.title as string,
+      description: (promoBlock.description as string) || undefined,
+      image: resolveMedia(promoBlock.image),
+      link: (promoBlock.link as string) || undefined,
+      buttonText: (promoBlock.buttonText as string) || undefined,
     } : undefined,
-    seo: doc.seo?.metaTitle || doc.seo?.metaDescription ? {
-      metaTitle: doc.seo.metaTitle || undefined,
-      metaDescription: doc.seo.metaDescription || undefined,
-      ogImage: resolveMedia(doc.seo?.ogImage),
+    seo: seo?.metaTitle || seo?.metaDescription ? {
+      metaTitle: (seo.metaTitle as string) || undefined,
+      metaDescription: (seo.metaDescription as string) || undefined,
+      ogImage: resolveMedia(seo?.ogImage),
     } : undefined,
-    order: doc.order ?? 0,
-    isActive: doc.isActive ?? true,
+    order: (doc.order as number) ?? 0,
+    isActive: (doc.isActive as boolean) ?? true,
   }
 }
 
-function transformBrand(doc: any): Brand {
+function transformBrand(doc: PayloadDoc): Brand {
+  const seo = doc.seo as PayloadDoc | undefined
+  const benefits = doc.benefits as PayloadDoc[] | undefined
+
   return {
-    id: doc.id,
-    name: doc.name,
-    slug: doc.slug,
-    description: doc.description || undefined,
-    shortDescription: doc.shortDescription || undefined,
+    id: doc.id as number | string,
+    name: doc.name as string,
+    slug: doc.slug as string,
+    description: (doc.description as Brand['description']) || undefined,
+    shortDescription: (doc.shortDescription as string) || undefined,
     logo: resolveMedia(doc.logo),
     banner: resolveMedia(doc.banner),
-    accentColor: doc.accentColor || undefined,
-    history: doc.history || undefined,
-    countryOfOrigin: doc.countryOfOrigin || undefined,
-    foundedYear: doc.foundedYear || undefined,
-    website: doc.website || undefined,
-    benefits: Array.isArray(doc.benefits)
-      ? doc.benefits.map((b: any) => ({
-          id: b.id,
-          icon: b.icon || '\u2728',
-          title: b.title,
-          description: b.description || undefined,
+    accentColor: (doc.accentColor as string) || undefined,
+    history: (doc.history as Brand['history']) || undefined,
+    countryOfOrigin: (doc.countryOfOrigin as string) || undefined,
+    foundedYear: (doc.foundedYear as number) || undefined,
+    website: (doc.website as string) || undefined,
+    benefits: Array.isArray(benefits)
+      ? benefits.map((b): BenefitItem => ({
+          id: b.id as number | string | undefined,
+          icon: (b.icon as string) || '\u2728',
+          title: b.title as string,
+          description: (b.description as string) || undefined,
         }))
       : undefined,
-    seo: doc.seo?.metaTitle || doc.seo?.metaDescription ? {
-      metaTitle: doc.seo.metaTitle || undefined,
-      metaDescription: doc.seo.metaDescription || undefined,
-      ogImage: resolveMedia(doc.seo?.ogImage),
+    seo: seo?.metaTitle || seo?.metaDescription ? {
+      metaTitle: (seo.metaTitle as string) || undefined,
+      metaDescription: (seo.metaDescription as string) || undefined,
+      ogImage: resolveMedia(seo?.ogImage),
     } : undefined,
-    order: doc.order ?? 0,
-    isActive: doc.isActive ?? true,
+    order: (doc.order as number) ?? 0,
+    isActive: (doc.isActive as boolean) ?? true,
   }
 }
 
-function transformReview(doc: any): Review {
+function transformReview(doc: PayloadDoc): Review {
   return {
-    id: doc.id,
-    customerName: doc.customerName,
-    rating: doc.rating,
-    text: doc.text,
-    product: doc.product,
-    isApproved: doc.isApproved ?? false,
-    publishedAt: doc.publishedAt || undefined,
+    id: doc.id as number | string,
+    customerName: doc.customerName as string,
+    rating: doc.rating as number,
+    text: doc.text as string,
+    product: doc.product as Review['product'],
+    isApproved: (doc.isApproved as boolean) ?? false,
+    publishedAt: (doc.publishedAt as string) || undefined,
   }
 }
 
-function transformBlogPost(doc: any): BlogPost {
+function transformBlogPost(doc: PayloadDoc): BlogPost {
   return {
-    id: doc.id,
-    title: doc.title,
-    slug: doc.slug,
-    content: doc.content || undefined,
-    excerpt: doc.excerpt || undefined,
+    id: doc.id as number | string,
+    title: doc.title as string,
+    slug: doc.slug as string,
+    content: (doc.content as BlogPost['content']) || undefined,
+    excerpt: (doc.excerpt as string) || undefined,
     featuredImage: resolveMedia(doc.featuredImage),
-    author: doc.author || undefined,
-    tags: Array.isArray(doc.tags) ? doc.tags : undefined,
-    publishedAt: doc.publishedAt || undefined,
-    status: doc.status || 'draft',
+    author: (doc.author as string) || undefined,
+    tags: Array.isArray(doc.tags) ? doc.tags as Array<{ tag: string }> : undefined,
+    publishedAt: (doc.publishedAt as string) || undefined,
+    status: (doc.status as BlogPost['status']) || 'draft',
   }
 }
 
@@ -197,7 +214,7 @@ export async function getBanners(position?: Banner['position'], locale?: string)
     })
     return result.docs.map(transformBanner)
   } catch (error) {
-    console.error('Error fetching banners:', error)
+    log.error('Error fetching banners', error)
     return []
   }
 }
@@ -214,7 +231,7 @@ export async function getPromoBlocks(locale?: string): Promise<PromoBlock[]> {
     })
     return result.docs.map(transformPromoBlock)
   } catch (error) {
-    console.error('Error fetching promo blocks:', error)
+    log.error('Error fetching promo blocks', error)
     return []
   }
 }
@@ -232,7 +249,7 @@ export async function getPageBySlug(slug: string, locale?: string): Promise<Page
     })
     return result.docs[0] ? transformPage(result.docs[0]) : null
   } catch (error) {
-    console.error('Error fetching page:', error)
+    log.error('Error fetching page', error)
     return null
   }
 }
@@ -249,7 +266,7 @@ export async function getPages(locale?: string): Promise<Page[]> {
     })
     return result.docs.map(transformPage)
   } catch (error) {
-    console.error('Error fetching pages:', error)
+    log.error('Error fetching pages', error)
     return []
   }
 }
@@ -268,7 +285,7 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
     })
     return result.docs[0] ? transformCategory(result.docs[0]) : null
   } catch (error) {
-    console.error('Error fetching category:', error)
+    log.error('Error fetching category', error)
     return null
   }
 }
@@ -288,7 +305,7 @@ export async function getCategories(locale?: string): Promise<Category[]> {
     })
     return result.docs.map(transformCategory)
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    log.error('Error fetching categories', error)
     return []
   }
 }
@@ -307,7 +324,7 @@ export async function getBrandBySlug(slug: string, locale?: string): Promise<Bra
     })
     return result.docs[0] ? transformBrand(result.docs[0]) : null
   } catch (error) {
-    console.error('Error fetching brand:', error)
+    log.error('Error fetching brand', error)
     return null
   }
 }
@@ -326,7 +343,7 @@ export async function getBrands(locale?: string): Promise<Brand[]> {
     })
     return result.docs.map(transformBrand)
   } catch (error) {
-    console.error('Error fetching brands:', error)
+    log.error('Error fetching brands', error)
     return []
   }
 }
@@ -356,7 +373,7 @@ export async function getProducts(options: {
 }> {
   try {
     const payload = await getPayload({ config })
-    const andConditions: Record<string, any>[] = [{ status: { equals: 'active' } }]
+    const andConditions: Record<string, unknown>[] = [{ status: { equals: 'active' } }]
 
     // Search by title/subtitle
     if (options.search) {
@@ -395,7 +412,7 @@ export async function getProducts(options: {
       andConditions.push({ 'tags.tag': { in: options.tags } })
     }
 
-    const where = andConditions.length === 1 ? andConditions[0] : { and: andConditions }
+    const where = (andConditions.length === 1 ? andConditions[0] : { and: andConditions }) as import('payload').Where
 
     // Sort mapping
     let sort: string = '-createdAt'
@@ -426,7 +443,7 @@ export async function getProducts(options: {
       hasNextPage: result.hasNextPage,
     }
   } catch (error) {
-    console.error('Error fetching products:', error)
+    log.error('Error fetching products', error)
     return { products: [], count: 0, totalPages: 0, currentPage: 1, hasNextPage: false }
   }
 }
@@ -442,7 +459,7 @@ export async function getProductByHandle(handle: string, locale?: string): Promi
     })
     return result.docs[0] ? (result.docs[0] as unknown as PayloadProduct) : null
   } catch (error) {
-    console.error('Error fetching product:', error)
+    log.error('Error fetching product', error)
     return null
   }
 }
@@ -463,7 +480,7 @@ export async function searchProducts(query: string, locale?: string): Promise<{ 
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
-    console.error('Error searching products:', error)
+    log.error('Error searching products', error)
     return { products: [], count: 0 }
   }
 }
@@ -481,7 +498,7 @@ export async function getProductsByCategory(categorySlug: string, locale?: strin
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
-    console.error('Error fetching products by category:', error)
+    log.error('Error fetching products by category', error)
     return { products: [], count: 0 }
   }
 }
@@ -499,7 +516,7 @@ export async function getProductsByBrand(brandSlug: string, locale?: string): Pr
     })
     return { products: result.docs as unknown as PayloadProduct[], count: result.totalDocs }
   } catch (error) {
-    console.error('Error fetching products by brand:', error)
+    log.error('Error fetching products by brand', error)
     return { products: [], count: 0 }
   }
 }
@@ -520,7 +537,7 @@ export async function getReviewsByProduct(productId: number | string): Promise<R
     })
     return result.docs.map(transformReview)
   } catch (error) {
-    console.error('Error fetching reviews:', error)
+    log.error('Error fetching reviews', error)
     return []
   }
 }
@@ -532,7 +549,7 @@ export async function getProductRating(productId: number | string): Promise<{ av
     const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
     return { average: Math.round((sum / reviews.length) * 10) / 10, count: reviews.length }
   } catch (error) {
-    console.error('Error calculating product rating:', error)
+    log.error('Error calculating product rating', error)
     return { average: 0, count: 0 }
   }
 }
@@ -554,7 +571,7 @@ export async function getBlogPosts(options: { limit?: number; offset?: number; l
     })
     return { posts: result.docs.map(transformBlogPost), count: result.totalDocs }
   } catch (error) {
-    console.error('Error fetching blog posts:', error)
+    log.error('Error fetching blog posts', error)
     return { posts: [], count: 0 }
   }
 }
@@ -573,7 +590,7 @@ export async function getBlogPostBySlug(slug: string, locale?: string): Promise<
     })
     return result.docs[0] ? transformBlogPost(result.docs[0]) : null
   } catch (error) {
-    console.error('Error fetching blog post:', error)
+    log.error('Error fetching blog post', error)
     return null
   }
 }
@@ -622,7 +639,7 @@ export async function getSiteSettings(locale?: string): Promise<SiteSettingsData
     const result = await payload.findGlobal({ slug: 'site-settings' })
     return result as unknown as SiteSettingsData
   } catch (error) {
-    console.error('Error fetching site settings:', error)
+    log.error('Error fetching site settings', error)
     return null
   }
 }

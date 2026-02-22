@@ -64,6 +64,11 @@
     --input: 0 0% 90%;
     --ring: 0 0% 10%;
 
+    /* Brand Colors */
+    --brand-teal: 171 58% 39%; /* #2A9D8F */
+    --brand-teal-dark: 171 58% 34%; /* #238B7E */
+    --brand-teal-light: 171 50% 43%; /* #3AA99B */
+
     /* Border Radius */
     --radius-card: 1rem; /* 16px */
     --radius-button: 9999px; /* pill */

@@ -5,6 +5,7 @@ import { Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { shippingSchema, flattenZodErrors } from '@/lib/validations/schemas'
 import { AddressSelect } from './address-select'
 import type { Address } from '@/lib/hooks/use-addresses'
 
@@ -102,22 +103,17 @@ export function ShippingForm({
   }
 
   const validate = () => {
-    const newErrors: Partial<Record<keyof ShippingFormData, string>> = {}
-
-    if (!formData.city) {
-      newErrors.city = "Обов'язкове поле"
+    const dataToValidate = {
+      ...formData,
+      shippingMethodId: formData.shippingMethodId || (shippingOptions.length === 0 ? 'nova-poshta' : formData.shippingMethodId),
     }
-
-    if (!formData.warehouse) {
-      newErrors.warehouse = "Обов'язкове поле"
+    const result = shippingSchema.safeParse(dataToValidate)
+    if (result.success) {
+      setErrors({})
+      return true
     }
-
-    if (!formData.shippingMethodId && shippingOptions.length > 0) {
-      newErrors.shippingMethodId = 'Оберіть спосіб доставки'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(flattenZodErrors(result) as Partial<Record<keyof ShippingFormData, string>>)
+    return false
   }
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useRegister } from '@/lib/hooks/use-customer'
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Check } from 'lucide-react'
+import { registerSchema, flattenZodErrors } from '@/lib/validations/schemas'
 
 interface FormData {
   firstName: string
@@ -88,40 +89,21 @@ export function RegisterForm() {
   }
 
   const validate = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "Обов'язкове поле"
+    const result = registerSchema.safeParse({ ...formData, acceptTerms })
+    if (result.success) {
+      setErrors({})
+      return true
     }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Обов'язкове поле"
-    }
-
-    if (!formData.email) {
-      newErrors.email = "Обов'язкове поле"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Невірний формат email'
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Обов'язкове поле"
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Мінімум 8 символів'
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Обов'язкове поле"
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Паролі не співпадають'
-    }
-
-    if (!acceptTerms) {
-      newErrors.general = 'Прийміть умови використання'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    const flat = flattenZodErrors(result)
+    setErrors({
+      firstName: flat.firstName,
+      lastName: flat.lastName,
+      email: flat.email,
+      password: flat.password,
+      confirmPassword: flat.confirmPassword,
+      general: flat.acceptTerms,
+    })
+    return false
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,7 +152,7 @@ export function RegisterForm() {
         <p className="text-sm text-muted-foreground">
           Переадресація до особистого кабінету...
         </p>
-        <Loader2 className="w-5 h-5 animate-spin mx-auto mt-4 text-[#2A9D8F]" />
+        <Loader2 className="w-5 h-5 animate-spin mx-auto mt-4 text-[hsl(var(--brand-teal))]" />
       </div>
     )
   }
@@ -200,7 +182,7 @@ export function RegisterForm() {
             className={`h-12 rounded-xl transition-all ${
               errors.firstName
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -222,7 +204,7 @@ export function RegisterForm() {
             className={`h-12 rounded-xl transition-all ${
               errors.lastName
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -248,7 +230,7 @@ export function RegisterForm() {
           className={`h-12 rounded-xl transition-all ${
             errors.email
               ? 'border-destructive focus-visible:ring-destructive'
-              : 'focus-visible:ring-[#2A9D8F]'
+              : 'focus-visible:ring-[hsl(var(--brand-teal))]'
           }`}
           disabled={isLoading}
         />
@@ -274,7 +256,7 @@ export function RegisterForm() {
             className={`h-12 rounded-xl pr-12 transition-all ${
               errors.password
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -311,7 +293,7 @@ export function RegisterForm() {
                 ? 'border-destructive focus-visible:ring-destructive'
                 : formData.confirmPassword && formData.password === formData.confirmPassword
                 ? 'border-success focus-visible:ring-success'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -341,17 +323,17 @@ export function RegisterForm() {
             onChange={(e) => setAcceptTerms(e.target.checked)}
             className="peer sr-only"
           />
-          <div className="w-5 h-5 rounded-md border-2 border-border peer-checked:border-[#2A9D8F] peer-checked:bg-[#2A9D8F] transition-colors flex items-center justify-center">
+          <div className="w-5 h-5 rounded-md border-2 border-border peer-checked:border-[hsl(var(--brand-teal))] peer-checked:bg-[hsl(var(--brand-teal))] transition-colors flex items-center justify-center">
             {acceptTerms && <Check className="w-3 h-3 text-white" />}
           </div>
         </div>
         <span className="text-sm text-muted-foreground">
           Я погоджуюсь з{' '}
-          <Link href="/pages/terms" className="text-[#2A9D8F] hover:underline">
+          <Link href="/pages/terms" className="text-[hsl(var(--brand-teal))] hover:underline">
             умовами використання
           </Link>{' '}
           та{' '}
-          <Link href="/pages/privacy" className="text-[#2A9D8F] hover:underline">
+          <Link href="/pages/privacy" className="text-[hsl(var(--brand-teal))] hover:underline">
             політикою конфіденційності
           </Link>
         </span>
@@ -361,7 +343,7 @@ export function RegisterForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full h-12 rounded-full bg-gradient-to-r from-[#2A9D8F] to-[#3AA99B] hover:from-[#238B7E] hover:to-[#2A9D8F] text-white font-medium shadow-lg hover:shadow-xl transition-all mt-6"
+        className="w-full h-12 rounded-full bg-gradient-to-r from-[hsl(var(--brand-teal))] to-[hsl(var(--brand-teal-light))] hover:from-[hsl(var(--brand-teal-dark))] hover:to-[hsl(var(--brand-teal))] text-white font-medium shadow-lg hover:shadow-xl transition-all mt-6"
       >
         {isLoading ? (
           <>
@@ -378,7 +360,7 @@ export function RegisterForm() {
         Вже маєте акаунт?{' '}
         <Link
           href="/account/login"
-          className="font-medium text-[#2A9D8F] hover:text-[#238B7E] transition-colors"
+          className="font-medium text-[hsl(var(--brand-teal))] hover:text-[hsl(var(--brand-teal-dark))] transition-colors"
         >
           Увійти
         </Link>

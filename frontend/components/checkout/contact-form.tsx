@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { contactSchema, flattenZodErrors } from '@/lib/validations/schemas'
 
 interface ContactFormData {
   email: string
@@ -48,30 +49,13 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
   }
 
   const validate = () => {
-    const newErrors: Partial<ContactFormData> = {}
-
-    if (!formData.email) {
-      newErrors.email = "Обов'язкове поле"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Невірний формат email'
+    const result = contactSchema.safeParse(formData)
+    if (result.success) {
+      setErrors({})
+      return true
     }
-
-    if (!formData.phone) {
-      newErrors.phone = "Обов'язкове поле"
-    } else if (!/^[\d\s+()-]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Невірний формат номера'
-    }
-
-    if (!formData.firstName) {
-      newErrors.firstName = "Обов'язкове поле"
-    }
-
-    if (!formData.lastName) {
-      newErrors.lastName = "Обов'язкове поле"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(flattenZodErrors(result) as Partial<ContactFormData>)
+    return false
   }
 
   const handleSubmit = (e: React.FormEvent) => {

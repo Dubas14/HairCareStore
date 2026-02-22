@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useLogin, useCustomer } from '@/lib/hooks/use-customer'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
+import { loginSchema, flattenZodErrors } from '@/lib/validations/schemas'
 
 interface FormData {
   email: string
@@ -41,22 +42,13 @@ export function LoginForm() {
   }
 
   const validate = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.email) {
-      newErrors.email = "Обов'язкове поле"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Невірний формат email'
+    const result = loginSchema.safeParse(formData)
+    if (result.success) {
+      setErrors({})
+      return true
     }
-
-    if (!formData.password) {
-      newErrors.password = "Обов'язкове поле"
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Мінімум 6 символів'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(flattenZodErrors(result) as FormErrors)
+    return false
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +97,7 @@ export function LoginForm() {
             className={`h-12 rounded-xl pl-4 pr-4 transition-all ${
               errors.email
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -132,7 +124,7 @@ export function LoginForm() {
             className={`h-12 rounded-xl pl-4 pr-12 transition-all ${
               errors.password
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#2A9D8F]'
+                : 'focus-visible:ring-[hsl(var(--brand-teal))]'
             }`}
             disabled={isLoading}
           />
@@ -154,7 +146,7 @@ export function LoginForm() {
       <div className="flex justify-end">
         <Link
           href="/account/forgot-password"
-          className="text-sm text-muted-foreground hover:text-[#2A9D8F] transition-colors"
+          className="text-sm text-muted-foreground hover:text-[hsl(var(--brand-teal))] transition-colors"
         >
           Забули пароль?
         </Link>
@@ -164,7 +156,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full h-12 rounded-full bg-gradient-to-r from-[#2A9D8F] to-[#3AA99B] hover:from-[#238B7E] hover:to-[#2A9D8F] text-white font-medium shadow-lg hover:shadow-xl transition-all"
+        className="w-full h-12 rounded-full bg-gradient-to-r from-[hsl(var(--brand-teal))] to-[hsl(var(--brand-teal-light))] hover:from-[hsl(var(--brand-teal-dark))] hover:to-[hsl(var(--brand-teal))] text-white font-medium shadow-lg hover:shadow-xl transition-all"
       >
         {isLoading ? (
           <>
@@ -220,7 +212,7 @@ export function LoginForm() {
         Немає акаунту?{' '}
         <Link
           href="/account/register"
-          className="font-medium text-[#2A9D8F] hover:text-[#238B7E] transition-colors"
+          className="font-medium text-[hsl(var(--brand-teal))] hover:text-[hsl(var(--brand-teal-dark))] transition-colors"
         >
           Зареєструватися
         </Link>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ProductGallery } from '@/components/products/product-gallery'
@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { getImageUrl, transformProducts } from '@/lib/payload/types'
 import { useCartContext } from '@/components/providers/cart-provider'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
+import { trackViewItem, trackAddToCart } from '@/lib/analytics/events'
 
 // Mock ingredients data
 const mockIngredients = [
@@ -88,6 +89,20 @@ export default function ProductPageContent() {
     return transformProducts(otherProducts.slice(0, 4))
   }, [allProductsData?.products, product])
 
+  // Track product view
+  useEffect(() => {
+    if (product) {
+      const price = product.variants?.[0]?.price || 0
+      const brandName = product.subtitle || (typeof product.brand === 'object' && product.brand ? product.brand.name : 'HAIR LAB')
+      trackViewItem({
+        item_id: String(product.id),
+        item_name: product.title,
+        item_brand: brandName,
+        price,
+      })
+    }
+  }, [product])
+
   // Loading state
   if (isLoading) {
     return (
@@ -120,7 +135,15 @@ export default function ProductPageContent() {
   const handleAddToCart = async (variantId: string, quantity: number) => {
     try {
       const variantIndex = variants.findIndex(v => v.id === variantId)
+      const selectedVariant = variants[variantIndex >= 0 ? variantIndex : 0]
       await addToCart(product.id, variantIndex >= 0 ? variantIndex : 0, quantity)
+      trackAddToCart({
+        item_id: String(product.id),
+        item_name: product.title,
+        item_brand: brand,
+        price: selectedVariant?.price || 0,
+        quantity,
+      })
     } catch (error) {
       console.error('Error adding to cart:', error)
     }

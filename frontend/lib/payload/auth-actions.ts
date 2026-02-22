@@ -3,8 +3,12 @@
 import { cookies, headers } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import crypto from 'crypto'
 import { checkRateLimit, recordAttempt, resetAttempts } from '@/lib/rate-limiter'
+import { loginSchema } from '@/lib/validations/schemas'
+import { createLogger } from '@/lib/logger'
+import { signCustomerId, verifyCustomerId } from '@/lib/auth/token-utils'
+
+const log = createLogger('auth-actions')
 
 async function getClientIP(): Promise<string> {
   const h = await headers()
@@ -13,41 +17,13 @@ async function getClientIP(): Promise<string> {
 
 const CUSTOMER_TOKEN_COOKIE = 'hair-lab-customer-token'
 
-function getSecret(): string {
-  return process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production'
-}
-
-const TOKEN_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-
-function signCustomerId(customerId: string): string {
-  const timestamp = Date.now().toString(36)
-  const data = `${customerId}.${timestamp}`
-  const hmac = crypto.createHmac('sha256', getSecret())
-  hmac.update(data)
-  const signature = hmac.digest('hex')
-  return `${data}.${signature}`
-}
-
-function verifyCustomerId(value: string): string | null {
-  const parts = value.split('.')
-  if (parts.length !== 3) return null
-  const [customerId, timestamp, signature] = parts
-
-  // Verify HMAC
-  const data = `${customerId}.${timestamp}`
-  const hmac = crypto.createHmac('sha256', getSecret())
-  hmac.update(data)
-  const expectedSignature = hmac.digest('hex')
-  if (signature !== expectedSignature) return null
-
-  // Verify token age
-  const tokenTime = parseInt(timestamp, 36)
-  if (isNaN(tokenTime) || Date.now() - tokenTime > TOKEN_MAX_AGE_MS) return null
-
-  return customerId
-}
-
 export async function loginCustomer(email: string, password: string) {
+  // Server-side validation
+  const parsed = loginSchema.safeParse({ email, password })
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message || 'Невірні дані')
+  }
+
   const ip = await getClientIP()
   const rl = checkRateLimit(ip, 'login')
   if (!rl.allowed) {
@@ -78,8 +54,8 @@ export async function loginCustomer(email: string, password: string) {
     })
 
     return result.user
-  } catch (err: any) {
-    if (err?.message?.startsWith('Забагато')) throw err
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.startsWith('Забагато')) throw err
     recordAttempt(ip, 'login')
     throw new Error('Невірний email або пароль')
   }
@@ -91,6 +67,15 @@ export async function registerCustomer(data: {
   firstName: string
   lastName: string
 }) {
+  // Server-side validation (reuse registerSchema without confirmPassword/acceptTerms)
+  const parsed = loginSchema.safeParse({ email: data.email, password: data.password })
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message || 'Невірні дані')
+  }
+  if (!data.firstName?.trim() || !data.lastName?.trim()) {
+    throw new Error("Ім'я та прізвище обов'язкові")
+  }
+
   const ip = await getClientIP()
   const rl = checkRateLimit(ip, 'register')
   if (!rl.allowed) {
@@ -130,12 +115,12 @@ export async function registerCustomer(data: {
       // Send welcome email (fire-and-forget)
       import('@/lib/email/email-actions')
         .then(({ sendWelcomeEmail }) => sendWelcomeEmail(data.email, data.firstName))
-        .catch((err) => console.error('[Email] Welcome email failed:', err))
+        .catch((err) => log.error('Welcome email failed', err))
     }
 
     return loginResult.user
-  } catch (error: any) {
-    const message = error?.message || 'Помилка реєстрації'
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Помилка реєстрації'
     throw new Error(message)
   }
 }

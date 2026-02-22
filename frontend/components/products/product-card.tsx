@@ -11,6 +11,7 @@ import { useWishlist, useToggleWishlist } from '@/lib/hooks/use-wishlist'
 import { useAuthStore } from '@/stores/auth-store'
 import { CompareButton } from '@/components/compare/compare-button'
 import type { Product } from '@/lib/constants/home-data'
+import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics/events'
 
 interface ProductCardProps {
   product: Product
@@ -48,6 +49,14 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
     try {
       await toggleWishlist.mutateAsync(wishlistProductId)
+      if (!isWishlisted) {
+        trackAddToWishlist({
+          item_id: String(product.productId),
+          item_name: product.name,
+          item_brand: product.brand,
+          price: product.price,
+        })
+      }
     } catch (error) {
       console.error('Failed to update wishlist:', error)
     }
@@ -64,6 +73,13 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
     setIsAdding(true)
     try {
       await addToCart(product.productId, product.variantIndex ?? 0, 1)
+      trackAddToCart({
+        item_id: String(product.productId),
+        item_name: product.name,
+        item_brand: product.brand,
+        price: product.price,
+        quantity: 1,
+      })
     } catch (error) {
       console.error('Error adding to cart:', error)
     } finally {

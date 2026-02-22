@@ -3,7 +3,11 @@
 import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import type { PayloadCart, CartAddress } from './types'
+import type { PayloadCart, PayloadProduct, CartItem, CartAddress } from './types'
+import { cartAddressUpdateSchema } from '@/lib/validations/schemas'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('cart-actions')
 
 const CART_COOKIE = 'hair-lab-cart-id'
 
@@ -34,7 +38,8 @@ export async function getOrCreateCart(): Promise<PayloadCart> {
   if (cartId) {
     try {
       const cart = await payload.findByID({ collection: 'carts', id: cartId, depth: 1 })
-      if (cart && (cart as any).status === 'active') return cart as unknown as PayloadCart
+      const typedCart = cart as unknown as PayloadCart
+      if (typedCart && typedCart.status === 'active') return typedCart
     } catch { /* cart not found */ }
   }
   const newCart = await payload.create({
@@ -51,7 +56,8 @@ export async function getCart(): Promise<PayloadCart | null> {
   try {
     const payload = await getPayload({ config })
     const cart = await payload.findByID({ collection: 'carts', id: cartId, depth: 1 })
-    if (cart && (cart as any).status === 'active') return cart as unknown as PayloadCart
+    const typedCart = cart as unknown as PayloadCart
+    if (typedCart && typedCart.status === 'active') return typedCart
     return null
   } catch { return null }
 }
@@ -61,20 +67,22 @@ export async function addToCart(productId: number | string, variantIndex: number
   const cart = await getOrCreateCart()
   const product = await payload.findByID({ collection: 'products', id: productId, depth: 1 })
   if (!product) throw new Error('Product not found')
-  const variant = (product as any).variants?.[variantIndex]
+  const typedProduct = product as unknown as PayloadProduct
+  const variant = typedProduct.variants?.[variantIndex]
   if (!variant) throw new Error('Variant not found')
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw new Error('Invalid quantity')
 
-  const items = [...(cart.items || [])] as any[]
+  const items: CartItem[] = [...(cart.items || [])]
   const existingIndex = items.findIndex(
-    (item: any) => (typeof item.product === 'object' ? item.product.id : item.product) === Number(productId) && item.variantIndex === variantIndex
+    (item) => (typeof item.product === 'object' ? (item.product as PayloadProduct).id : item.product) === Number(productId) && item.variantIndex === variantIndex
   )
 
   if (existingIndex >= 0) {
     items[existingIndex] = { ...items[existingIndex], quantity: items[existingIndex].quantity + quantity }
   } else {
-    const thumbnailUrl = product.thumbnail && typeof product.thumbnail === 'object' ? (product.thumbnail as any).url || '' : ''
-    items.push({ product: productId, variantIndex, variantTitle: variant.title, quantity, unitPrice: variant.price, productTitle: product.title, productThumbnail: thumbnailUrl })
+    const thumbnail = typedProduct.thumbnail
+    const thumbnailUrl = thumbnail && typeof thumbnail === 'object' ? thumbnail.url || '' : ''
+    items.push({ product: productId, variantIndex, variantTitle: variant.title, quantity, unitPrice: variant.price, productTitle: typedProduct.title, productThumbnail: thumbnailUrl })
   }
 
   const updated = await payload.update({ collection: 'carts', id: cart.id, data: { items }, depth: 1 })
@@ -84,7 +92,7 @@ export async function addToCart(productId: number | string, variantIndex: number
 export async function updateCartItem(itemIndex: number, quantity: number): Promise<PayloadCart> {
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
-  const items = [...(cart.items || [])] as any[]
+  const items: CartItem[] = [...(cart.items || [])]
   if (quantity <= 0) items.splice(itemIndex, 1)
   else if (items[itemIndex]) items[itemIndex] = { ...items[itemIndex], quantity: Math.min(quantity, 10) }
   const updated = await payload.update({ collection: 'carts', id: cart.id, data: { items }, depth: 1 })
@@ -96,21 +104,15 @@ export async function removeCartItem(itemIndex: number): Promise<PayloadCart> {
 }
 
 export async function updateCartAddresses(data: { email?: string; shippingAddress?: CartAddress; billingAddress?: CartAddress }): Promise<PayloadCart> {
-  // Server-side validation
-  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    throw new Error('Невірний формат email')
-  }
-  if (data.shippingAddress) {
-    const addr = data.shippingAddress
-    if (addr.firstName && addr.firstName.length > 100) throw new Error('Занадто довге ім\'я')
-    if (addr.lastName && addr.lastName.length > 100) throw new Error('Занадто довге прізвище')
-    if (addr.phone && !/^[\d\s+()-]{7,20}$/.test(addr.phone)) throw new Error('Невірний формат телефону')
-    if (addr.city && addr.city.length > 100) throw new Error('Занадто довга назва міста')
+  // Server-side Zod validation
+  const parsed = cartAddressUpdateSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message || 'Невірні дані')
   }
 
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
-  const updateData: Record<string, any> = {}
+  const updateData: Record<string, unknown> = {}
   if (data.email) updateData.email = data.email
   if (data.shippingAddress) updateData.shippingAddress = data.shippingAddress
   if (data.billingAddress) updateData.billingAddress = data.billingAddress
@@ -129,8 +131,9 @@ export async function getShippingOptions(): Promise<Array<{ methodId: string; na
   try {
     const payload = await getPayload({ config })
     const shippingConfig = await payload.findGlobal({ slug: 'shipping-config' })
-    const methods = (shippingConfig as any).methods || []
-    return methods.filter((m: any) => m.isActive)
+    const shippingData = shippingConfig as unknown as { methods?: Array<{ methodId: string; name: string; price: number; freeAbove?: number; isActive: boolean }> }
+    const methods = shippingData.methods || []
+    return methods.filter((m) => m.isActive)
   } catch {
     return [{ methodId: 'nova-poshta', name: 'Нова Пошта', price: 70, freeAbove: 1000 }]
   }
@@ -142,18 +145,19 @@ export async function getShippingOptions(): Promise<Array<{ methodId: string; na
 export async function completeCart(): Promise<{ orderId: number | string; displayId: number }> {
   const payload = await getPayload({ config })
   const cart = await getOrCreateCart()
-  if ((cart as any).status === 'completed') throw new Error('Cart already completed')
+  if (cart.status === 'completed') throw new Error('Cart already completed')
   if (!cart.items || cart.items.length === 0) throw new Error('Cart is empty')
 
   // Re-validate prices from database
   let recalculatedSubtotal = 0
   const orderItems = await Promise.all(
-    cart.items.map(async (item: any) => {
-      const productId = typeof item.product === 'object' ? item.product.id : item.product
+    cart.items.map(async (item) => {
+      const productId = typeof item.product === 'object' ? (item.product as PayloadProduct).id : item.product
       const product = await payload.findByID({ collection: 'products', id: productId, depth: 0 })
       if (!product) throw new Error(`Product ${productId} not found`)
 
-      const variant = (product as any).variants?.[item.variantIndex]
+      const typedProduct = product as unknown as PayloadProduct
+      const variant = typedProduct.variants?.[item.variantIndex]
       if (!variant) throw new Error(`Variant ${item.variantIndex} not found for product ${productId}`)
 
       // Inventory check
@@ -188,7 +192,7 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
   const order = await payload.create({
     collection: 'orders',
     data: {
-      customer: typeof cart.customer === 'object' ? (cart.customer as any)?.id : cart.customer,
+      customer: typeof cart.customer === 'object' && cart.customer ? (cart.customer as { id: number | string }).id : cart.customer,
       email: cart.email || '',
       status: 'pending',
       paymentStatus: 'awaiting',
@@ -198,15 +202,15 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       billingAddress: cart.billingAddress || cart.shippingAddress || {},
       paymentMethod: 'cod',
       shippingMethod: cart.shippingMethod || '',
-      currency: (cart as any).currency || 'UAH',
+      currency: cart.currency || 'UAH',
       subtotal: recalculatedSubtotal,
       shippingTotal,
       discountTotal,
       loyaltyPointsUsed: cart.loyaltyPointsUsed || 0,
       loyaltyDiscount,
       total: recalculatedTotal,
-      promoCode: (cart as any).promoCode || '',
-      promoDiscount: (cart as any).promoDiscount || 0,
+      promoCode: cart.promoCode || '',
+      promoDiscount: cart.promoDiscount || 0,
       cartId: String(cart.id),
     },
   })
@@ -214,22 +218,24 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
   await payload.update({ collection: 'carts', id: cart.id, data: { status: 'completed', completedAt: new Date().toISOString() } })
   await clearCartCookie()
 
+  const typedOrder = order as unknown as { id: number | string; displayId: number }
+
   // Record promo usage (fire-and-forget)
-  if ((cart as any).promoCode) {
+  if (cart.promoCode) {
     import('@/lib/payload/promo-actions')
       .then(({ recordPromoUsage }) => recordPromoUsage(
-        (cart as any).promoCode,
+        cart.promoCode!,
         cart.email || '',
-        (order as any).id,
-        (cart as any).promoDiscount || 0,
-        (cart as any).currency || 'UAH',
-        typeof cart.customer === 'object' ? (cart.customer as any)?.id : cart.customer,
+        Number(typedOrder.id),
+        cart.promoDiscount || 0,
+        cart.currency || 'UAH',
+        typeof cart.customer === 'object' && cart.customer ? (cart.customer as { id: number | string }).id : cart.customer,
       ))
-      .catch(err => console.error('[Promo] Usage recording failed:', err))
+      .catch(err => log.error('Promo usage recording failed', err))
   }
 
   // Send order confirmation email (fire-and-forget)
-  const displayId = (order as any).displayId
+  const displayId = typedOrder.displayId
   try {
     const { sendOrderConfirmationEmail } = await import('@/lib/email/email-actions')
     const shippingAddr = cart.shippingAddress
@@ -237,18 +243,18 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
       email: cart.email || '',
       customerName: shippingAddr?.firstName || '',
       orderNumber: displayId,
-      items: cart.items as any,
+      items: cart.items,
       subtotal: recalculatedSubtotal,
       shipping: shippingTotal,
       discount: discountTotal + loyaltyDiscount,
       total: recalculatedTotal,
-      currency: (cart as any).currency || 'UAH',
+      currency: cart.currency || 'UAH',
       shippingCity: shippingAddr?.city,
       shippingWarehouse: shippingAddr?.address1,
       paymentMethod: 'Накладений платіж',
-    }).catch((err) => console.error('[Email] Order confirmation failed:', err))
+    }).catch((err) => log.error('Order confirmation email failed', err))
   } catch (err) {
-    console.error('[Email] Import failed:', err)
+    log.error('Email module import failed', err)
   }
 
   return { orderId: order.id, displayId }
@@ -300,7 +306,8 @@ export async function linkCartToCustomer(customerId: number | string): Promise<v
 
   try {
     const cart = await payload.findByID({ collection: 'carts', id: cartId })
-    if (cart && (cart as any).status === 'active' && !(cart as any).customer) {
+    const typedCart = cart as unknown as PayloadCart
+    if (typedCart && typedCart.status === 'active' && !typedCart.customer) {
       await payload.update({ collection: 'carts', id: cartId, data: { customer: customerId } })
     }
   } catch { /* cart not found */ }

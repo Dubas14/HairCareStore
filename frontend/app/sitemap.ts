@@ -1,6 +1,9 @@
 import type { MetadataRoute } from 'next'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('sitemap')
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
 const locales = ['uk', 'en', 'pl', 'de', 'ru'] as const
@@ -66,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     } catch (error) {
-      console.error('Sitemap: Error fetching products:', error)
+      log.warn('Error fetching products for sitemap', error)
     }
 
     // Categories
@@ -90,7 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     } catch (error) {
-      console.error('Sitemap: Error fetching categories:', error)
+      log.warn('Error fetching categories for sitemap', error)
     }
 
     // Brands
@@ -114,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     } catch (error) {
-      console.error('Sitemap: Error fetching brands:', error)
+      log.warn('Error fetching brands for sitemap', error)
     }
 
     // Blog posts
@@ -138,7 +141,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     } catch (error) {
-      console.error('Sitemap: Error fetching blog posts:', error)
+      log.warn('Error fetching blog posts for sitemap', error)
     }
 
     // CMS pages
@@ -162,10 +165,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
       }
     } catch (error) {
-      console.error('Sitemap: Error fetching pages:', error)
+      log.warn('Error fetching pages for sitemap', error)
     }
   } catch (error) {
-    console.error('Sitemap: Error initializing Payload:', error)
+    log.error('Error initializing Payload for sitemap', error)
   }
 
   return entries

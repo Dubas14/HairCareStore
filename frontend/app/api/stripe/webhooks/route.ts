@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import type Stripe from 'stripe'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('stripe-webhooks')
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -14,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   const webhookSecret = process.env.STRIPE_WEBHOOKS_ENDPOINT_SECRET
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOKS_ENDPOINT_SECRET is not set')
+    log.error('STRIPE_WEBHOOKS_ENDPOINT_SECRET is not set')
     return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
   }
 
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    log.error('Webhook signature verification failed', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
         break
     }
   } catch (err) {
-    console.error(`Error handling webhook event ${event.type}:`, err)
+    log.error(`Error handling webhook event ${event.type}`, err)
     // Return 200 to prevent Stripe from retrying for application errors
     // The issue should be investigated via logs
   }
@@ -61,7 +64,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
-async function handlePaymentSuccess(payload: any, paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentSuccess(payload: Payload, paymentIntent: Stripe.PaymentIntent) {
   const { cartId } = paymentIntent.metadata
 
   // Find order by stripePaymentIntentId
@@ -99,7 +102,7 @@ async function handlePaymentSuccess(payload: any, paymentIntent: Stripe.PaymentI
   }
 }
 
-async function handlePaymentFailed(payload: any, paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentFailed(payload: Payload, paymentIntent: Stripe.PaymentIntent) {
   const orders = await payload.find({
     collection: 'orders',
     where: { stripePaymentIntentId: { equals: paymentIntent.id } },
@@ -115,7 +118,7 @@ async function handlePaymentFailed(payload: any, paymentIntent: Stripe.PaymentIn
   }
 }
 
-async function handleRefund(payload: any, charge: Stripe.Charge) {
+async function handleRefund(payload: Payload, charge: Stripe.Charge) {
   if (!charge.payment_intent) return
   const piId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent.id
 

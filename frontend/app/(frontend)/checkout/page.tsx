@@ -26,6 +26,13 @@ import {
   clearCartAfterPayment,
 } from '@/lib/payload/cart-actions'
 import { completeStripePayment } from '@/lib/payload/payment-actions'
+import {
+  trackBeginCheckout,
+  trackAddShippingInfo,
+  trackAddPaymentInfo,
+  trackPurchase,
+} from '@/lib/analytics/events'
+import type { CartItem } from '@/lib/payload/types'
 
 interface ContactData {
   email: string
@@ -162,6 +169,13 @@ export default function CheckoutPage() {
 
   const items = cart?.items || []
 
+  const analyticsItems = items.map((item: CartItem) => ({
+    item_id: String(typeof item.product === 'object' ? (item.product as { id: number | string }).id : item.product),
+    item_name: item.productTitle || 'Product',
+    price: item.unitPrice,
+    quantity: item.quantity,
+  }))
+
   // Loading state
   if (isCartLoading) {
     return (
@@ -283,10 +297,10 @@ export default function CheckoutPage() {
 
       await refreshCart()
       setCheckoutData((prev) => ({ ...prev, contact: data }))
+      trackBeginCheckout(analyticsItems, cart.total)
       setCurrentStep('shipping')
     } catch (err) {
       setError('Не вдалося зберегти контактну інформацію. Спробуйте ще раз.')
-      console.error('Contact submit error:', err)
     } finally {
       setIsProcessing(false)
     }
@@ -331,10 +345,10 @@ export default function CheckoutPage() {
 
       await refreshCart()
       setCheckoutData((prev) => ({ ...prev, shipping: data }))
+      trackAddShippingInfo(analyticsItems, data.shippingMethodId, cart.total)
       setCurrentStep('payment')
     } catch (err) {
       setError('Не вдалося зберегти інформацію про доставку. Спробуйте ще раз.')
-      console.error('Shipping submit error:', err)
     } finally {
       setIsProcessing(false)
     }
@@ -348,9 +362,17 @@ export default function CheckoutPage() {
 
     try {
       setCheckoutData((prev) => ({ ...prev, payment: data }))
+      trackAddPaymentInfo(analyticsItems, data.method, cart.total)
 
       // Complete the cart and place order (COD - no payment session needed)
       const result = await completeCart()
+
+      trackPurchase(
+        String(result.displayId),
+        analyticsItems,
+        cart.total,
+        cart.shippingTotal || 0,
+      )
 
       setOrder({
         orderId: result.orderId,
@@ -367,7 +389,6 @@ export default function CheckoutPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Не вдалося оформити замовлення.'
       setError(message)
-      console.error('Payment submit error:', err)
     } finally {
       setIsProcessing(false)
     }

@@ -50,7 +50,7 @@ export interface Banner {
 export interface PromoBlock {
   id: number | string
   title: string
-  description?: any
+  description?: Record<string, unknown> | string | null
   image?: PayloadMedia
   buttonText?: string
   buttonLink?: string
@@ -62,7 +62,7 @@ export interface Page {
   id: number | string
   title: string
   slug: string
-  content?: any
+  content?: Record<string, unknown> | string | null
   featuredImage?: PayloadMedia
   metaTitle?: string
   metaDescription?: string
@@ -89,7 +89,7 @@ export interface Category {
   id: number | string
   name: string
   slug: string
-  description?: any
+  description?: Record<string, unknown> | string | null
   shortDescription?: string
   banner?: PayloadMedia
   icon?: PayloadMedia
@@ -113,12 +113,12 @@ export interface Brand {
   id: number | string
   name: string
   slug: string
-  description?: any
+  description?: Record<string, unknown> | string | null
   shortDescription?: string
   logo?: PayloadMedia
   banner?: PayloadMedia
   accentColor?: string
-  history?: any
+  history?: Record<string, unknown> | string | null
   countryOfOrigin?: string
   foundedYear?: number
   website?: string
@@ -148,7 +148,7 @@ export interface BlogPost {
   id: number | string
   title: string
   slug: string
-  content?: any
+  content?: Record<string, unknown> | string | null
   excerpt?: string
   featuredImage?: PayloadMedia
   author?: string
@@ -178,7 +178,7 @@ export interface PayloadProduct {
   handle: string
   barcode?: string
   subtitle?: string
-  description?: any
+  description?: Record<string, unknown> | string | null
   thumbnail?: PayloadMedia
   images?: Array<{ image: PayloadMedia }>
   variants: PayloadVariant[]

@@ -1,10 +1,6 @@
 import dynamicImport from 'next/dynamic'
 import { CategoriesSection } from '@/components/home/categories-section'
-import { FeaturedProducts } from '@/components/home/featured-products'
-import { BrandsSection } from '@/components/home/brands-section'
 import { BenefitsSection } from '@/components/home/benefits-section'
-import { NewsletterSection } from '@/components/home/newsletter-section'
-import { PromoBlocks } from '@/components/home/promo-blocks'
 import { getBanners, getPromoBlocks, getCategories, getBrands } from '@/lib/payload/client'
 import { HomePageAnimations } from '@/components/home/home-page-animations'
 import { buildWebSiteJsonLd, buildSiteNavigationJsonLd } from '@/lib/structured-data'
@@ -13,6 +9,7 @@ export const dynamic = 'force-dynamic'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
 
+// Safe: built from trusted server-side constants only (no user input)
 const organizationJsonLd = JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -37,8 +34,32 @@ const HeroSliderCMS = dynamicImport(
   { loading: () => <div className="w-full h-[500px] md:h-[600px] bg-muted animate-pulse rounded-lg" /> }
 )
 
+const FeaturedProducts = dynamicImport(
+  () => import('@/components/home/featured-products').then(mod => ({ default: mod.FeaturedProducts })),
+  { loading: () => <div className="w-full h-[400px] bg-muted/50 animate-pulse rounded-lg" /> }
+)
+
+const BrandsSection = dynamicImport(
+  () => import('@/components/home/brands-section').then(mod => ({ default: mod.BrandsSection })),
+  { loading: () => <div className="w-full h-[300px] bg-muted/50 animate-pulse rounded-lg" /> }
+)
+
+const PromoBlocks = dynamicImport(
+  () => import('@/components/home/promo-blocks').then(mod => ({ default: mod.PromoBlocks })),
+  { loading: () => <div className="w-full h-[200px] bg-muted/50 animate-pulse rounded-lg" /> }
+)
+
+const NewsletterSection = dynamicImport(
+  () => import('@/components/home/newsletter-section').then(mod => ({ default: mod.NewsletterSection })),
+  { loading: () => <div className="w-full h-[200px] bg-muted/50 animate-pulse rounded-lg" /> }
+)
+
+function JsonLd({ json }: { json: string }) {
+  // All JSON-LD is built from trusted server-side constants, not user input — safe to inject
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />
+}
+
 export default async function HomePage() {
-  // Завантажуємо контент з Payload CMS
   const [banners, promoBlocks, categories, brands] = await Promise.all([
     getBanners('home'),
     getPromoBlocks(),
@@ -46,7 +67,6 @@ export default async function HomePage() {
     getBrands(),
   ])
 
-  // WebSite + SiteNavigation JSON-LD for Google Search/Sitelinks
   const webSiteJsonLd = buildWebSiteJsonLd()
   const navJsonLd = buildSiteNavigationJsonLd([
     { name: 'Каталог', url: '/shop' },
@@ -55,13 +75,11 @@ export default async function HomePage() {
     { name: 'Блог', url: '/blog' },
   ])
 
-  // All JSON-LD below is built from trusted static server-side data only (no user input)
   return (
     <>
-      {/* Safe: all JSON-LD built from trusted server-side constants, not user input */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: organizationJsonLd }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: webSiteJsonLd }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: navJsonLd }} />
+      <JsonLd json={organizationJsonLd} />
+      <JsonLd json={webSiteJsonLd} />
+      <JsonLd json={navJsonLd} />
       <HomePageAnimations>
         <HeroSliderCMS banners={banners} />
         <CategoriesSection categories={categories} />
