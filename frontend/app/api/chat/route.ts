@@ -33,7 +33,7 @@ async function getProductContext(): Promise<ProductContext> {
       payload.find({
         collection: 'products',
         where: { status: { equals: 'active' } },
-        limit: 500,
+        limit: 0,
         depth: 1,
         locale: 'uk',
       }),
