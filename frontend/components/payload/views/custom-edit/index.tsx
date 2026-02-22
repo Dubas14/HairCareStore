@@ -28,6 +28,7 @@ const COLLECTION_LABELS: Record<string, string> = {
   promotions: 'Промокод',
   'automatic-discounts': 'Автоматична знижка',
   subscribers: 'Підписник',
+  ingredients: 'Інгредієнт',
 }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -296,7 +297,19 @@ export default function CustomEditView() {
         }
       } else {
         const err = await res.json().catch(() => null)
-        showToast(err?.message || (isCreate ? 'Помилка створення' : 'Помилка збереження'), 'error')
+        // Payload returns { errors: [{ message, data: [{ field, message }] }] }
+        let errMsg = ''
+        if (err?.errors?.length) {
+          const fieldErrors = err.errors[0]?.data
+          if (Array.isArray(fieldErrors) && fieldErrors.length) {
+            const fieldLabel = fieldErrors[0].field || ''
+            const schemaField = fieldSchema.find((f) => f.name === fieldLabel)
+            errMsg = `${schemaField?.label || fieldLabel}: ${fieldErrors[0].message}`
+          } else {
+            errMsg = err.errors[0]?.message || ''
+          }
+        }
+        showToast(errMsg || err?.message || (isCreate ? 'Помилка створення' : 'Помилка збереження'), 'error')
       }
     } catch {
       showToast(isCreate ? 'Помилка створення' : 'Помилка збереження', 'error')

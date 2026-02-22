@@ -59,6 +59,7 @@ interface FormState {
   brandId: string
   basePrice: string
   salePrice: string
+  ingredientIds: string[]
   metaTitle: string
   metaDescription: string
   thumbnail: MediaDoc | null
@@ -66,6 +67,7 @@ interface FormState {
   variants: Variant[]
 }
 
+interface IngredientDoc { id: string | number; name?: string; benefit?: string; icon?: string }
 interface CategoryDoc { id: string | number; title?: string; name?: string }
 interface BrandDoc    { id: string | number; title?: string; name?: string }
 
@@ -333,6 +335,7 @@ function defaultForm(): FormState {
     brandId:        '',
     basePrice:      '',
     salePrice:      '',
+    ingredientIds:  [],
     metaTitle:      '',
     metaDescription: '',
     thumbnail:      null,
@@ -369,6 +372,12 @@ function mapProductToForm(doc: any): FormState {
         .filter((img: any) => img && img.id != null)
     : []
 
+  const ingredientIds: string[] = Array.isArray(doc.ingredients)
+    ? doc.ingredients
+        .map((ing: any) => ing && typeof ing === 'object' ? String(ing.id) : ing != null ? String(ing) : null)
+        .filter(Boolean)
+    : []
+
   return {
     title:          doc.title ?? '',
     subtitle:       doc.subtitle ?? '',
@@ -377,6 +386,7 @@ function mapProductToForm(doc: any): FormState {
     status:         doc.status ?? 'draft',
     categoryId:     doc.categories?.[0]?.id != null ? String(doc.categories[0].id) : '',
     brandId:        doc.brand?.id != null ? String(doc.brand.id) : '',
+    ingredientIds,
     basePrice:      firstVariant?.price != null ? String(firstVariant.price) : '',
     salePrice:      firstVariant?.compareAtPrice != null ? String(firstVariant.compareAtPrice) : '',
     metaTitle:      doc.metaTitle ?? '',
@@ -414,6 +424,7 @@ function buildPayload(form: FormState, isCreate: boolean): Record<string, any> {
     status:          form.status,
     categories:      form.categoryId ? [Number(form.categoryId)] : [],
     brand:           form.brandId ? Number(form.brandId) : undefined,
+    ingredients:     form.ingredientIds.map(Number),
     thumbnail:       form.thumbnail?.id != null ? Number(form.thumbnail.id) : undefined,
     images:          form.images.map((img) => ({ image: Number(img.id) })),
     variants,
@@ -1257,6 +1268,7 @@ export default function ProductEditView() {
   const [toast, setToast] = useState<Toast | null>(null)
   const [categories, setCategories] = useState<CategoryDoc[]>([])
   const [brands, setBrands] = useState<BrandDoc[]>([])
+  const [allIngredients, setAllIngredients] = useState<IngredientDoc[]>([])
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [deleteBtnHovered, setDeleteBtnHovered] = useState(false)
   const [dupBtnHovered, setDupBtnHovered] = useState(false)
@@ -1300,9 +1312,11 @@ export default function ProductEditView() {
     Promise.all([
       fetch(`${base}/api/categories?limit=200`).then((r) => r.json()).catch(() => ({ docs: [] })),
       fetch(`${base}/api/brands?limit=200`).then((r) => r.json()).catch(() => ({ docs: [] })),
-    ]).then(([catData, brandData]) => {
+      fetch(`${base}/api/ingredients?limit=200&sort=order`).then((r) => r.json()).catch(() => ({ docs: [] })),
+    ]).then(([catData, brandData, ingData]) => {
       setCategories(catData.docs ?? [])
       setBrands(brandData.docs ?? [])
+      setAllIngredients(ingData.docs ?? [])
     })
   }, [])
 
@@ -1953,6 +1967,116 @@ export default function ProductEditView() {
                       ))}
                     </StyledSelect>
                   </FieldGroup>
+                </div>
+
+                {/* Ingredients Card */}
+                <div
+                  style={{
+                    ...cardStyle,
+                    boxShadow: hoveredCard === 'ingredients'
+                      ? '0 8px 30px rgba(91,196,196,0.08)'
+                      : cardStyle.boxShadow,
+                  }}
+                  onMouseEnter={() => setHoveredCard('ingredients')}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  <h2 style={cardTitleStyle}>Інгредієнти</h2>
+
+                  {allIngredients.length === 0 ? (
+                    <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>
+                      Немає інгредієнтів.{' '}
+                      <a
+                        href="/admin/collections/ingredients/create"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: C.sea600, textDecoration: 'underline' }}
+                      >
+                        Створити
+                      </a>
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {allIngredients.map((ing) => {
+                        const ingId = String(ing.id)
+                        const checked = form.ingredientIds.includes(ingId)
+                        const iconEmoji: Record<string, string> = {
+                          droplets: '💧',
+                          sparkles: '✨',
+                          shield: '🛡️',
+                          leaf: '🍃',
+                        }
+                        return (
+                          <label
+                            key={ingId}
+                            style={{
+                              display:      'flex',
+                              alignItems:   'center',
+                              gap:          10,
+                              padding:      '8px 12px',
+                              borderRadius: 10,
+                              border:       `1px solid ${checked ? C.sea400 : C.border}`,
+                              background:   checked ? `${C.sea400}0d` : C.bgSecondary,
+                              cursor:       'pointer',
+                              transition:   'all 0.2s',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  ingredientIds: checked
+                                    ? prev.ingredientIds.filter((id) => id !== ingId)
+                                    : [...prev.ingredientIds, ingId],
+                                }))
+                              }}
+                              style={{
+                                width: 16,
+                                height: 16,
+                                accentColor: C.sea500,
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>
+                              {iconEmoji[ing.icon || ''] || '✨'}
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary }}>
+                                {ing.name || `ID: ${ing.id}`}
+                              </div>
+                              {ing.benefit && (
+                                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>
+                                  {ing.benefit}
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: 12 }}>
+                    <a
+                      href="/admin/collections/ingredients/create"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display:      'inline-flex',
+                        alignItems:   'center',
+                        gap:          6,
+                        fontSize:     12,
+                        color:        C.sea600,
+                        fontWeight:   500,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      <IconPlus size={14} color={C.sea600} />
+                      Додати новий інгредієнт
+                    </a>
+                  </div>
                 </div>
 
                 {/* Pricing Card */}

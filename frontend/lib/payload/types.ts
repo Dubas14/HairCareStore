@@ -163,6 +163,16 @@ export interface BlogPost {
   status: 'draft' | 'published'
 }
 
+// ─── Ingredient types ───────────────────────────────────────────
+
+export interface PayloadIngredient {
+  id: number | string
+  name: string
+  benefit: string
+  icon?: 'droplets' | 'sparkles' | 'shield' | 'leaf'
+  order?: number
+}
+
 // ─── Product types ──────────────────────────────────────────────
 
 export interface PayloadVariant {
@@ -192,6 +202,7 @@ export interface PayloadProduct {
   categories?: Array<Category | number | string>
   brand?: Brand | number | string
   tags?: Array<{ tag: string }>
+  ingredients?: Array<PayloadIngredient | number | string>
   status: 'draft' | 'active' | 'archived'
   createdAt: string
   updatedAt: string

@@ -28,6 +28,7 @@ const COLLECTION_LABELS: Record<string, { title: string; singular: string }> = {
   promotions: { title: 'Промокоди', singular: 'промокод' },
   'automatic-discounts': { title: 'Автоматичні знижки', singular: 'знижку' },
   subscribers: { title: 'Підписники', singular: 'підписника' },
+  ingredients: { title: 'Інгредієнти', singular: 'інгредієнт' },
 }
 
 const SORT_OPTIONS = [
@@ -188,7 +189,7 @@ function getColumns(slug: string): Column[] {
     case 'reviews':
       return [
         { key: 'product', label: 'Товар', render: (v: any) => v?.title || '—' },
-        { key: 'author', label: 'Автор', width: '150px' },
+        { key: 'customerName', label: 'Автор', width: '150px' },
         { key: 'rating', label: 'Оцінка', width: '80px', render: (v: number) => v != null ? '★'.repeat(v) + '☆'.repeat(5 - v) : '—' },
         statusCol,
         dateCol,
@@ -240,6 +241,17 @@ function getColumns(slug: string): Column[] {
         { key: 'locale', label: 'Мова', width: '100px' },
         { key: 'source', label: 'Джерело', width: '120px' },
         { key: 'createdAt', label: 'Створено', width: '130px' },
+      ]
+    case 'ingredients':
+      return [
+        { key: 'name', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'benefit', label: 'Користь' },
+        { key: 'icon', label: 'Іконка', width: '120px', render: (v: string) => {
+          const iconLabels: Record<string, string> = { droplets: '💧 Краплі', sparkles: '✨ Блиск', shield: '🛡️ Щит', leaf: '🍃 Листок' }
+          return <span>{iconLabels[v] || v || '—'}</span>
+        }},
+        { key: 'order', label: 'Порядок', width: '100px' },
+        dateCol,
       ]
     default:
       return [
@@ -337,7 +349,7 @@ function getStatsAndFilters(
   }
 
   // Collections without status field
-  if (['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions'].includes(slug)) {
+  if (['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions', 'ingredients'].includes(slug)) {
     return {
       statsItems: [
         { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },

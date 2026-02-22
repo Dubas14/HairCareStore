@@ -125,6 +125,12 @@ export const Products: CollectionConfig = {
       fields: [{ name: 'tag', type: 'text', required: true }],
     },
     {
+      name: 'ingredients',
+      type: 'relationship',
+      relationTo: 'ingredients',
+      hasMany: true,
+    },
+    {
       name: 'status',
       type: 'select',
       defaultValue: 'draft',

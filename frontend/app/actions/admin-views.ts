@@ -11,8 +11,33 @@
  */
 
 import { getPayload } from 'payload'
+import type { Where } from 'payload'
 import config from '@payload-config'
 import { headers } from 'next/headers'
+
+type PayloadCollectionSlug =
+  | 'products'
+  | 'categories'
+  | 'brands'
+  | 'media'
+  | 'orders'
+  | 'customers'
+  | 'reviews'
+  | 'blog-posts'
+  | 'banners'
+  | 'promo-blocks'
+  | 'pages'
+  | 'subscribers'
+  | 'promotions'
+  | 'promotion-usages'
+  | 'carts'
+  | 'loyalty-points'
+  | 'loyalty-transactions'
+  | 'automatic-discounts'
+  | 'users'
+  | 'ingredients'
+
+type DocRecord = Record<string, unknown>
 
 async function requireAdmin(): Promise<void> {
   const payload = await getPayload({ config })
@@ -22,7 +47,7 @@ async function requireAdmin(): Promise<void> {
   // Try to find Payload admin user from the request
   try {
     const { user } = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
-    if (!user || (user as any).collection !== 'users') {
+    if (!user || (user as unknown as { collection?: string }).collection !== 'users') {
       throw new Error('Unauthorized: admin access required')
     }
   } catch {
@@ -35,13 +60,13 @@ async function requireAdmin(): Promise<void> {
 /** Resolve a URL stored on a Payload media relation (may be a bare string id after depth:0). */
 function resolveMediaUrl(field: unknown): string | null {
   if (!field || typeof field === 'string' || typeof field === 'number') return null
-  const media = field as Record<string, any>
+  const media = field as Record<string, unknown>
   return typeof media.url === 'string' ? media.url : null
 }
 
 function resolveMediaAlt(field: unknown): string {
   if (!field || typeof field === 'string' || typeof field === 'number') return ''
-  const media = field as Record<string, any>
+  const media = field as Record<string, unknown>
   return typeof media.alt === 'string' ? media.alt : ''
 }
 
@@ -117,7 +142,7 @@ export async function getProductsViewData(
   const payload = await getPayload({ config })
 
   // Build `where` clause
-  const conditions: Record<string, any>[] = []
+  const conditions: Where[] = []
 
   if (status && status !== 'all') {
     conditions.push({ status: { equals: status } })
@@ -141,7 +166,7 @@ export async function getProductsViewData(
     conditions.push({ brand: { equals: brand } })
   }
 
-  const where: Record<string, any> =
+  const where: Where =
     conditions.length > 1
       ? { and: conditions }
       : conditions.length === 1
@@ -174,7 +199,7 @@ export async function getProductsViewData(
       payload.count({ collection: 'products' }),
     ])
 
-  const products: ProductViewItem[] = result.docs.map((doc: any) => {
+  const products: ProductViewItem[] = result.docs.map((doc: DocRecord) => {
     // Thumbnail
     const thumbUrl = resolveMediaUrl(doc.thumbnail)
     const thumbnail = thumbUrl
@@ -184,38 +209,39 @@ export async function getProductsViewData(
     // Categories (relationship, populated at depth:1 as objects)
     const categories: Array<{ id: string; name: string }> = Array.isArray(doc.categories)
       ? doc.categories
-          .filter((c: any) => c && typeof c === 'object')
-          .map((c: any) => ({ id: String(c.id), name: c.name ?? '' }))
+          .filter((c: Record<string, unknown>) => c && typeof c === 'object')
+          .map((c: Record<string, unknown>) => ({ id: String(c.id), name: (c.name as string) ?? '' }))
       : []
 
     // Brand
     let brand: { id: string; name: string } | null = null
     if (doc.brand && typeof doc.brand === 'object') {
-      brand = { id: String(doc.brand.id), name: doc.brand.name ?? '' }
+      const b = doc.brand as Record<string, unknown>
+      brand = { id: String(b.id), name: (b.name as string) ?? '' }
     }
 
     // Variants
     const variants = Array.isArray(doc.variants)
-      ? doc.variants.map((v: any) => ({
-          title: v.title ?? '',
-          price: v.price ?? 0,
-          compareAtPrice: v.compareAtPrice ?? undefined,
-          inventory: v.inventory ?? 0,
-          inStock: v.inStock ?? false,
+      ? doc.variants.map((v: Record<string, unknown>) => ({
+          title: (v.title as string) ?? '',
+          price: (v.price as number) ?? 0,
+          compareAtPrice: (v.compareAtPrice as number | undefined) ?? undefined,
+          inventory: (v.inventory as number) ?? 0,
+          inStock: (v.inStock as boolean) ?? false,
         }))
       : []
 
     return {
-      id: doc.id,
-      title: doc.title ?? '',
-      subtitle: doc.subtitle ?? '',
-      handle: doc.handle ?? '',
-      status: doc.status ?? 'draft',
+      id: doc.id as string | number,
+      title: (doc.title as string) ?? '',
+      subtitle: (doc.subtitle as string) ?? '',
+      handle: (doc.handle as string) ?? '',
+      status: (doc.status as string) ?? 'draft',
       thumbnail,
       categories,
       brand,
       variants,
-      updatedAt: doc.updatedAt ?? '',
+      updatedAt: (doc.updatedAt as string) ?? '',
     }
   })
 
@@ -244,8 +270,8 @@ export async function getProductsFilterOptions(): Promise<ProductsFilterOptions>
   ])
 
   return {
-    categories: cats.docs.map((c: any) => ({ id: String(c.id), name: c.name ?? '' })),
-    brands: brs.docs.map((b: any) => ({ id: String(b.id), name: b.name ?? '' })),
+    categories: cats.docs.map((c: DocRecord) => ({ id: String(c.id), name: (c.name as string) ?? '' })),
+    brands: brs.docs.map((b: DocRecord) => ({ id: String(b.id), name: (b.name as string) ?? '' })),
   }
 }
 
@@ -320,7 +346,7 @@ export async function getMediaViewData(
   const payload = await getPayload({ config })
 
   // Build where clause
-  const filters: Record<string, any>[] = []
+  const filters: Where[] = []
 
   if (search.trim()) {
     filters.push({
@@ -344,7 +370,7 @@ export async function getMediaViewData(
     filters.push({ folder: { equals: folder.trim() } })
   }
 
-  const where: Record<string, any> =
+  const where: Where =
     filters.length === 0 ? {} : filters.length === 1 ? filters[0] : { and: filters }
 
   // Fetch paginated files, stats counts, and folder counts in parallel
@@ -375,23 +401,24 @@ export async function getMediaViewData(
     ),
   ])
 
-  const files: MediaFileItem[] = result.docs.map((doc: any) => {
+  const files: MediaFileItem[] = result.docs.map((doc: DocRecord) => {
     // Prefer the generated thumbnail size URL if available
+    const sizes = doc.sizes as Record<string, Record<string, unknown>> | undefined
     const thumbnailURL: string | null =
-      doc.sizes?.thumbnail?.url ?? null
+      (sizes?.thumbnail?.url as string | undefined) ?? null
 
     return {
-      id: doc.id,
-      filename: doc.filename ?? '',
-      alt: doc.alt ?? '',
-      mimeType: doc.mimeType ?? '',
-      filesize: doc.filesize ?? 0,
-      width: doc.width ?? 0,
-      height: doc.height ?? 0,
-      url: doc.url ?? '',
+      id: doc.id as string | number,
+      filename: (doc.filename as string) ?? '',
+      alt: (doc.alt as string) ?? '',
+      mimeType: (doc.mimeType as string) ?? '',
+      filesize: (doc.filesize as number) ?? 0,
+      width: (doc.width as number) ?? 0,
+      height: (doc.height as number) ?? 0,
+      url: (doc.url as string) ?? '',
       thumbnailURL,
-      createdAt: doc.createdAt ?? '',
-      updatedAt: doc.updatedAt ?? '',
+      createdAt: (doc.createdAt as string) ?? '',
+      updatedAt: (doc.updatedAt as string) ?? '',
     }
   })
 
@@ -481,23 +508,23 @@ export async function getBannersViewData(): Promise<BannersViewData> {
 
   const total = result.totalDocs
 
-  const banners: BannerViewItem[] = result.docs.map((doc: any) => {
+  const banners: BannerViewItem[] = result.docs.map((doc: DocRecord) => {
     const imgUrl = resolveMediaUrl(doc.image)
     const image = imgUrl
       ? { url: imgUrl, alt: resolveMediaAlt(doc.image) }
       : null
 
     return {
-      id: doc.id,
-      title: doc.title ?? '',
+      id: doc.id as string | number,
+      title: (doc.title as string) ?? '',
       image,
-      link: doc.link ?? '',
-      position: doc.position ?? '',
-      order: doc.order ?? 0,
-      isActive: doc.isActive ?? false,
-      mediaType: doc.mediaType ?? 'image',
-      createdAt: doc.createdAt ?? '',
-      updatedAt: doc.updatedAt ?? '',
+      link: (doc.link as string) ?? '',
+      position: (doc.position as string) ?? '',
+      order: (doc.order as number) ?? 0,
+      isActive: (doc.isActive as boolean) ?? false,
+      mediaType: (doc.mediaType as string) ?? 'image',
+      createdAt: (doc.createdAt as string) ?? '',
+      updatedAt: (doc.updatedAt as string) ?? '',
     }
   })
 
@@ -538,21 +565,21 @@ export async function toggleBannerActive(
     depth: 1,
   })
 
-  const doc = updated as any
+  const doc = updated as Record<string, unknown>
   const imgUrl = resolveMediaUrl(doc.image)
   const image = imgUrl ? { url: imgUrl, alt: resolveMediaAlt(doc.image) } : null
 
   const banner: BannerViewItem = {
-    id: doc.id,
-    title: doc.title ?? '',
+    id: doc.id as string | number,
+    title: (doc.title as string) ?? '',
     image,
-    link: doc.link ?? '',
-    position: doc.position ?? '',
-    order: doc.order ?? 0,
-    isActive: doc.isActive ?? false,
-    mediaType: doc.mediaType ?? 'image',
-    createdAt: doc.createdAt ?? '',
-    updatedAt: doc.updatedAt ?? '',
+    link: (doc.link as string) ?? '',
+    position: (doc.position as string) ?? '',
+    order: (doc.order as number) ?? 0,
+    isActive: (doc.isActive as boolean) ?? false,
+    mediaType: (doc.mediaType as string) ?? 'image',
+    createdAt: (doc.createdAt as string) ?? '',
+    updatedAt: (doc.updatedAt as string) ?? '',
   }
 
   return {
@@ -646,7 +673,7 @@ export async function deleteMediaFile(id: string | number): Promise<DeleteResult
 const CHECKBOX_STATUS_COLLECTIONS = new Set(['categories', 'promotions', 'automatic-discounts'])
 
 // Collections without any status/active field (no status filtering)
-const NO_STATUS_COLLECTIONS = new Set(['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions'])
+const NO_STATUS_COLLECTIONS = new Set(['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions', 'ingredients'])
 
 export async function getCollectionListData(
   collectionSlug: string,
@@ -662,7 +689,7 @@ export async function getCollectionListData(
   const payload = await getPayload({ config })
   const { page = 1, limit = 10, search, sort = '-updatedAt', status } = params
 
-  const where: Record<string, any> = {}
+  const where: Where = {}
   if (search) {
     where.or = [
       { title: { contains: search } },
@@ -684,7 +711,7 @@ export async function getCollectionListData(
 
   try {
     const result = await payload.find({
-      collection: collectionSlug as any,
+      collection: collectionSlug as PayloadCollectionSlug,
       page,
       limit,
       sort,
@@ -697,28 +724,28 @@ export async function getCollectionListData(
 
     if (CHECKBOX_STATUS_COLLECTIONS.has(collectionSlug)) {
       // For categories: active = isActive:true, draft(inactive) = isActive:false
-      try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { isActive: { equals: true } } })).totalDocs } catch {}
-      try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { isActive: { equals: false } } })).totalDocs } catch {}
+      try { activeCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { isActive: { equals: true } } })).totalDocs } catch { /* collection may not support this status field */ }
+      try { draftCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { isActive: { equals: false } } })).totalDocs } catch { /* collection may not support this status field */ }
     } else if (!NO_STATUS_COLLECTIONS.has(collectionSlug)) {
       // For orders: active = pending, draft = completed, archived = canceled
       // For other collections: standard active/draft/archived
       if (collectionSlug === 'orders') {
-        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'pending' } } })).totalDocs } catch {}
-        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'completed' } } })).totalDocs } catch {}
-        try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'canceled' } } })).totalDocs } catch {}
+        try { activeCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'pending' } } })).totalDocs } catch { /* collection may not support this status field */ }
+        try { draftCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'completed' } } })).totalDocs } catch { /* collection may not support this status field */ }
+        try { archivedCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'canceled' } } })).totalDocs } catch { /* collection may not support this status field */ }
       } else if (collectionSlug === 'subscribers') {
-        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
-        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'unsubscribed' } } })).totalDocs } catch {}
+        try { activeCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'active' } } })).totalDocs } catch { /* collection may not support this status field */ }
+        try { draftCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'unsubscribed' } } })).totalDocs } catch { /* collection may not support this status field */ }
       } else {
-        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
-        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'draft' } } })).totalDocs } catch {}
-        try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'archived' } } })).totalDocs } catch {}
+        try { activeCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'active' } } })).totalDocs } catch { /* collection may not support this status field */ }
+        try { draftCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'draft' } } })).totalDocs } catch { /* collection may not support this status field */ }
+        try { archivedCount = (await payload.count({ collection: collectionSlug as PayloadCollectionSlug, where: { status: { equals: 'archived' } } })).totalDocs } catch { /* collection may not support this status field */ }
       }
     }
 
     // For stats.total, always use unfiltered count
     const totalCount = (status && status !== 'all')
-      ? (await payload.count({ collection: collectionSlug as any })).totalDocs
+      ? (await payload.count({ collection: collectionSlug as PayloadCollectionSlug })).totalDocs
       : result.totalDocs
 
     return {
@@ -755,7 +782,7 @@ export interface FieldSchema {
 }
 
 export interface CollectionFieldData {
-  defaults: Record<string, any>
+  defaults: Record<string, unknown>
   schema: FieldSchema[]
 }
 
@@ -768,17 +795,17 @@ export async function getCollectionFieldDefaults(
 ): Promise<CollectionFieldData> {
   const payload = await getPayload({ config })
   const collection = payload.config.collections.find(
-    (c: any) => c.slug === collectionSlug
+    (c: { slug: string }) => c.slug === collectionSlug
   )
   if (!collection) return { defaults: {}, schema: [] }
 
-  const defaults: Record<string, any> = {}
+  const defaults: Record<string, unknown> = {}
   const schema: FieldSchema[] = []
 
   const SKIP = new Set(['id', 'createdAt', 'updatedAt', 'sizes', '_status'])
 
-  function normalizeOptions(opts: any[]): { label: string; value: string }[] {
-    return (opts || []).map((o: any) =>
+  function normalizeOptions(opts: Array<string | { label?: string; value: string }>): { label: string; value: string }[] {
+    return (opts || []).map((o: string | { label?: string; value: string }) =>
       typeof o === 'string'
         ? { label: o, value: o }
         : { label: typeof o.label === 'string' ? o.label : String(o.value), value: String(o.value) }
@@ -790,126 +817,136 @@ export async function getCollectionFieldDefaults(
     return undefined
   }
 
-  function safeDefault(val: unknown, fallback: any): any {
+  function safeDefault(val: unknown, fallback: unknown): unknown {
     if (typeof val === 'function') return fallback
     return val ?? fallback
   }
 
-  function processField(field: any): FieldSchema | null {
-    if (!field.name || SKIP.has(field.name)) return null
+  function processField(field: Record<string, unknown>): FieldSchema | null {
+    const fieldName = field.name as string | undefined
+    const fieldType = field.type as string | undefined
+    if (!fieldName || SKIP.has(fieldName)) return null
+
+    const admin = field.admin as Record<string, unknown> | undefined
+    const labels = field.labels as Record<string, unknown> | undefined
 
     const meta: FieldSchema = {
-      name: field.name,
+      name: fieldName,
       label: safeLabel(field.label),
-      type: field.type,
-      required: field.required || false,
-      hidden: field.admin?.hidden || false,
-      readOnly: field.admin?.readOnly || false,
-      position: field.admin?.position || undefined,
+      type: fieldType ?? '',
+      required: Boolean(field.required) || false,
+      hidden: Boolean(admin?.hidden) || false,
+      readOnly: Boolean(admin?.readOnly) || false,
+      position: typeof admin?.position === 'string' ? admin.position : undefined,
     }
-    if (field.labels) {
+    if (labels) {
       meta.labels = {
-        singular: safeLabel(field.labels.singular),
-        plural: safeLabel(field.labels.plural),
+        singular: safeLabel(labels.singular),
+        plural: safeLabel(labels.plural),
       }
     }
 
-    switch (field.type) {
+    switch (fieldType) {
       case 'text':
       case 'textarea':
       case 'email':
       case 'code':
-        defaults[field.name] = safeDefault(field.defaultValue, '')
+        defaults[fieldName] = safeDefault(field.defaultValue, '')
         break
       case 'number':
-        defaults[field.name] = safeDefault(field.defaultValue, 0)
+        defaults[fieldName] = safeDefault(field.defaultValue, 0)
         break
       case 'checkbox':
-        defaults[field.name] = safeDefault(field.defaultValue, false)
+        defaults[fieldName] = safeDefault(field.defaultValue, false)
         break
       case 'select':
-        meta.options = normalizeOptions(field.options)
-        defaults[field.name] = safeDefault(field.defaultValue, meta.options[0]?.value || '')
+        meta.options = normalizeOptions(field.options as Array<string | { label?: string; value: string }>)
+        defaults[fieldName] = safeDefault(field.defaultValue, meta.options[0]?.value || '')
         break
       case 'date':
-        defaults[field.name] = safeDefault(field.defaultValue, '')
+        defaults[fieldName] = safeDefault(field.defaultValue, '')
         break
       case 'richText':
-        defaults[field.name] = safeDefault(field.defaultValue, '')
+        defaults[fieldName] = safeDefault(field.defaultValue, '')
         break
       case 'json':
-        defaults[field.name] = safeDefault(field.defaultValue, null)
+        defaults[fieldName] = safeDefault(field.defaultValue, null)
         break
       case 'upload':
         meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
-        defaults[field.name] = null
+        defaults[fieldName] = null
         break
       case 'relationship':
         meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
-        meta.hasMany = field.hasMany || false
-        defaults[field.name] = field.hasMany ? [] : null
+        meta.hasMany = Boolean(field.hasMany) || false
+        defaults[fieldName] = field.hasMany ? [] : null
         break
       case 'array':
-        defaults[field.name] = []
+        defaults[fieldName] = []
         if (field.fields) {
-          meta.fields = field.fields
-            .map((sf: any) => processSubField(sf))
+          meta.fields = (field.fields as Record<string, unknown>[])
+            .map((sf: Record<string, unknown>) => processSubField(sf))
             .filter(Boolean) as FieldSchema[]
         }
         break
       case 'group':
         if (field.fields) {
-          const groupDefaults: Record<string, any> = {}
+          const groupDefaults: Record<string, unknown> = {}
           meta.fields = []
-          for (const sf of field.fields) {
-            if (!sf.name) continue
+          for (const sf of field.fields as Record<string, unknown>[]) {
+            const sfName = sf.name as string | undefined
+            const sfType = sf.type as string | undefined
+            if (!sfName) continue
             const subMeta = processSubField(sf)
             if (subMeta) meta.fields.push(subMeta)
-            switch (sf.type) {
+            switch (sfType) {
               case 'text': case 'textarea': case 'email': case 'code':
-                groupDefaults[sf.name] = safeDefault(sf.defaultValue, ''); break
+                groupDefaults[sfName] = safeDefault(sf.defaultValue, ''); break
               case 'number':
-                groupDefaults[sf.name] = safeDefault(sf.defaultValue, 0); break
+                groupDefaults[sfName] = safeDefault(sf.defaultValue, 0); break
               case 'checkbox':
-                groupDefaults[sf.name] = safeDefault(sf.defaultValue, false); break
+                groupDefaults[sfName] = safeDefault(sf.defaultValue, false); break
               case 'select':
-                groupDefaults[sf.name] = safeDefault(sf.defaultValue, normalizeOptions(sf.options)[0]?.value || ''); break
+                groupDefaults[sfName] = safeDefault(sf.defaultValue, normalizeOptions(sf.options as Array<string | { label?: string; value: string }>)[0]?.value || ''); break
               case 'upload': case 'relationship':
-                groupDefaults[sf.name] = null; break
+                groupDefaults[sfName] = null; break
               default:
-                groupDefaults[sf.name] = safeDefault(sf.defaultValue, '')
+                groupDefaults[sfName] = safeDefault(sf.defaultValue, '')
             }
           }
-          defaults[field.name] = groupDefaults
+          defaults[fieldName] = groupDefaults
         }
         break
       default:
-        defaults[field.name] = safeDefault(field.defaultValue, '')
+        defaults[fieldName] = safeDefault(field.defaultValue, '')
     }
 
     return meta
   }
 
-  function processSubField(field: any): FieldSchema | null {
-    if (!field.name) return null
+  function processSubField(field: Record<string, unknown>): FieldSchema | null {
+    const fieldName = field.name as string | undefined
+    const fieldType = field.type as string | undefined
+    if (!fieldName) return null
+    const admin = field.admin as Record<string, unknown> | undefined
     const meta: FieldSchema = {
-      name: field.name,
+      name: fieldName,
       label: safeLabel(field.label),
-      type: field.type,
-      required: field.required || false,
-      hidden: field.admin?.hidden || false,
-      readOnly: field.admin?.readOnly || false,
+      type: fieldType ?? '',
+      required: Boolean(field.required) || false,
+      hidden: Boolean(admin?.hidden) || false,
+      readOnly: Boolean(admin?.readOnly) || false,
     }
-    if (field.type === 'select') meta.options = normalizeOptions(field.options)
-    if (field.type === 'upload') meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
-    if (field.type === 'relationship') {
+    if (fieldType === 'select') meta.options = normalizeOptions(field.options as Array<string | { label?: string; value: string }>)
+    if (fieldType === 'upload') meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
+    if (fieldType === 'relationship') {
       meta.relationTo = typeof field.relationTo === 'string' ? field.relationTo : undefined
-      meta.hasMany = field.hasMany || false
+      meta.hasMany = Boolean(field.hasMany) || false
     }
     return meta
   }
 
-  for (const field of collection.fields || []) {
+  for (const field of (collection.fields as Record<string, unknown>[] | undefined) || []) {
     const meta = processField(field)
     if (meta) schema.push(meta)
   }
@@ -921,7 +958,7 @@ export async function deleteCollectionDoc(collectionSlug: string, id: string | n
   await requireAdmin()
   const payload = await getPayload({ config })
   try {
-    await payload.delete({ collection: collectionSlug as any, id })
+    await payload.delete({ collection: collectionSlug as PayloadCollectionSlug, id })
     return { success: true, message: 'Документ видалено' }
   } catch (error) {
     return { success: false, error: String(error) }

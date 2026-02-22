@@ -23,6 +23,7 @@ import {
   Subscribers,
   AutomaticDiscounts,
   ProductBundles,
+  Ingredients,
 } from './collections'
 import { LoyaltySettings } from './globals/LoyaltySettings'
 import { ShippingConfig } from './globals/ShippingConfig'
@@ -74,6 +75,7 @@ export default buildConfig({
     Subscribers,
     AutomaticDiscounts,
     ProductBundles,
+    Ingredients,
   ],
 
   globals: [

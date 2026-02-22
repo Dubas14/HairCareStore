@@ -12,18 +12,10 @@ import { ProductReviews } from '@/components/products/product-reviews'
 import { useProduct, useProducts, useReviewsByProduct, useProductRating } from '@/lib/hooks/use-products'
 import { useToggleWishlist } from '@/lib/hooks/use-wishlist'
 import { useAuthStore } from '@/stores/auth-store'
-import { getImageUrl, transformProducts } from '@/lib/payload/types'
+import { getImageUrl, transformProducts, type PayloadIngredient } from '@/lib/payload/types'
 import { useCartContext } from '@/components/providers/cart-provider'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import { trackViewItem, trackAddToCart } from '@/lib/analytics/events'
-
-// Mock ingredients data
-const mockIngredients = [
-  { id: '1', name: 'Кератин', benefit: 'Відновлює структуру волосся', icon: 'sparkles' as const },
-  { id: '2', name: 'Гіалуронова кислота', benefit: 'Глибоке зволоження', icon: 'droplets' as const },
-  { id: '3', name: 'Аргінін', benefit: 'Зміцнює волосяну цибулину', icon: 'shield' as const },
-  { id: '4', name: 'Олія аргани', benefit: 'Живить та надає блиску', icon: 'leaf' as const },
-]
 
 export default function ProductPageContent() {
   const params = useParams()
@@ -79,6 +71,20 @@ export default function ProductPageContent() {
     }
     return imgs.length > 0 ? imgs : ['/placeholder-product.jpg']
   }, [product])
+
+  // Map ingredients from Payload CMS
+  const ingredients = useMemo(() => {
+    if (!product?.ingredients) return []
+    return product.ingredients
+      .filter((ing): ing is PayloadIngredient => typeof ing === 'object' && ing !== null)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((ing) => ({
+        id: String(ing.id),
+        name: ing.name,
+        benefit: ing.benefit,
+        icon: ing.icon || ('sparkles' as const),
+      }))
+  }, [product?.ingredients])
 
   // Get related products (excluding current)
   const relatedProducts = useMemo(() => {
@@ -211,7 +217,7 @@ export default function ProductPageContent() {
 
         {/* Ingredient Spotlight */}
         <ScrollReveal variant="fade-up" duration={700}>
-          <IngredientSpotlight ingredients={mockIngredients} />
+          <IngredientSpotlight ingredients={ingredients} />
         </ScrollReveal>
 
         {/* Divider */}
