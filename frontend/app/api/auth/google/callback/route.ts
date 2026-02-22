@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find or create customer in Payload
-    const customer = await findOrCreateCustomer(userInfo)
+    const { customer, isNew, isLinked } = await findOrCreateCustomer(userInfo)
 
     // Set auth cookie
     cookieStore.set(CUSTOMER_TOKEN_COOKIE, signCustomerId(String(customer.id)), {
@@ -98,6 +98,14 @@ export async function GET(request: NextRequest) {
     cleanupCookies(cookieStore)
 
     log.info('Google OAuth login successful', { customerId: customer.id, email: userInfo.email })
+
+    // Send email for new or linked Google users
+    if (isNew || isLinked) {
+      const firstName = (customer as unknown as { firstName: string }).firstName
+      import('@/lib/email/email-actions')
+        .then(({ sendWelcomeEmail }) => sendWelcomeEmail(userInfo.email, firstName))
+        .catch((err) => log.error('Welcome email failed', err))
+    }
 
     return NextResponse.redirect(new URL(returnTo, baseUrl))
   } catch (err) {
@@ -151,7 +159,7 @@ async function findOrCreateCustomer(userInfo: GoogleUserInfo) {
     limit: 1,
   })
   if (byGoogleId.docs.length > 0) {
-    return byGoogleId.docs[0]
+    return { customer: byGoogleId.docs[0], isNew: false, isLinked: false }
   }
 
   // 2. Try to find by email (link existing account)
@@ -172,7 +180,7 @@ async function findOrCreateCustomer(userInfo: GoogleUserInfo) {
       },
     })
     log.info('Linked Google account to existing customer', { customerId: existing.id })
-    return updated
+    return { customer: updated, isNew: false, isLinked: true }
   }
 
   // 3. Create new customer
@@ -191,7 +199,7 @@ async function findOrCreateCustomer(userInfo: GoogleUserInfo) {
   })
 
   log.info('Created new customer via Google OAuth', { customerId: newCustomer.id })
-  return newCustomer
+  return { customer: newCustomer, isNew: true, isLinked: false }
 }
 
 function timingSafeCompare(a: string, b: string): boolean {
