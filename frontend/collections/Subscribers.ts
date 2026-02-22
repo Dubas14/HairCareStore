@@ -2,10 +2,17 @@ import type { CollectionConfig } from 'payload'
 
 export const Subscribers: CollectionConfig = {
   slug: 'subscribers',
+  labels: { singular: 'Підписник', plural: 'Підписники' },
   admin: {
     group: 'Маркетинг',
     useAsTitle: 'email',
     defaultColumns: ['email', 'status', 'locale', 'createdAt'],
+    components: {
+      views: {
+        list: { Component: '/components/payload/views/custom-list' },
+        edit: { root: { Component: '/components/payload/views/custom-edit' } },
+      },
+    },
   },
   fields: [
     {

@@ -25,6 +25,9 @@ const COLLECTION_LABELS: Record<string, string> = {
   banners: 'Банер',
   media: 'Медіа',
   users: 'Користувач',
+  promotions: 'Промокод',
+  'automatic-discounts': 'Автоматична знижка',
+  subscribers: 'Підписник',
 }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────

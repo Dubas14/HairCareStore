@@ -25,6 +25,9 @@ const COLLECTION_LABELS: Record<string, { title: string; singular: string }> = {
   users: { title: 'Користувачі', singular: 'користувача' },
   'loyalty-points': { title: 'Лояльність', singular: 'запис' },
   'loyalty-transactions': { title: 'Транзакції лояльності', singular: 'транзакцію' },
+  promotions: { title: 'Промокоди', singular: 'промокод' },
+  'automatic-discounts': { title: 'Автоматичні знижки', singular: 'знижку' },
+  subscribers: { title: 'Підписники', singular: 'підписника' },
 }
 
 const SORT_OPTIONS = [
@@ -211,6 +214,33 @@ function getColumns(slug: string): Column[] {
         statusCol,
         dateCol,
       ]
+    case 'promotions':
+      return [
+        { key: 'code', label: 'Код', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'title', label: 'Назва' },
+        { key: 'type', label: 'Тип', width: '120px' },
+        { key: 'value', label: 'Значення', width: '100px' },
+        { key: 'isActive', label: 'Статус', width: '130px', render: (val: boolean) => <StatusBadge status={val ? 'active' : 'inactive'} /> },
+        { key: 'usageCount', label: 'Використань', width: '120px' },
+        { key: 'expiresAt', label: 'Закінчення', width: '130px' },
+      ]
+    case 'automatic-discounts':
+      return [
+        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'type', label: 'Тип', width: '120px' },
+        { key: 'value', label: 'Значення', width: '100px' },
+        { key: 'priority', label: 'Пріоритет', width: '100px' },
+        { key: 'isActive', label: 'Статус', width: '130px', render: (val: boolean) => <StatusBadge status={val ? 'active' : 'inactive'} /> },
+        { key: 'expiresAt', label: 'Закінчення', width: '130px' },
+      ]
+    case 'subscribers':
+      return [
+        { key: 'email', label: 'Email', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'status', label: 'Статус', width: '130px', render: (val: string) => val ? <StatusBadge status={val} /> : <span style={{ color: 'var(--color-base-400)' }}>—</span> },
+        { key: 'locale', label: 'Мова', width: '100px' },
+        { key: 'source', label: 'Джерело', width: '120px' },
+        { key: 'createdAt', label: 'Створено', width: '130px' },
+      ]
     default:
       return [
         { key: 'title', label: 'Назва', render: (v: string, doc: any) => <strong style={{ color: 'var(--color-base-700)' }}>{v || doc.name || doc.email || `ID: ${doc.id}`}</strong> },
@@ -270,6 +300,38 @@ function getStatsAndFilters(
         { value: 'pending', label: 'Очікує', count: stats.active },
         { value: 'completed', label: 'Завершені', count: stats.draft },
         { value: 'canceled', label: 'Скасовані', count: stats.archived },
+      ],
+    }
+  }
+
+  // Promotions & Automatic Discounts: isActive checkbox (Active/Inactive)
+  if (slug === 'promotions' || slug === 'automatic-discounts') {
+    return {
+      statsItems: [
+        { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+        { label: 'Активні', value: stats.active, color: 'success', icon: <IconCheck /> },
+        { label: 'Неактивні', value: stats.draft, color: 'muted', icon: <IconArchive /> },
+      ],
+      filterOptions: [
+        { value: 'all', label: 'Всі', count: stats.total },
+        { value: 'active', label: 'Активні', count: stats.active },
+        { value: 'inactive', label: 'Неактивні', count: stats.draft },
+      ],
+    }
+  }
+
+  // Subscribers: status select (active/unsubscribed)
+  if (slug === 'subscribers') {
+    return {
+      statsItems: [
+        { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
+        { label: 'Активні', value: stats.active, color: 'success', icon: <IconCheck /> },
+        { label: 'Відписані', value: stats.draft, color: 'muted', icon: <IconArchive /> },
+      ],
+      filterOptions: [
+        { value: 'all', label: 'Всі', count: stats.total },
+        { value: 'active', label: 'Активні', count: stats.active },
+        { value: 'unsubscribed', label: 'Відписані', count: stats.draft },
       ],
     }
   }

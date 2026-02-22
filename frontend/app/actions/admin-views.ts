@@ -643,7 +643,7 @@ export async function deleteMediaFile(id: string | number): Promise<DeleteResult
 // ── Generic collection data ──
 
 // Collections that use `isActive` checkbox instead of `status` select
-const CHECKBOX_STATUS_COLLECTIONS = new Set(['categories'])
+const CHECKBOX_STATUS_COLLECTIONS = new Set(['categories', 'promotions', 'automatic-discounts'])
 
 // Collections without any status/active field (no status filtering)
 const NO_STATUS_COLLECTIONS = new Set(['customers', 'users', 'media', 'loyalty-points', 'loyalty-transactions'])
@@ -667,6 +667,8 @@ export async function getCollectionListData(
     where.or = [
       { title: { contains: search } },
       { name: { contains: search } },
+      { email: { contains: search } },
+      { code: { contains: search } },
     ]
   }
 
@@ -704,6 +706,9 @@ export async function getCollectionListData(
         try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'pending' } } })).totalDocs } catch {}
         try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'completed' } } })).totalDocs } catch {}
         try { archivedCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'canceled' } } })).totalDocs } catch {}
+      } else if (collectionSlug === 'subscribers') {
+        try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
+        try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'unsubscribed' } } })).totalDocs } catch {}
       } else {
         try { activeCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'active' } } })).totalDocs } catch {}
         try { draftCount = (await payload.count({ collection: collectionSlug as any, where: { status: { equals: 'draft' } } })).totalDocs } catch {}

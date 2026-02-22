@@ -7,6 +7,12 @@ export const AutomaticDiscounts: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'type', 'value', 'priority', 'isActive', 'expiresAt'],
     group: 'Маркетинг',
+    components: {
+      views: {
+        list: { Component: '/components/payload/views/custom-list' },
+        edit: { root: { Component: '/components/payload/views/custom-edit' } },
+      },
+    },
   },
   access: {
     read: () => true,

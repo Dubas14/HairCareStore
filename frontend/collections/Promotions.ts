@@ -7,6 +7,12 @@ export const Promotions: CollectionConfig = {
     useAsTitle: 'code',
     defaultColumns: ['code', 'title', 'type', 'value', 'isActive', 'usageCount', 'expiresAt'],
     group: 'Маркетинг',
+    components: {
+      views: {
+        list: { Component: '/components/payload/views/custom-list' },
+        edit: { root: { Component: '/components/payload/views/custom-edit' } },
+      },
+    },
   },
   access: {
     read: () => true,
