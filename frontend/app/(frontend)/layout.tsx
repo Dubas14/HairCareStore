@@ -14,6 +14,7 @@ import { CompareBar } from '@/components/compare/compare-bar'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { FacebookPixel } from '@/components/analytics/facebook-pixel'
 import { CookieConsent } from '@/components/cookie-consent'
+import { ChatWidget } from '@/components/chat/chat-widget'
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -85,6 +86,7 @@ export default async function FrontendLayout({
                 <FacebookPixel pixelId={process.env.NEXT_PUBLIC_FB_PIXEL_ID} />
               )}
               <CookieConsent />
+              <ChatWidget />
             </CartProvider>
           </QueryProvider>
         </NextIntlClientProvider>

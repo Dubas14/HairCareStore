@@ -37,6 +37,9 @@
     "heroTitle": "Professional Hair Care",
     "heroSubtitle": "Science-backed approach to hair care with clinically proven ingredients",
     "featuredProducts": "Best Sellers",
+    "popularProducts": "Popular Products",
+    "bestSelection": "Best selection of our customers",
+    "viewAll": "View all products",
     "newArrivals": "New Arrivals",
     "categories": "Categories",
     "brands": "Brands",
@@ -67,8 +70,12 @@
   "product": {
     "description": "Description",
     "ingredients": "Key Ingredients",
+    "keyIngredients": "Key Ingredients",
     "howToUse": "How to Use",
+    "howToUseHeading": "How to Use",
     "reviews": "Reviews",
+    "complementCare": "Complete your care",
+    "view": "View",
     "relatedProducts": "You May Also Like",
     "writeReview": "Write a Review",
     "reviewName": "Your Name",
@@ -160,6 +167,16 @@
     "spendPoints": "Use points",
     "history": "Transaction History",
     "referralCode": "Referral Code"
+  },
+  "chat": {
+    "title": "AI Consultant",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "greeting": "Hi! 👋 I'm the HAIR LAB AI consultant. I'll help you find the perfect hair care products. Ask away!",
+    "error": "Couldn't get a response. Please try again later.",
+    "rateLimit": "Too many messages. Please wait a moment.",
+    "clear": "Clear chat",
+    "close": "Close"
   },
   "footer": {
     "about": "About HAIR LAB",

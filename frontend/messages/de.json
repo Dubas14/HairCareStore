@@ -37,6 +37,9 @@
     "heroTitle": "Professionelle Haarpflege",
     "heroSubtitle": "Wissenschaftlicher Ansatz mit klinisch geprüften Inhaltsstoffen",
     "featuredProducts": "Bestseller",
+    "popularProducts": "Beliebte Produkte",
+    "bestSelection": "Beste Auswahl unserer Kunden",
+    "viewAll": "Alle Produkte ansehen",
     "newArrivals": "Neuheiten",
     "categories": "Kategorien",
     "brands": "Marken",
@@ -67,8 +70,12 @@
   "product": {
     "description": "Beschreibung",
     "ingredients": "Schlüsselinhaltsstoffe",
+    "keyIngredients": "Hauptinhaltsstoffe",
     "howToUse": "Anwendung",
+    "howToUseHeading": "Anwendung",
     "reviews": "Bewertungen",
+    "complementCare": "Ergänzen Sie Ihre Pflege",
+    "view": "Ansehen",
     "relatedProducts": "Das könnte Ihnen auch gefallen",
     "writeReview": "Bewertung schreiben",
     "reviewName": "Ihr Name",
@@ -160,6 +167,16 @@
     "spendPoints": "Punkte einlösen",
     "history": "Transaktionsverlauf",
     "referralCode": "Empfehlungscode"
+  },
+  "chat": {
+    "title": "KI-Berater",
+    "placeholder": "Nachricht schreiben...",
+    "send": "Senden",
+    "greeting": "Hallo! 👋 Ich bin der KI-Berater von HAIR LAB. Ich helfe Ihnen, die perfekte Haarpflege zu finden. Fragen Sie einfach!",
+    "error": "Antwort konnte nicht abgerufen werden. Bitte versuchen Sie es später erneut.",
+    "rateLimit": "Zu viele Nachrichten. Bitte warten Sie einen Moment.",
+    "clear": "Chat löschen",
+    "close": "Schließen"
   },
   "footer": {
     "about": "Über HAIR LAB",

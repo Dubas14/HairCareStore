@@ -18,6 +18,7 @@ const BUCKETS: Record<string, BucketConfig> = {
   login: { maxAttempts: 5, windowMs: 15 * 60 * 1000, blockDurationMs: 30 * 60 * 1000 },
   register: { maxAttempts: 3, windowMs: 60 * 60 * 1000, blockDurationMs: 60 * 60 * 1000 },
   newsletter: { maxAttempts: 3, windowMs: 60 * 60 * 1000, blockDurationMs: 60 * 60 * 1000 },
+  chat: { maxAttempts: 20, windowMs: 60 * 1000, blockDurationMs: 5 * 60 * 1000 },
 }
 
 // ─── Redis client (lazy-loaded) ─────────────────────────────────

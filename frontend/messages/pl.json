@@ -37,6 +37,9 @@
     "heroTitle": "Profesjonalna kosmetyka do włosów",
     "heroSubtitle": "Naukowe podejście do pielęgnacji z klinicznie potwierdzonymi składnikami",
     "featuredProducts": "Bestsellery",
+    "popularProducts": "Popularne produkty",
+    "bestSelection": "Najlepszy wybór naszych klientów",
+    "viewAll": "Zobacz wszystkie produkty",
     "newArrivals": "Nowości",
     "categories": "Kategorie",
     "brands": "Marki",
@@ -67,8 +70,12 @@
   "product": {
     "description": "Opis",
     "ingredients": "Kluczowe składniki",
+    "keyIngredients": "Kluczowe składniki",
     "howToUse": "Sposób użycia",
+    "howToUseHeading": "Jak używać",
     "reviews": "Opinie",
+    "complementCare": "Uzupełnij swoją pielęgnację",
+    "view": "Zobacz",
     "relatedProducts": "Może Ci się spodobać",
     "writeReview": "Napisz opinię",
     "reviewName": "Twoje imię",
@@ -160,6 +167,16 @@
     "spendPoints": "Wykorzystaj punkty",
     "history": "Historia transakcji",
     "referralCode": "Kod polecający"
+  },
+  "chat": {
+    "title": "Konsultant AI",
+    "placeholder": "Napisz wiadomość...",
+    "send": "Wyślij",
+    "greeting": "Cześć! 👋 Jestem konsultantem AI HAIR LAB. Pomogę dobrać kosmetyki do włosów. Pytaj śmiało!",
+    "error": "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie później.",
+    "rateLimit": "Za dużo wiadomości. Poczekaj chwilę.",
+    "clear": "Wyczyść czat",
+    "close": "Zamknij"
   },
   "footer": {
     "about": "O HAIR LAB",

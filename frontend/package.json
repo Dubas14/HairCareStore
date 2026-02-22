@@ -12,6 +12,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@payloadcms/db-postgres": "^3.76.1",
     "@payloadcms/next": "^3.76.1",
     "@payloadcms/plugin-stripe": "3.76.1",
