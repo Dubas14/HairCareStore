@@ -51,6 +51,38 @@ export const Customers: CollectionConfig = {
     { name: 'lastName', type: 'text', required: true },
     { name: 'phone', type: 'text' },
     {
+      name: 'googleId',
+      type: 'text',
+      index: true,
+      admin: { position: 'sidebar', description: 'Google OAuth ID' },
+    },
+    {
+      name: 'authProvider',
+      type: 'select',
+      defaultValue: 'local',
+      options: [
+        { label: 'Email/Пароль', value: 'local' },
+        { label: 'Google', value: 'google' },
+      ],
+      admin: { position: 'sidebar', description: 'Спосіб авторизації' },
+    },
+    {
+      name: 'emailVerified',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: { position: 'sidebar', description: 'Чи підтверджений email' },
+    },
+    {
+      name: 'emailVerificationToken',
+      type: 'text',
+      admin: { hidden: true },
+    },
+    {
+      name: 'emailVerificationExpires',
+      type: 'date',
+      admin: { hidden: true },
+    },
+    {
       name: 'addresses',
       type: 'array',
       maxRows: 5,

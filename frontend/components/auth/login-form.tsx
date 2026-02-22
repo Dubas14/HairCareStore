@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,15 @@ export function LoginForm() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams()
+
+  // Show OAuth error from redirect
+  useEffect(() => {
+    const oauthError = searchParams.get('error')
+    if (oauthError) {
+      setErrors({ general: oauthError })
+    }
+  }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -72,10 +81,10 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" data-testid="login-form">
       {/* General error */}
       {errors.general && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 animate-fadeInScale">
+        <div role="alert" className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 animate-fadeInScale">
           <p className="text-sm text-destructive">{errors.general}</p>
         </div>
       )}
@@ -132,6 +141,7 @@ export function LoginForm() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Показати/сховати пароль"
             tabIndex={-1}
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -182,8 +192,8 @@ export function LoginForm() {
       <div className="space-y-3">
         <button
           type="button"
+          onClick={() => { window.location.href = '/api/auth/google' }}
           className="w-full h-12 rounded-full border border-border bg-card hover:bg-muted flex items-center justify-center gap-3 font-medium transition-colors"
-          disabled={isLoading}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

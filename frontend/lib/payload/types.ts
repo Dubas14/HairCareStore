@@ -20,11 +20,17 @@ export interface PayloadMedia {
 }
 
 /**
- * Get image URL from Payload media object
+ * Get image URL from Payload media object.
+ * Validates that URLs use safe protocols (http/https or relative paths).
  */
 export function getImageUrl(image?: PayloadMedia | null): string | null {
   if (!image?.url) return null
-  return image.url.startsWith('http') ? image.url : image.url
+  const url = image.url.trim()
+  // Allow relative paths and http/https URLs only
+  if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  return null
 }
 
 /**
@@ -224,7 +230,7 @@ export function transformProduct(doc: PayloadProduct): Product {
     imageUrl: thumbnailUrl || '/placeholder-product.jpg',
     price: Math.round(price),
     oldPrice: hasDiscount ? Math.round(compareAtPrice) : undefined,
-    rating: 4.5,
+    rating: 0,
     reviewCount: 0,
     discount,
   }
@@ -262,6 +268,8 @@ export interface PayloadCustomer {
   firstName: string
   lastName: string
   phone?: string
+  googleId?: string
+  authProvider?: 'local' | 'google'
   addresses?: CustomerAddress[]
   wishlist?: Array<PayloadProduct | number | string>
   metadata?: Record<string, unknown>
@@ -341,6 +349,7 @@ export interface PayloadOrder {
   shippingMethod?: string
   currency: CurrencyCode
   stripePaymentIntentId?: string
+  trackingNumber?: string
   subtotal: number
   shippingTotal: number
   discountTotal: number
@@ -357,7 +366,73 @@ export interface PayloadOrder {
 export interface ShippingMethod {
   methodId: string
   name: string
+  carrier?: string
   price: number
+  currency?: string
   freeAbove?: number
+  estimatedDays?: string
   isActive: boolean
+}
+
+export interface ShippingZone {
+  name: string
+  countries?: string[]
+  isActive: boolean
+  methods: ShippingMethod[]
+}
+
+export interface ShippingConfig {
+  zones?: ShippingZone[]
+  methods?: ShippingMethod[]
+}
+
+// ─── Loyalty types ──────────────────────────────────────────────
+
+export interface LoyaltyRecord {
+  id: number | string
+  customer: number | string
+  pointsBalance: number
+  totalEarned: number
+  totalSpent: number
+  level: string
+  referralCode?: string
+  referredBy?: string
+  isEnabled: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface LoyaltyTransaction {
+  id: string | number
+  customer: string | number
+  transactionType: 'earned' | 'spent' | 'expired' | 'welcome' | 'referral' | 'adjustment'
+  pointsAmount: number
+  orderId: string | null
+  description: string | null
+  balanceAfter: number
+  createdAt: string
+}
+
+// ─── Promo types ────────────────────────────────────────────────
+
+export interface PromoConditions {
+  maxUsesTotal?: number
+  maxUsesPerCustomer?: number
+  minOrderAmount?: number
+  maxDiscountAmount?: number
+  validCategories?: string[]
+  validProducts?: string[]
+}
+
+// ─── Lexical Rich Text types ────────────────────────────────────
+
+export interface LexicalNode {
+  type?: string
+  tag?: string
+  text?: string
+  format?: number | string
+  children?: LexicalNode[]
+  url?: string
+  value?: { url?: string; alt?: string }
+  [key: string]: unknown
 }

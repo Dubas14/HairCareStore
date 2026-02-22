@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import type { CustomerAddress } from '@/lib/payload/types'
 
 const safeStorage = () => ({
   getItem: (name: string) => {
@@ -19,8 +20,10 @@ export interface Customer {
   firstName: string
   lastName: string
   phone?: string
-  addresses?: any[]
-  wishlist?: any[]
+  googleId?: string
+  authProvider?: 'local' | 'google'
+  addresses?: CustomerAddress[]
+  wishlist?: Array<string | number | { id: string | number }>
   metadata?: Record<string, unknown>
   createdAt: string
   updatedAt?: string

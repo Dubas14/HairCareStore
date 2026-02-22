@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { LoginForm } from '@/components/auth/login-form'
@@ -13,7 +14,9 @@ export default function LoginPage() {
       title="Вітаємо знову"
       subtitle="Увійдіть до свого акаунту для доступу до замовлень та персональних рекомендацій"
     >
-      <LoginForm />
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </AuthLayout>
   )
 }
