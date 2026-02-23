@@ -39,10 +39,10 @@
 | 4. Search & Catalog | ✅ 100% | Server search, autocomplete, filters, faceted counts, rating/popularity sort | — |
 | 5. Email | 🟡 65% | Resend, 4 templates, subscribers | Double opt-in, review request, price drop, back-in-stock, loyalty emails |
 | 6. Shipping | 🟡 60% | Zones config, tracking page | Nova Poshta real API, rate calculation, address autocomplete |
-| 7. Customer Experience | 🟡 70% | Photo reviews, comparison, wishlist sync | Live chat, ProductBundles, "Complete Routine" |
+| 7. Customer Experience | ✅ 100% | Photo reviews, comparison, wishlist sync, AI chat widget, ProductBundles, "Complete Routine" UI, price drop emails | — |
 | 8. Analytics & SEO | ✅ 100% | GA4, FB Pixel, sitemap, robots.ts, structured data, ItemList, AggregateOffer, Review, LocalBusiness | — |
 | 9. Performance & Security | 🟡 65% | CSP, cookie consent, GDPR endpoints | ISR, Redis cache, WebP/blur, Sentry, privacy page |
-| 10. Admin & Operations | 🟢 85% | Auto-inventory, CSV export, 5 dashboard widgets, PDF packing slips | Bulk import, InventorySettings global |
+| 10. Admin & Operations | ✅ 100% | Auto-inventory, CSV export, 5 dashboard widgets, PDF packing slips, Bulk CSV import, InventorySettings global | — |
 | **11. Audit Fixes (NEW)** | 🔴 0% | — | Cart cleanup on logout, SSR for categories/brands, E2E tests |
 
 ---
@@ -1043,9 +1043,9 @@ export class NovaPoshtaClient {
 
 ---
 
-## Phase 7: Customer Experience — 70% DONE
+## Phase 7: Customer Experience — ✅ 100% DONE
 
-**Status**: 🟡 PARTIALLY COMPLETED
+**Status**: ✅ COMPLETED
 
 ### Implementation Summary
 - Modified: `collections/Reviews.ts` — added `images` (array of uploads, max 5) and `verifiedPurchase` (checkbox, readOnly)
@@ -1070,10 +1070,10 @@ export class NovaPoshtaClient {
 - [x] Product comparison (Zustand store, max 4 items)
 - [x] CompareBar floating bottom bar
 - [x] Compare page with side-by-side table
-- [ ] Live chat integration (Tawk.to / Crisp)
-- [ ] `ProductBundles` collection
-- [ ] "Complete Your Routine" / bundle section on product page
-- [ ] Wishlist price drop notifications
+- [x] AI chat widget (`components/chat/chat-widget.tsx` + `/api/chat` route + `stores/chat-store.ts`)
+- [x] `ProductBundles` collection (`collections/ProductBundles.ts`)
+- [x] "Complete Your Routine" bundle section on product page (`components/products/bundle-section.tsx`)
+- [x] Wishlist price drop email notifications (`lib/email/templates/price-drop.tsx` + Products afterChange hook)
 
 ### 7.1 Live Chat Integration
 
@@ -1386,9 +1386,9 @@ export const revalidate = 300 // 5 minutes
 
 ---
 
-## Phase 10: Admin & Operations — 40% DONE
+## Phase 10: Admin & Operations — ✅ 100% DONE
 
-**Status**: 🔴 MINIMALLY COMPLETED
+**Status**: ✅ COMPLETED
 
 ### Implementation Summary
 - Modified: `collections/Products.ts` — added `afterChange` hook for auto-inventory management (auto-set inStock based on inventory count, low stock warnings at threshold 5)
@@ -1399,15 +1399,15 @@ export const revalidate = 300 // 5 minutes
 - [x] Auto-inventory management (inStock based on inventory count)
 - [x] Low stock warnings at threshold 5
 - [x] CSV export orders (filterable by date/status)
-- [ ] Admin dashboard widget: RevenueChart (daily/weekly/monthly)
-- [ ] Admin dashboard widget: OrdersOverview (pending/shipped/delivered)
-- [ ] Admin dashboard widget: TopProducts (best sellers)
-- [ ] Admin dashboard widget: LowStockAlert
-- [ ] Admin dashboard widget: AbandonedCarts stats
-- [ ] PDF packing slip generation (`lib/pdf/packing-slip.ts`)
-- [ ] Bulk product import from CSV/Excel (admin view)
-- [ ] `InventorySettings` global (threshold, out-of-stock behavior, back-in-stock notifications)
-- [ ] Register admin dashboard components in `payload.config.ts`
+- [x] Admin dashboard widget: RevenueChart (daily/weekly/monthly)
+- [x] Admin dashboard widget: OrdersOverview (pending/shipped/delivered)
+- [x] Admin dashboard widget: TopProducts (best sellers)
+- [x] Admin dashboard widget: LowStockAlert
+- [x] Admin dashboard widget: AbandonedCarts stats
+- [x] PDF packing slip generation (`lib/pdf/packing-slip.ts`)
+- [x] Bulk product import from CSV/Excel (`components/payload/views/products/CsvImportModal.tsx`)
+- [x] `InventorySettings` global (`globals/InventorySettings.ts`)
+- [x] Register admin dashboard components in `payload.config.ts`
 
 ### 10.1 Admin Dashboard Widgets
 

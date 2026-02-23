@@ -6,6 +6,7 @@ import { Welcome } from './templates/welcome'
 import { ShippingNotification } from './templates/shipping-notification'
 import { AbandonedCart } from './templates/abandoned-cart'
 import { EmailVerification } from './templates/email-verification'
+import { PriceDropEmail } from './templates/price-drop'
 import { getImageUrl } from '@/lib/payload/types'
 import type { PayloadProduct, CartItem } from '@/lib/payload/types'
 
@@ -153,5 +154,33 @@ export async function sendVerificationEmail(email: string, customerName: string,
     subject: 'Підтвердіть вашу email-адресу — HAIR LAB',
     react: EmailVerification({ customerName, verificationUrl }),
     tags: [{ name: 'type', value: 'email-verification' }],
+  })
+}
+
+// ─── Price Drop Notification ──────────────────────────────────
+
+interface PriceDropEmailData {
+  email: string
+  customerName: string
+  items: Array<{
+    title: string
+    handle: string
+    imageUrl?: string
+    oldPrice: number
+    newPrice: number
+  }>
+}
+
+export async function sendPriceDropEmail(data: PriceDropEmailData) {
+  if (data.items.length === 0) return { success: false, error: 'No items' }
+
+  return sendEmail({
+    to: data.email,
+    subject: `Ціна знижена на ${data.items.length} товар${data.items.length > 1 ? 'ів' : ''} — HAIR LAB`,
+    react: PriceDropEmail({
+      customerName: data.customerName,
+      items: data.items,
+    }),
+    tags: [{ name: 'type', value: 'price-drop' }],
   })
 }

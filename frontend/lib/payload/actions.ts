@@ -28,9 +28,10 @@ import {
   getBlogPosts as _getBlogPosts,
   getBlogPostBySlug as _getBlogPostBySlug,
   getSiteSettings as _getSiteSettings,
+  getBundlesForProduct as _getBundlesForProduct,
 } from './client'
 
-import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost, FilterFacets } from './client'
+import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost, FilterFacets, ProductBundle } from './client'
 import type { PayloadProduct } from './types'
 import type { SiteSettingsData } from './client'
 
@@ -148,6 +149,10 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 export async function getSiteSettings(): Promise<SiteSettingsData | null> {
   const locale = await getLocale()
   return _getSiteSettings(locale)
+}
+
+export async function getBundlesForProduct(productId: number | string): Promise<ProductBundle[]> {
+  return _getBundlesForProduct(productId)
 }
 
 export async function submitReview(data: {

@@ -8,6 +8,7 @@ import { BuyBox } from '@/components/products/buy-box'
 import { IngredientSpotlight } from '@/components/products/ingredient-spotlight'
 import { HowToUse } from '@/components/products/how-to-use'
 import { RelatedProducts } from '@/components/products/related-products'
+import { BundleSection } from '@/components/products/bundle-section'
 import { ProductReviews } from '@/components/products/product-reviews'
 import { useProduct, useProducts, useReviewsByProduct, useProductRating } from '@/lib/hooks/use-products'
 import { useToggleWishlist } from '@/lib/hooks/use-wishlist'
@@ -255,6 +256,11 @@ export default function ProductPageContent() {
 
         {/* Divider */}
         <hr className="my-8 border-border" />
+
+        {/* Complete Your Routine — Bundles */}
+        <ScrollReveal variant="fade-up" duration={700}>
+          <BundleSection productId={product.id} />
+        </ScrollReveal>
 
         {/* Reviews */}
         <ScrollReveal variant="fade-up" duration={700}>

@@ -633,6 +633,48 @@ export async function getProductsByBrand(brandSlug: string, locale?: string): Pr
   }
 }
 
+// ─── Product Bundles ─────────────────────────────────────────────
+
+export interface ProductBundle {
+  id: number | string
+  title: string
+  description?: string
+  products: PayloadProduct[]
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  isActive: boolean
+}
+
+/**
+ * Get active bundles that contain the given product
+ */
+export async function getBundlesForProduct(productId: number | string): Promise<ProductBundle[]> {
+  try {
+    const payload = await getPayload({ config })
+    const result = await payload.find({
+      collection: 'product-bundles',
+      where: {
+        isActive: { equals: true },
+        products: { contains: productId },
+      },
+      depth: 2,
+      limit: 5,
+    })
+    return result.docs.map((doc) => ({
+      id: doc.id,
+      title: doc.title as string,
+      description: doc.description as string | undefined,
+      products: (doc.products || []) as unknown as PayloadProduct[],
+      discountType: doc.discountType as 'percentage' | 'fixed',
+      discountValue: doc.discountValue as number,
+      isActive: doc.isActive as boolean,
+    }))
+  } catch (error) {
+    log.error('Error fetching bundles for product', error)
+    return []
+  }
+}
+
 // ─── Review data fetching ───────────────────────────────────────
 
 export async function getReviewsByProduct(productId: number | string): Promise<Review[]> {

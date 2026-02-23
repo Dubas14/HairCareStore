@@ -2,6 +2,63 @@ import type { CollectionConfig, CollectionAfterChangeHook } from 'payload'
 
 const LOW_STOCK_THRESHOLD = 5
 
+/**
+ * When a product's price drops, find customers who have it in their wishlist
+ * and send them a price drop notification email.
+ */
+const priceDropNotificationHook: CollectionAfterChangeHook = async ({ doc, previousDoc, operation, req }) => {
+  if (operation !== 'update' || !previousDoc?.variants || !doc?.variants) return doc
+
+  const oldPrice = previousDoc.variants[0]?.price
+  const newPrice = doc.variants[0]?.price
+  if (!oldPrice || !newPrice || newPrice >= oldPrice) return doc
+
+  // Price actually dropped — fire-and-forget email notifications
+  const imageUrl = typeof doc.thumbnail === 'object' && doc.thumbnail?.url
+    ? doc.thumbnail.url
+    : undefined
+
+  setImmediate(async () => {
+    try {
+      // Find customers who have this product in their wishlist
+      const result = await req.payload.find({
+        collection: 'customers',
+        where: { wishlist: { contains: doc.id } },
+        limit: 200,
+        depth: 0,
+      })
+
+      if (result.docs.length === 0) return
+
+      const { sendPriceDropEmail } = await import('@/lib/email/email-actions')
+
+      for (const customer of result.docs) {
+        const email = customer.email as string
+        const name = (customer.firstName as string) || ''
+        if (!email) continue
+
+        sendPriceDropEmail({
+          email,
+          customerName: name,
+          items: [{
+            title: doc.title as string,
+            handle: doc.handle as string,
+            imageUrl,
+            oldPrice,
+            newPrice,
+          }],
+        }).catch(() => {
+          // Silently ignore individual email failures
+        })
+      }
+    } catch {
+      // Don't fail the product update if notifications fail
+    }
+  })
+
+  return doc
+}
+
 const autoInventoryHook: CollectionAfterChangeHook = async ({ doc, previousDoc, req }) => {
   if (!doc?.variants || !Array.isArray(doc.variants)) return doc
 
@@ -46,7 +103,7 @@ export const Products: CollectionConfig = {
   slug: 'products',
   labels: { singular: 'Товар', plural: 'Товари' },
   hooks: {
-    afterChange: [autoInventoryHook],
+    afterChange: [autoInventoryHook, priceDropNotificationHook],
   },
   admin: {
     useAsTitle: 'title',
