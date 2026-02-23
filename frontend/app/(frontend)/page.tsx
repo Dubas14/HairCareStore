@@ -17,15 +17,35 @@ const organizationJsonLd = JSON.stringify({
   url: BASE_URL,
   logo: `${BASE_URL}/logo.png`,
   description: 'Інтернет-магазин професійної косметики для волосся',
-  sameAs: [
-    'https://www.instagram.com/hairlab.ua',
-    'https://www.facebook.com/hairlab.ua',
-    'https://www.youtube.com/@hairlab.ua',
-  ],
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer service',
     availableLanguage: 'Ukrainian',
+  },
+})
+
+// LocalBusiness schema for local SEO (trusted constants only)
+const localBusinessJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: 'HAIR LAB',
+  url: BASE_URL,
+  logo: `${BASE_URL}/logo.png`,
+  image: `${BASE_URL}/logo.png`,
+  description: 'Інтернет-магазин професійної косметики для волосся',
+  currenciesAccepted: 'UAH',
+  paymentAccepted: 'Cash, Credit Card',
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'UA',
+    addressLocality: 'Україна',
+  },
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    opens: '09:00',
+    closes: '21:00',
   },
 })
 
@@ -78,6 +98,7 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd json={organizationJsonLd} />
+      <JsonLd json={localBusinessJsonLd} />
       <JsonLd json={webSiteJsonLd} />
       <JsonLd json={navJsonLd} />
       <HomePageAnimations>

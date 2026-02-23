@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { getProductByHandle, getProductRating, getProducts } from '@/lib/payload/client'
+import { getProductByHandle, getProductRating, getProducts, getReviewsByProduct } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'
+import type { Review } from '@/lib/payload/types'
 import ProductPageContent from './ProductPageContent'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
@@ -64,11 +65,64 @@ function buildProductJsonLd(
   imageUrl: string | null,
   ratingAverage?: number,
   ratingCount?: number,
+  reviews?: Review[],
 ) {
-  const variant = product.variants?.[0]
-  const price = variant?.price || 0
-  const compareAtPrice = variant?.compareAtPrice
-  const inStock = variant?.inStock !== false
+  const variants = product.variants || []
+  const firstVariant = variants[0]
+  const anyInStock = variants.some((v) => v.inStock !== false)
+
+  // Build offers: AggregateOffer for multi-variant, Offer for single
+  const prices = variants.map((v) => v.price).filter((p) => p > 0)
+  const lowPrice = prices.length > 0 ? Math.min(...prices) : 0
+  const highPrice = prices.length > 0 ? Math.max(...prices) : 0
+
+  let offers: Record<string, unknown>
+  if (variants.length > 1 && lowPrice !== highPrice) {
+    offers = {
+      '@type': 'AggregateOffer',
+      url,
+      priceCurrency: 'UAH',
+      lowPrice: lowPrice.toFixed(2),
+      highPrice: highPrice.toFixed(2),
+      offerCount: variants.length,
+      availability: anyInStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'HAIR LAB' },
+    }
+  } else {
+    const price = firstVariant?.price || 0
+    const compareAtPrice = firstVariant?.compareAtPrice
+    offers = {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'UAH',
+      price: price.toFixed(2),
+      ...(compareAtPrice && compareAtPrice > price && {
+        priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      }),
+      availability: anyInStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'HAIR LAB' },
+    }
+  }
+
+  // Build review array for JSON-LD
+  const reviewSchemas = reviews && reviews.length > 0
+    ? reviews.slice(0, 10).map((r) => ({
+        '@type': 'Review' as const,
+        author: { '@type': 'Person' as const, name: r.customerName },
+        reviewRating: {
+          '@type': 'Rating' as const,
+          ratingValue: r.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        reviewBody: r.text,
+        ...(r.publishedAt && { datePublished: r.publishedAt.split('T')[0] }),
+      }))
+    : undefined
 
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -79,7 +133,7 @@ function buildProductJsonLd(
       : `${product.title} від ${brand}`,
     ...(imageUrl && { image: imageUrl }),
     brand: { '@type': 'Brand', name: brand },
-    sku: variant?.sku || product.handle,
+    sku: firstVariant?.sku || product.handle,
     ...(ratingCount && ratingCount > 0 && ratingAverage && {
       aggregateRating: {
         '@type': 'AggregateRating',
@@ -89,19 +143,8 @@ function buildProductJsonLd(
         worstRating: '1',
       },
     }),
-    offers: {
-      '@type': 'Offer',
-      url,
-      priceCurrency: 'UAH',
-      price: price.toFixed(2),
-      ...(compareAtPrice && compareAtPrice > price && {
-        priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      }),
-      availability: inStock
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-      seller: { '@type': 'Organization', name: 'HAIR LAB' },
-    },
+    ...(reviewSchemas && { review: reviewSchemas }),
+    offers,
   })
 }
 
@@ -130,21 +173,26 @@ export default async function ProductPage({ params }: Props) {
   const imageUrl = product ? getImageUrl(product.thumbnail) : null
   const url = `${BASE_URL}/products/${handle}`
 
-  // Fetch rating data server-side for JSON-LD aggregateRating
+  // Fetch rating + reviews server-side for JSON-LD
   let ratingAverage = 0
   let ratingCount = 0
+  let reviews: Review[] = []
   if (product) {
     try {
-      const rating = await getProductRating(product.id)
+      const [rating, productReviews] = await Promise.all([
+        getProductRating(product.id),
+        getReviewsByProduct(product.id),
+      ])
       ratingAverage = rating.average
       ratingCount = rating.count
+      reviews = productReviews
     } catch {
-      // Rating data is optional, skip gracefully
+      // Rating/review data is optional, skip gracefully
     }
   }
 
   // JSON-LD is built from trusted server-side CMS data only (no user input)
-  const productJsonLd = product ? buildProductJsonLd(product, brand, url, imageUrl, ratingAverage, ratingCount) : null
+  const productJsonLd = product ? buildProductJsonLd(product, brand, url, imageUrl, ratingAverage, ratingCount, reviews) : null
   const breadcrumbJsonLd = product ? buildBreadcrumbJsonLd(product, brand) : null
 
   return (

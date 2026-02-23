@@ -40,7 +40,7 @@
 | 5. Email | 🟡 65% | Resend, 4 templates, subscribers | Double opt-in, review request, price drop, back-in-stock, loyalty emails |
 | 6. Shipping | 🟡 60% | Zones config, tracking page | Nova Poshta real API, rate calculation, address autocomplete |
 | 7. Customer Experience | 🟡 70% | Photo reviews, comparison, wishlist sync | Live chat, ProductBundles, "Complete Routine" |
-| 8. Analytics & SEO | 🟢 80% | GA4, FB Pixel, sitemap, structured data | hreflang in head, ItemList/AggregateOffer schemas, robots.ts |
+| 8. Analytics & SEO | ✅ 100% | GA4, FB Pixel, sitemap, robots.ts, structured data, ItemList, AggregateOffer, Review, LocalBusiness | — |
 | 9. Performance & Security | 🟡 65% | CSP, cookie consent, GDPR endpoints | ISR, Redis cache, WebP/blur, Sentry, privacy page |
 | 10. Admin & Operations | 🟢 85% | Auto-inventory, CSV export, 5 dashboard widgets, PDF packing slips | Bulk import, InventorySettings global |
 | **11. Audit Fixes (NEW)** | 🔴 0% | — | Cart cleanup on logout, SSR for categories/brands, E2E tests |
@@ -1158,9 +1158,9 @@ fields: [
 
 ---
 
-## Phase 8: Analytics & SEO — 80% DONE
+## Phase 8: Analytics & SEO — ✅ 100% DONE
 
-**Status**: 🟢 MOSTLY COMPLETED
+**Status**: ✅ COMPLETED
 
 ### Implementation Summary
 - Created: `lib/analytics/events.ts` — unified GA4 + Facebook Pixel event tracking (view_item, add_to_cart, purchase, search, wishlist, checkout events)
@@ -1184,13 +1184,13 @@ fields: [
 - [x] Dynamic sitemap with hreflang alternates (5 locales)
 - [x] `lib/structured-data.ts` helper functions
 - [x] ~~`hreflang` alternate links in `<head>`~~ — REMOVED (тільки українська мова)
-- [ ] JSON-LD: ItemList on category/shop pages
-- [ ] JSON-LD: AggregateOffer for multi-variant products
-- [ ] JSON-LD: Review schema with author + datePublished
-- [ ] JSON-LD: LocalBusiness schema (global)
-- [ ] `robots.ts` file
-- [ ] `generateMetadata()` on category pages (currently generic)
-- [ ] `generateMetadata()` on brand pages (currently missing)
+- [x] JSON-LD: ItemList on category + brand pages (top 30 products)
+- [x] JSON-LD: AggregateOffer for multi-variant products (lowPrice/highPrice)
+- [x] JSON-LD: Review schema with author + datePublished (top 10 reviews)
+- [x] JSON-LD: LocalBusiness (Store) schema on home page
+- [x] `robots.ts` file (вже існував)
+- [x] `generateMetadata()` on category pages
+- [x] `generateMetadata()` on brand pages
 
 ### 8.1 Google Analytics 4 + Facebook Pixel
 

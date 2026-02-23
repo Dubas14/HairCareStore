@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getCategoryBySlug, getCategories } from '@/lib/payload/client'
+import { getCategoryBySlug, getCategories, getProductsByCategory } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'
+import { buildItemListJsonLd } from '@/lib/structured-data'
 import { CategoryPageClient } from './category-page-client'
 
 interface Props {
@@ -50,7 +51,7 @@ export default async function CategoryPage({ params }: Props) {
     notFound()
   }
 
-  // JSON-LD for category (trusted CMS data)
+  // JSON-LD for category — all data from trusted server-side Payload CMS, no user input
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hairlab.store'
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -69,9 +70,34 @@ export default async function CategoryPage({ params }: Props) {
     },
   })
 
+  // ItemList JSON-LD with top products for rich snippets (trusted CMS data)
+  let itemListJsonLd: string | null = null
+  try {
+    const { products } = await getProductsByCategory(slug)
+    if (products.length > 0) {
+      itemListJsonLd = buildItemListJsonLd(
+        `${category.name} — HAIR LAB`,
+        products.slice(0, 30).map((p, i) => ({
+          name: p.title,
+          url: `${baseUrl}/products/${p.handle}`,
+          position: i + 1,
+          image: getImageUrl(p.thumbnail) || undefined,
+          price: p.variants?.[0]?.price,
+          currency: 'UAH',
+        })),
+      )
+    }
+  } catch {
+    // ItemList is optional SEO enhancement
+  }
+
   return (
     <>
+      {/* All JSON-LD built from trusted server-side CMS data only */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      {itemListJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: itemListJsonLd }} />
+      )}
       <CategoryPageClient initialCategory={category} slug={slug} />
     </>
   )
