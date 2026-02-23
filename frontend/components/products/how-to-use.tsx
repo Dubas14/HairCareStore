@@ -2,6 +2,7 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Droplets, Hand, Sparkles, ShowerHead, type LucideIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type IconName = 'droplets' | 'hand' | 'sparkles' | 'shower-head'
 
@@ -58,9 +59,11 @@ function StepIcon({ name, className }: { name: IconName; className?: string }) {
 }
 
 export function HowToUse({ steps = defaultSteps, className }: HowToUseProps) {
+  const t = useTranslations('product')
+
   return (
     <section className={className}>
-      <h2 className="text-xl font-semibold mb-6">Як використовувати</h2>
+      <h2 className="text-xl font-semibold mb-6">{t('howToUseHeading')}</h2>
 
       <Tabs defaultValue={steps[0]?.id || 'wet'}>
         <TabsList className="flex-wrap">

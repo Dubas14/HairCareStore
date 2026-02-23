@@ -1,6 +1,7 @@
 'use client'
 
 import { Droplets, Sparkles, Shield, Leaf } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface Ingredient {
@@ -33,11 +34,13 @@ export function IngredientSpotlight({
   ingredients,
   className,
 }: IngredientSpotlightProps) {
+  const t = useTranslations('product')
+
   if (ingredients.length === 0) return null
 
   return (
     <section className={cn("py-8", className)}>
-      <h2 className="text-xl font-semibold mb-6">Ключові інгредієнти</h2>
+      <h2 className="text-xl font-semibold mb-6">{t('keyIngredients')}</h2>
 
       <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-hide">
         {ingredients.map((ingredient) => {

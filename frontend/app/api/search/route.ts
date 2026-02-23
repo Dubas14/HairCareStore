@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       },
       limit,
       depth: 1,
-      locale: locale as any,
+      locale: locale as 'uk' | 'en' | 'pl' | 'de' | 'ru',
     })
 
     const results = result.docs.map((doc: any) => {

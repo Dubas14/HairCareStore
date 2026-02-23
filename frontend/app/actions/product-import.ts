@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { getPayload } from 'payload'
+import type { Payload } from 'payload'
 import config from '@payload-config'
 import { headers } from 'next/headers'
 import { generateEAN13, isValidBarcode, isInternalBarcode } from '@/lib/utils/barcode'
@@ -15,7 +16,7 @@ async function requireAdmin(): Promise<void> {
   const cookieHeader = headersList.get('cookie') || ''
   try {
     const { user } = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
-    if (!user || (user as any).collection !== 'users') {
+    if (!user || (user as unknown as { collection?: string }).collection !== 'users') {
       throw new Error('Unauthorized')
     }
   } catch {
@@ -74,7 +75,7 @@ const csvRowSchema = z.object({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function getNextInternalBarcodeSequence(payload: any): Promise<number> {
+async function getNextInternalBarcodeSequence(payload: Payload): Promise<number> {
   // Find the max internal barcode (prefix 200) to determine next sequence
   const existing = await payload.find({
     collection: 'products',
@@ -95,7 +96,7 @@ async function getNextInternalBarcodeSequence(payload: any): Promise<number> {
 }
 
 async function resolveBrand(
-  payload: any,
+  payload: Payload,
   name: string,
   cache: Map<string, number | string>,
 ): Promise<number | string> {
@@ -131,7 +132,7 @@ async function resolveBrand(
 }
 
 async function resolveCategories(
-  payload: any,
+  payload: Payload,
   names: string,
   cache: Map<string, number | string>,
 ): Promise<Array<number | string>> {
@@ -297,10 +298,10 @@ export async function importProducts(rows: CsvProductRow[]): Promise<ImportResul
         })
         result.created++
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       result.errors.push({
         row: rowNum,
-        message: err?.message || 'Невідома помилка',
+        message: err instanceof Error ? err.message : 'Невідома помилка',
       })
     }
   }

@@ -492,7 +492,7 @@ export default function CheckoutPage() {
                   isProcessing={isProcessing}
                   total={cart ? cart.total : 0}
                   cartId={cart?.id}
-                  currency={(cart as any)?.currency || 'UAH'}
+                  currency={cart?.currency || 'UAH'}
                 />
               )}
             </div>

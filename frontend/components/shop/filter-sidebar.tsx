@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { getBrands, getCategories } from '@/lib/payload/actions'
+import { formatPrice } from '@/lib/utils/format-price'
 
 export interface FilterState {
   brands: string[]
@@ -42,6 +43,7 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
     <div className="border-b border-border pb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
         className="flex items-center justify-between w-full py-2 text-left"
       >
         <span className="font-semibold text-foreground">{title}</span>
@@ -166,7 +168,7 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
           value={filters.priceRange}
           onChange={handlePriceChange}
           step={50}
-          formatValue={(v) => `${v} ₴`}
+          formatValue={(v) => formatPrice(v)}
         />
       </FilterSection>
     </div>

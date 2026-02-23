@@ -45,7 +45,8 @@ export async function LoyaltyPageShell({ children, params, searchParams }: Loyal
       req: {
         headers,
         host: headers.get('host') ?? undefined,
-        i18n: i18n as any,
+        // Payload admin i18n type mismatch between initI18n return and PayloadRequest
+        i18n: i18n as never,
         user,
       },
     },

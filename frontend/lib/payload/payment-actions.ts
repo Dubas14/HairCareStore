@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { stripe, toStripeAmount, SUPPORTED_CURRENCIES, type CurrencyCode } from '@/lib/stripe'
 import type { PayloadCart } from './types'
+import { clearCartAfterPayment } from './cart-actions'
 import { createLogger } from '@/lib/logger'
 
 const log = createLogger('payment-actions')
@@ -49,8 +50,9 @@ export async function createPaymentIntent(cartId: number | string): Promise<{
             email: typedCart.email || '',
           },
         })
+        if (!updatedPi.client_secret) throw new Error('Stripe не повернув client_secret')
         return {
-          clientSecret: updatedPi.client_secret!,
+          clientSecret: updatedPi.client_secret,
           paymentIntentId: updatedPi.id,
         }
       }
@@ -89,8 +91,9 @@ export async function createPaymentIntent(cartId: number | string): Promise<{
     },
   })
 
+  if (!paymentIntent.client_secret) throw new Error('Stripe не повернув client_secret')
   return {
-    clientSecret: paymentIntent.client_secret!,
+    clientSecret: paymentIntent.client_secret,
     paymentIntentId: paymentIntent.id,
   }
 }
@@ -160,7 +163,7 @@ export async function completeStripePayment(cartId: number | string, paymentInte
   const shippingTotal = cart.shippingTotal || 0
   const discountTotal = cart.discountTotal || 0
   const loyaltyDiscount = cart.loyaltyDiscount || 0
-  const recalculatedTotal = recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount
+  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount)
 
   const order = await payload.create({
     collection: 'orders',
@@ -211,6 +214,9 @@ export async function completeStripePayment(cartId: number | string, paymentInte
     id: cart.id,
     data: { status: 'completed', completedAt: new Date().toISOString() },
   })
+
+  // Clear cart cookie server-side (don't rely on frontend)
+  await clearCartAfterPayment()
 
   // Send order confirmation email (fire-and-forget)
   const displayId = typedOrder.displayId

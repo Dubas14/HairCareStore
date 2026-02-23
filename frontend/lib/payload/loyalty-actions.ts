@@ -13,10 +13,12 @@ import {
 export type { LoyaltySummary, LoyaltyTransaction }
 
 export async function getLoyaltySummary(customerId: number | string): Promise<LoyaltySummary | null> {
+  if (!customerId) return null
   return getCustomerLoyaltySummary(customerId)
 }
 
 export async function getLoyaltyTransactions(customerId: number | string, limit?: number, offset?: number): Promise<{ transactions: LoyaltyTransaction[]; count: number }> {
+  if (!customerId) return { transactions: [], count: 0 }
   return getTransactionHistory(customerId, limit, offset)
 }
 

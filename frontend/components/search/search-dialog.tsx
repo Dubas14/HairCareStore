@@ -8,6 +8,7 @@ import { useUIStore } from '@/stores/ui-store'
 import { useSearchProducts } from '@/lib/hooks/use-products'
 import { getImageUrl } from '@/lib/payload/types'
 import { trackSearch } from '@/lib/analytics/events'
+import { formatPrice } from '@/lib/utils/format-price'
 import { getCategories, getBrands } from '@/lib/payload/actions'
 import type { Category, Brand } from '@/lib/payload/types'
 
@@ -164,6 +165,7 @@ export function SearchDialog() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Пошук товарів, категорій, брендів..."
+                data-testid="search-input"
                 className="w-full h-12 pl-12 pr-12 text-lg bg-muted rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {query && (
@@ -256,7 +258,7 @@ export function SearchDialog() {
                                 {product.title}
                               </h4>
                               <p className="text-sm font-semibold mt-1">
-                                {Math.round(price) + ' \u20B4'}
+                                {formatPrice(price)}
                               </p>
                             </div>
                           </Link>

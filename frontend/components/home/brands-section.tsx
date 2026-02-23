@@ -3,6 +3,7 @@
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Brand } from '@/lib/payload/types'
 import { getImageUrl } from '@/lib/payload/types'
 
@@ -47,11 +48,16 @@ export function BrandsSection({ brands }: BrandsSectionProps) {
                 >
                   <div className="bg-card rounded-card p-6 md:p-8 shadow-soft hover:shadow-lift transition-all duration-300 hover:-translate-y-2 h-[120px] flex items-center justify-center border border-border group-hover:border-foreground/20">
                     {logoUrl ? (
-                      <img
-                        src={logoUrl}
-                        alt={brand.name}
-                        className="max-h-12 max-w-[160px] object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300"
-                      />
+                      <div className="relative w-[160px] h-[48px]">
+                        <Image
+                          src={logoUrl}
+                          alt={brand.name}
+                          fill
+                          sizes="160px"
+                          loading="lazy"
+                          className="object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                        />
+                      </div>
                     ) : (
                       <span className="text-lg md:text-xl font-bold text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center">
                         {brand.name}
@@ -70,7 +76,7 @@ export function BrandsSection({ brands }: BrandsSectionProps) {
               key={index}
               onClick={() => emblaApi?.scrollTo(index * 3)}
               className="w-2 h-2 rounded-full bg-muted-foreground/30 hover:bg-foreground transition-all duration-300 focus-ring"
-              aria-label={`Go to brands ${index * 3 + 1}-${index * 3 + 3}`}
+              aria-label={`Перейти до брендів ${index * 3 + 1}-${index * 3 + 3}`}
             />
           ))}
         </div>

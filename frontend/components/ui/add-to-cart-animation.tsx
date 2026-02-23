@@ -122,6 +122,7 @@ export function AddToCartAnimation({
         ref={buttonRef}
         onClick={handleClick}
         disabled={disabled || isAnimating}
+        data-testid="add-to-cart-button"
         className={cn(
           "relative inline-flex items-center justify-center gap-2",
           "rounded-full font-medium",

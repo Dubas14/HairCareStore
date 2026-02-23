@@ -2,6 +2,7 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import type { PromoConditions } from './types'
 
 interface PromoValidationResult {
   valid: boolean
@@ -51,7 +52,7 @@ export async function validatePromoCode(
     }
 
     // Check total usage limit
-    const conditions = promo.conditions as any
+    const conditions = promo.conditions as PromoConditions | undefined
     if (conditions?.maxUsesTotal && promo.usageCount >= conditions.maxUsesTotal) {
       return { valid: false, discount: 0, message: 'Промокод вичерпано' }
     }

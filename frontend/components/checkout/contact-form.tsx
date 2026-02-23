@@ -66,7 +66,7 @@ export function ContactForm({ onSubmit, initialData }: ContactFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" data-testid="checkout-contact-form">
       <h2 className="text-xl font-semibold">Контактна інформація</h2>
 
       {/* Email */}

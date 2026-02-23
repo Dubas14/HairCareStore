@@ -18,16 +18,58 @@
 8. [Phase 8: Analytics & SEO](#phase-8-analytics--seo)
 9. [Phase 9: Performance & Security](#phase-9-performance--security)
 10. [Phase 10: Admin & Operations](#phase-10-admin--operations)
-11. [Database Schema Changes](#database-schema-changes-summary)
-12. [Environment Variables](#new-environment-variables)
-13. [Deployment Architecture](#deployment-architecture)
+11. [Phase 11: Audit Findings & Quality Fixes](#phase-11-audit-findings--quality-fixes-new)
+12. [Database Schema Changes](#database-schema-changes-summary)
+13. [Environment Variables](#new-environment-variables)
+14. [Deployment Architecture](#deployment-architecture)
 
 ---
 
-## Phase 1: Payments & Checkout (CRITICAL) — DONE
+## Audit Summary (Feb 2026)
 
-**Status**: ✅ COMPLETED
+**Overall Grade: A-** — Solid architecture, good SEO base, professional UI.
+
+### Completion Status by Phase
+
+| Phase | Status | Done | Remaining |
+|-------|--------|------|-----------|
+| 1. Payments & Checkout | 🟡 80% | Stripe basic, COD, webhook | Apple/Google Pay, Monobank, Transactions, Review step, Address autocomplete |
+| 2. i18n | ✅ DONE | Ukrainian only (multi-lang paused) | — |
+| 3. Promotions | 🟡 75% | Promo codes, validation, UI | AutomaticDiscounts collection, CountdownTimer, BXGY logic |
+| 4. Search & Catalog | 🟢 85% | Server search, autocomplete, filters | Faceted filter counts, rating/popularity sort |
+| 5. Email | 🟡 65% | Resend, 4 templates, subscribers | Double opt-in, review request, price drop, back-in-stock, loyalty emails |
+| 6. Shipping | 🟡 60% | Zones config, tracking page | Nova Poshta real API, rate calculation, address autocomplete |
+| 7. Customer Experience | 🟡 70% | Photo reviews, comparison, wishlist sync | Live chat, ProductBundles, "Complete Routine" |
+| 8. Analytics & SEO | 🟢 80% | GA4, FB Pixel, sitemap, structured data | hreflang in head, ItemList/AggregateOffer schemas, robots.ts |
+| 9. Performance & Security | 🟡 65% | CSP, cookie consent, GDPR endpoints | ISR, Redis cache, WebP/blur, Sentry, privacy page |
+| 10. Admin & Operations | 🔴 40% | Auto-inventory, CSV export | Dashboard widgets, PDF packing slips, bulk import |
+| **11. Audit Fixes (NEW)** | 🔴 0% | — | Cart cleanup on logout, SSR for categories/brands, E2E tests |
+
+---
+
+## Phase 1: Payments & Checkout (CRITICAL) — 70% DONE
+
+**Status**: 🟡 PARTIALLY COMPLETED
 **Impact**: +40-50% conversion rate. Currently only COD — unacceptable for international sales.
+
+### Checklist
+- [x] Stripe SDK integration (server + client)
+- [x] PaymentIntent creation & completion
+- [x] Stripe webhook handler (succeeded, failed, refunded)
+- [x] Stripe Elements PaymentElement form
+- [x] COD + Card payment selection
+- [x] Currency field on Orders & Carts
+- [x] `stripePaymentIntentId` on Orders & Carts
+- [ ] Apple Pay / Google Pay (Payment Request Button)
+- [x] ~~BLIK (Poland market)~~ — REMOVED (тільки UA ринок)
+- [x] ~~SEPA Direct Debit (EU)~~ — REMOVED (тільки UA ринок)
+- [ ] Monobank installments (Ukraine)
+- [x] ~~Multi-currency `prices` array on Product variants~~ — REMOVED (тільки UAH)
+- [x] ~~Exchange rate API fallback (ECB/NBU)~~ — REMOVED (тільки UAH)
+- [ ] `Transactions` collection (Stripe event log)
+- [ ] 5-step checkout (currently 4 steps, missing dedicated Review step)
+- [ ] Address autocomplete (Google Places API / Nova Poshta)
+- [x] ~~Klarna Buy Now Pay Later (EU)~~ — REMOVED (тільки UA ринок)
 
 ### Implementation Summary
 - Installed: `stripe`, `@stripe/stripe-js`, `@stripe/react-stripe-js`
@@ -200,10 +242,24 @@ Events to handle:
 
 ---
 
-## Phase 2: Internationalization (i18n) (CRITICAL) — DONE
+## Phase 2: Internationalization (i18n) — ✅ PAUSED (UA ONLY)
 
-**Status**: ✅ COMPLETED
+**Status**: ✅ PAUSED — сайт залишається українською мовою. Мультимовність відкладена.
 **Impact**: Enables selling to EU markets. Essential for "not just UA" positioning.
+
+### Checklist
+- [x] next-intl setup (v4.8.3)
+- [x] 5 locales: uk, en, pl, de, ru
+- [x] Cookie-based locale detection
+- [x] Locale switcher component with flags
+- [x] Payload CMS `localization` config
+- [x] 30+ fields marked `localized: true` across 7 collections
+- [x] All 17 data fetching functions accept `locale` param
+- [x] Server actions auto-resolve locale via `getLocale()`
+- [x] Translation files for all 5 languages
+- [x] Header/Footer translated with `useTranslations()`
+- [x] ~~Currency switcher component~~ — REMOVED (тільки UAH, сайт українською)
+- [x] ~~URL prefix routing (`/en/shop`, `/pl/shop`)~~ — REMOVED (тільки українська мова)
 
 ### Implementation Summary
 - Installed: `next-intl@4.8.3`
@@ -460,10 +516,24 @@ export const config = {
 
 ---
 
-## Phase 3: Promotions & Marketing Engine — DONE
+## Phase 3: Promotions & Marketing Engine — 75% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟡 PARTIALLY COMPLETED
 **Impact**: Without promo codes and discounts, marketing campaigns are impossible.
+
+### Checklist
+- [x] `Promotions` collection (percentage, fixed, free_shipping types)
+- [x] `PromotionUsages` collection (per-customer tracking)
+- [x] `validatePromoCode()`, `applyPromoCode()`, `removePromoCode()`
+- [x] `PromoCodeInput` component in checkout
+- [x] `promoCode` / `promoDiscount` fields on Carts & Orders
+- [x] Condition checks (min order, max discount, categories, brands, usage limits, dates)
+- [x] Translations for promo UI strings
+- [ ] `AutomaticDiscounts` collection (auto-applied without code)
+- [ ] Buy X Get Y logic
+- [ ] `CountdownTimer` component for campaigns
+- [ ] Bundle discount logic (buy shampoo + conditioner = -15%)
+- [ ] Admin promo management custom UI
 
 ### Implementation Summary
 - Created: `collections/Promotions.ts` — promo codes with percentage/fixed/free_shipping types, conditions (min order, max discount, category/brand/product filtering, usage limits, date range)
@@ -600,10 +670,24 @@ Campaign: "Black Friday 2026"
 
 ---
 
-## Phase 4: Search & Catalog Upgrade — DONE
+## Phase 4: Search & Catalog Upgrade — 85% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟢 MOSTLY COMPLETED
 **Impact**: Current client-side search (500 products cap) doesn't scale.
+
+### Checklist
+- [x] Server-side WHERE clause construction with `and` conditions
+- [x] Full filter support (search, categories, brands, price range, tags, sortBy)
+- [x] Pagination metadata (totalPages, currentPage, hasNextPage)
+- [x] Search autocomplete API endpoint (`app/api/search/route.ts`)
+- [x] Shop page rewrite with URL params sync
+- [x] Filter sidebar with category/brand/price filters
+- [x] Category page migrated to server-side `useProducts()`
+- [x] Brand page migrated to server-side `useProducts()`
+- [x] `useProducts()` hook accepts full filter options
+- [ ] Faceted filters with counts (`getFilterFacets()`)
+- [ ] Product rating sorting (TODO in `client.ts:423-424`)
+- [ ] Product popularity sorting (TODO in `client.ts:423-424`)
 
 ### Implementation Summary
 - **Server-side filtering**: Upgraded `getProducts()` in `client.ts` — full WHERE clause construction with `and` conditions for search, categoryIds, brandIds, minPrice, maxPrice, tags, sortBy
@@ -731,10 +815,31 @@ export async function getFilterFacets(options: {
 
 ---
 
-## Phase 5: Email & Notifications — DONE
+## Phase 5: Email & Notifications — 65% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟡 PARTIALLY COMPLETED
 **Impact**: Abandoned cart recovery alone can recover 5-15% of lost revenue.
+
+### Checklist
+- [x] Resend SDK integration with graceful fallback
+- [x] Shared email layout (header, footer, ProductRow, EmailButton)
+- [x] Order confirmation email template
+- [x] Welcome email template
+- [x] Shipping notification email template
+- [x] Abandoned cart email template
+- [x] `Subscribers` collection for newsletter
+- [x] Newsletter action with Payload integration
+- [x] Fire-and-forget emails on order/register/ship
+- [x] `trackingNumber` field on Orders + afterChange hook
+- [ ] Double opt-in flow for newsletter
+- [ ] Review request email (after delivery)
+- [ ] Wishlist price drop email
+- [ ] Back in stock email
+- [ ] Loyalty level up email
+- [ ] Payment failed email (Stripe `payment_failed`)
+- [ ] Password reset email template improvement
+- [ ] Abandoned cart cron job (1h, 24h, 72h schedule)
+- [ ] `abandonedEmailsSent` tracking field on Carts
 
 ### Implementation Summary
 - Installed: `resend@6.9.2`, `@react-email/components@1.0.8`
@@ -839,10 +944,25 @@ Cart abandoned → 1 hour → Email #1 "You left something behind"
 
 ---
 
-## Phase 6: Shipping & Logistics — DONE
+## Phase 6: Shipping & Logistics — 60% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟡 PARTIALLY COMPLETED
 **Impact**: International shipping is essential. Multiple domestic carriers improve conversion.
+
+### Checklist
+- [x] Shipping zones with country-based configuration
+- [x] 25 EU/European countries supported
+- [x] Multiple carriers per zone (Нова Пошта, Укрпошта, DHL, DPD, GLS, InPost, etc.)
+- [x] `getShippingMethodsByCountry()`, `getShippingZones()` actions
+- [x] Order tracking page (public, no auth required)
+- [x] Visual progress steps for order status
+- [x] Legacy `methods` array preserved for backward compatibility
+- [ ] Nova Poshta real API integration (`getCities`, `getWarehouses`, `calculateShipping`, `createShipment`, `trackShipment`)
+- [ ] Real-time shipping rate calculation
+- [ ] Address autocomplete (Google Places / Nova Poshta city search)
+- [ ] Create shipment via API (automated)
+- [ ] Auto-track delivery status (cron job)
+- [ ] Weight/dimensions-based rate calculation
 
 ### Implementation Summary
 - Upgraded `globals/ShippingConfig.ts` — added `zones` array with country-based shipping zones, each zone has multiple methods with carrier, price, currency, freeAbove, estimatedDays (all localized)
@@ -921,9 +1041,9 @@ export class NovaPoshtaClient {
 
 ---
 
-## Phase 7: Customer Experience — DONE
+## Phase 7: Customer Experience — 70% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟡 PARTIALLY COMPLETED
 
 ### Implementation Summary
 - Modified: `collections/Reviews.ts` — added `images` (array of uploads, max 5) and `verifiedPurchase` (checkbox, readOnly)
@@ -939,6 +1059,19 @@ export class NovaPoshtaClient {
 - Modified: `components/products/product-card.tsx` — added CompareButton next to wishlist button
 - Modified: `app/(frontend)/layout.tsx` — added CompareBar to global layout
 - TypeScript: ✅ No errors
+
+### Checklist
+- [x] Photo reviews with images array (max 5) and lightbox
+- [x] Verified purchase badge (auto-set via hook)
+- [x] Review filters (all, with photos, verified, by rating)
+- [x] Wishlist server sync for authenticated users
+- [x] Product comparison (Zustand store, max 4 items)
+- [x] CompareBar floating bottom bar
+- [x] Compare page with side-by-side table
+- [ ] Live chat integration (Tawk.to / Crisp)
+- [ ] `ProductBundles` collection
+- [ ] "Complete Your Routine" / bundle section on product page
+- [ ] Wishlist price drop notifications
 
 ### 7.1 Live Chat Integration
 
@@ -1023,9 +1156,9 @@ fields: [
 
 ---
 
-## Phase 8: Analytics & SEO — DONE
+## Phase 8: Analytics & SEO — 80% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟢 MOSTLY COMPLETED
 
 ### Implementation Summary
 - Created: `lib/analytics/events.ts` — unified GA4 + Facebook Pixel event tracking (view_item, add_to_cart, purchase, search, wishlist, checkout events)
@@ -1037,6 +1170,25 @@ fields: [
 - Modified: `app/(frontend)/blog/[slug]/page.tsx` — added BlogPosting JSON-LD
 - Rewritten: `app/sitemap.ts` — multi-locale sitemap with hreflang alternates for all 5 locales (uk, en, pl, de, ru), products up to 5000, categories, brands, blog posts, CMS pages
 - TypeScript: ✅ No errors
+
+### Checklist
+- [x] GA4 script component (env-gated)
+- [x] Facebook Pixel component (env-gated)
+- [x] Unified event tracking (view_item, add_to_cart, purchase, search, checkout events)
+- [x] JSON-LD: Organization, WebSite, SiteNavigationElement (home page)
+- [x] JSON-LD: Product + BreadcrumbList (product pages)
+- [x] JSON-LD: BlogPosting (blog articles)
+- [x] JSON-LD: FAQPage (FAQ pages)
+- [x] Dynamic sitemap with hreflang alternates (5 locales)
+- [x] `lib/structured-data.ts` helper functions
+- [x] ~~`hreflang` alternate links in `<head>`~~ — REMOVED (тільки українська мова)
+- [ ] JSON-LD: ItemList on category/shop pages
+- [ ] JSON-LD: AggregateOffer for multi-variant products
+- [ ] JSON-LD: Review schema with author + datePublished
+- [ ] JSON-LD: LocalBusiness schema (global)
+- [ ] `robots.ts` file
+- [ ] `generateMetadata()` on category pages (currently generic)
+- [ ] `generateMetadata()` on brand pages (currently missing)
 
 ### 8.1 Google Analytics 4 + Facebook Pixel
 
@@ -1141,9 +1293,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 ---
 
-## Phase 9: Performance & Security — DONE
+## Phase 9: Performance & Security — 65% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🟡 PARTIALLY COMPLETED
 
 ### Implementation Summary
 - Modified: `next.config.ts` — added CSP headers (Stripe, GA, Facebook, fonts), HSTS header
@@ -1152,6 +1304,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 - Created: `app/api/customer/delete/route.ts` — GDPR account deletion (anonymizes personal data, keeps order records for accounting)
 - Modified: `app/(frontend)/layout.tsx` — added CookieConsent to global layout
 - TypeScript: ✅ No errors
+
+### Checklist
+- [x] CSP headers (Stripe, GA, Facebook, fonts)
+- [x] HSTS header (max-age 31536000)
+- [x] X-Frame-Options, X-Content-Type-Options, Referrer-Policy
+- [x] Permissions-Policy (camera/microphone/geolocation disabled)
+- [x] Cookie consent (GDPR) with 3 categories
+- [x] GDPR data export endpoint
+- [x] GDPR account deletion endpoint
+- [x] Rate limiting on auth endpoints
+- [x] Next.js Image component with lazy loading
+- [x] `output: 'standalone'` for containerization
+- [ ] WebP/AVIF image format output via Sharp
+- [ ] `placeholder="blur"` with blurDataURL generation in Payload hook
+- [ ] ISR/revalidation strategy (`revalidate = 300` on product pages)
+- [ ] Redis cache layer for Payload API
+- [ ] Sentry error tracking integration
+- [ ] Privacy policy page (`/privacy`)
+- [ ] CDN setup (Cloudflare / Vercel Image Optimization)
 
 ### 9.1 Image Optimization
 
@@ -1213,14 +1384,28 @@ export const revalidate = 300 // 5 minutes
 
 ---
 
-## Phase 10: Admin & Operations — DONE
+## Phase 10: Admin & Operations — 40% DONE
 
-**Status**: ✅ COMPLETED
+**Status**: 🔴 MINIMALLY COMPLETED
 
 ### Implementation Summary
 - Modified: `collections/Products.ts` — added `afterChange` hook for auto-inventory management (auto-set inStock based on inventory count, low stock warnings at threshold 5)
 - Created: `app/api/admin/export-orders/route.ts` — CSV export of orders (filterable by date range and status), admin-only with Payload auth
 - TypeScript: ✅ No errors
+
+### Checklist
+- [x] Auto-inventory management (inStock based on inventory count)
+- [x] Low stock warnings at threshold 5
+- [x] CSV export orders (filterable by date/status)
+- [ ] Admin dashboard widget: RevenueChart (daily/weekly/monthly)
+- [ ] Admin dashboard widget: OrdersOverview (pending/shipped/delivered)
+- [ ] Admin dashboard widget: TopProducts (best sellers)
+- [ ] Admin dashboard widget: LowStockAlert
+- [ ] Admin dashboard widget: AbandonedCarts stats
+- [ ] PDF packing slip generation (`lib/pdf/packing-slip.ts`)
+- [ ] Bulk product import from CSV/Excel (admin view)
+- [ ] `InventorySettings` global (threshold, out-of-stock behavior, back-in-stock notifications)
+- [ ] Register admin dashboard components in `payload.config.ts`
 
 ### 10.1 Admin Dashboard Widgets
 
@@ -1292,6 +1477,98 @@ Admin receives order →
 | `payload.config.ts` | Modify | Register admin dashboard components |
 | `lib/pdf/packing-slip.ts` | Create | PDF generation for orders |
 | `app/api/admin/export-orders/route.ts` | Create | CSV export endpoint |
+
+---
+
+## Phase 11: Audit Findings & Quality Fixes (NEW)
+
+**Status**: 🟢 96% DONE (27/28 items — only #24 load testing remains as ops task)
+**Impact**: Critical bugs, production stability, SEO completeness, code quality.
+**Source**: Comprehensive audit conducted Feb 2026.
+
+### 11.1 Critical Bugs (P0) — Must Fix Before Launch
+
+| # | Issue | Location | Status |
+|---|-------|----------|--------|
+| 1 | **Cart state not cleared on logout** — next user sees previous customer's cart items in localStorage | `lib/hooks/use-customer.ts` → `useLogout()` | ✅ DONE — Added clearCart, reset, clearCompare, clearHistory + queryClient.clear() |
+| 2 | **Stripe payment flow doesn't clear cart cookie server-side** — relies on frontend calling `clearCartAfterPayment()` | `lib/payload/payment-actions.ts` → `completeStripePayment()` | ✅ DONE — Added `clearCartAfterPayment()` call after marking cart completed |
+| 3 | **No email verification on registration** — spam/abuse risk | `collections/Customers.ts` | ✅ DONE — Added emailVerified/token/expires fields, verification email template, verifyEmail() + resendVerificationEmail() actions, /account/verify-email page, duplicate email check |
+
+### 11.2 SEO & SSR Improvements (P1)
+
+| # | Issue | Location | Status |
+|---|-------|----------|--------|
+| 4 | **Categories page is client-rendered** | `categories/[slug]/page.tsx` | ✅ DONE — Server component + `category-page-client.tsx` wrapper |
+| 5 | **Brands page is client-rendered** | `brands/[slug]/page.tsx` | ✅ DONE — Server component + `brand-page-client.tsx` wrapper |
+| 6 | **Missing `generateMetadata()`** on category pages | `categories/[slug]/page.tsx` | ✅ DONE — Dynamic title, description, OG, Twitter from CMS |
+| 7 | **Missing `generateMetadata()`** on brand pages | `brands/[slug]/page.tsx` | ✅ DONE — Dynamic title, description, OG, Twitter from CMS |
+| 8 | **Missing `generateStaticParams()`** for pre-rendering | All dynamic routes | ✅ DONE — Added to categories/[slug], brands/[slug], products/[handle], blog/[slug] |
+| 9 | **Brands listing page is unnecessary client component** | `brands/page.tsx` | ✅ DONE — Converted to server component with static metadata |
+
+### 11.3 Data & State Management (P1)
+
+| # | Issue | Location | Fix |
+|---|-------|----------|-----|
+| 10 | **Abandoned carts never cleaned up** — database bloat | `app/api/cron/abandoned-carts/route.ts` | ✅ DONE — Added cleanup logic: deletes active/abandoned carts older than 30 days |
+| 11 | **Stripe SDK = null if secret key missing** — runtime crash | `lib/stripe.ts` | ✅ DONE — Replaced null with Proxy that throws descriptive error on any method call |
+| 12 | **Loyalty points never expire** — balance grows indefinitely | `lib/payload/loyalty-service.ts` | ✅ DONE — Added `expireOldPoints()` function (12-month expiry) + integrated into cron |
+| 13 | **No cache invalidation on mutations** — stale product data | `lib/query-client.ts` | ✅ DONE — Reviewed all hooks: wishlist, loyalty, addresses, customer all correctly use `invalidateQueries`. Cart uses Zustand store. No issues found. |
+| 14 | **`setQueryData()` on register instead of invalidating** — inconsistent pattern | `lib/hooks/use-customer.ts:74` | ✅ DONE — Changed `setQueryData` to `invalidateQueries` for consistency |
+
+### 11.4 UI & UX Improvements (P2)
+
+| # | Issue | Location | Fix |
+|---|-------|----------|-----|
+| 15 | **BrandsSection uses `<img>` instead of `<Image>`** — no Next.js optimization | `components/home/brands-section.tsx:50` | ✅ DONE — Replaced with `next/image` `<Image>` component |
+| 16 | **Footer social links are placeholder URLs** — TODO comments | `components/layout/footer.tsx` | ✅ DONE — Removed TODO, URLs already present |
+| 17 | **Touch targets slightly below 44px** on wishlist/compare buttons | `components/products/product-card.tsx` | ✅ DONE — Increased padding from `p-2.5` to `p-3` |
+| 18 | **Filter sidebar missing `aria-expanded`** on collapsible sections | `components/shop/filter-sidebar.tsx` | ✅ DONE — Added `aria-expanded` to filter section toggle buttons |
+| 19 | **No image error boundary** — broken images show nothing | Product gallery, product cards | ✅ DONE — Added `<Image>` with onError fallback in order-summary + URL sanitization |
+| 20 | **Checkout: shipping cost not shown early enough** | `app/(frontend)/checkout/page.tsx` | ✅ DONE — Added shipping cost preview + "до безкоштовної доставки" in order summary |
+
+### 11.5 Testing & Monitoring (P2)
+
+| # | Issue | Location | Fix |
+|---|-------|----------|-----|
+| 21 | **No E2E tests** for checkout flow | Need Playwright tests | ✅ DONE — Improved `e2e/cart-checkout.spec.ts` with data-testid selectors, form validation test, search test |
+| 22 | **No error telemetry/tracking** | Entire project | ✅ DONE — Created `lib/error-reporting.ts` with captureError/captureMessage. Sentry-ready (install @sentry/nextjs + set NEXT_PUBLIC_SENTRY_DSN) |
+| 23 | **No `data-testid` attributes** for testing | All interactive components | ✅ DONE — Added to: product-card, wishlist-button, add-to-cart-button, site-header, search-button, cart-button, search-input, checkout-link, login-form, register-form, checkout-contact/shipping/payment-form |
+| 24 | **No load testing** | Deployment | TODO — Ops task, run before production launch with k6 or Artillery |
+
+### 11.6 Security (P2)
+
+| # | Issue | Location | Fix |
+|---|-------|----------|-----|
+| 25 | **No account lockout after N failed login attempts** — only rate limiting | `lib/payload/auth-actions.ts` | ✅ DONE — Added per-email rate limiting (5 attempts → 30 min lockout) in addition to IP-based |
+| 26 | **No duplicate email check before registration** | `auth-actions.ts` → `registerCustomer()` | ✅ DONE (in #3) — Check if email exists before `payload.create()` |
+| 27 | **`getImageUrl()` has no URL sanitization** | `lib/payload/types.ts:27` | ✅ DONE — Added protocol validation (only /, http://, https://) |
+| 28 | **Phone regex too strict** — may reject valid formats | Zod schemas | ✅ DONE — Relaxed to `^[\d\s+().\-]{7,20}$` |
+
+### 11.7 Implementation Priority
+
+**Immediate (before launch):**
+- [x] #1 — Cart state cleanup on logout ✅
+- [x] #2 — Stripe cart cookie server-side cleanup ✅
+- [x] #3 — Email verification on registration ✅
+- [x] #4-#9 — SSR refactor for categories/brands + metadata ✅
+
+**Short-term (first month after launch):**
+- [x] #10 — Abandoned cart cleanup cron ✅
+- [x] #11 — Stripe null safety ✅
+- [x] #15 — BrandsSection Image optimization ✅
+- [x] #16 — Footer social links ✅
+- [x] #20 — Shipping cost preview in checkout ✅
+- [x] #21 — E2E tests for checkout ✅
+- [x] #22 — Sentry error tracking ✅
+- [x] #25-#26 — Account lockout + duplicate email check ✅
+
+**Medium-term (Q2 2026):**
+- [x] #12 — Loyalty points expiration ✅
+- [x] #13-#14 — Cache invalidation patterns ✅
+- [x] #17-#19 — Touch targets, aria-expanded, image error boundary ✅
+- [x] #23 — Test IDs ✅
+- [ ] #24 — Load testing (ops task)
+- [x] #27-#28 — URL sanitization, phone regex ✅
 
 ---
 
@@ -1422,58 +1699,71 @@ Local machine → Docker (PostgreSQL:5450, Redis:6390) → Next.js dev server :3
 
 ## Implementation Priority & Timeline
 
-### Sprint 1 (Weeks 1-2): Foundation
-- [ ] Payload localization config (i18n fields)
-- [ ] next-intl routing setup
-- [ ] Translation files (uk, en, ru)
-- [ ] Locale switcher component
-- [ ] Move pages under `[locale]` route
+### Sprint 1 (Weeks 1-2): Foundation ✅
+- [x] Payload localization config (i18n fields)
+- [x] next-intl routing setup (cookie-based)
+- [x] Translation files (uk, en, ru, pl, de)
+- [x] Locale switcher component
+- [ ] ~~Move pages under `[locale]` route~~ — Using cookie-based detection instead
 
-### Sprint 2 (Weeks 3-4): Payments
-- [ ] Stripe integration (plugin + adapter)
-- [ ] Payment form (Stripe Elements)
-- [ ] Webhook handler
-- [ ] Checkout flow rewrite
-- [ ] Multi-currency support
+### Sprint 2 (Weeks 3-4): Payments 🟡
+- [x] Stripe integration (custom, not plugin)
+- [x] Payment form (Stripe Elements)
+- [x] Webhook handler
+- [x] Checkout flow rewrite (4 steps)
+- [ ] Multi-currency product prices
+- [ ] Apple Pay / Google Pay
 
-### Sprint 3 (Weeks 5-6): Promotions
-- [ ] Promotions collection
-- [ ] Promo code validation logic
-- [ ] Promo code input in checkout
+### Sprint 3 (Weeks 5-6): Promotions 🟡
+- [x] Promotions collection
+- [x] Promo code validation logic
+- [x] Promo code input in checkout
 - [ ] Automatic discounts engine
 - [ ] Admin promo management UI
 
-### Sprint 4 (Weeks 7-8): Email & Search
-- [ ] Resend integration
-- [ ] Transactional email templates (order, shipping, welcome)
-- [ ] Abandoned cart recovery system
-- [ ] Newsletter subscribers collection
-- [ ] Server-side product search
-- [ ] Search autocomplete component
+### Sprint 4 (Weeks 7-8): Email & Search 🟡
+- [x] Resend integration
+- [x] Transactional email templates (order, shipping, welcome, abandoned cart)
+- [ ] Abandoned cart recovery cron job (scheduled)
+- [x] Newsletter subscribers collection
+- [x] Server-side product search
+- [x] Search autocomplete component
 
-### Sprint 5 (Weeks 9-10): Shipping & UX
-- [ ] ShippingZones collection
-- [ ] Nova Poshta API integration
-- [ ] International shipping support
-- [ ] Country-aware checkout
-- [ ] Photo reviews
-- [ ] Product comparison
+### Sprint 5 (Weeks 9-10): Shipping & UX 🟡
+- [x] ShippingZones configuration
+- [ ] Nova Poshta real API integration
+- [x] International shipping support (25 countries)
+- [x] Country-aware checkout
+- [x] Photo reviews
+- [x] Product comparison
 
-### Sprint 6 (Weeks 11-12): Analytics & Polish
-- [ ] GA4 + Facebook Pixel
-- [ ] Cookie consent (GDPR)
-- [ ] Dynamic sitemap + hreflang
-- [ ] Enhanced structured data
+### Sprint 6 (Weeks 11-12): Analytics & Polish 🟡
+- [x] GA4 + Facebook Pixel
+- [x] Cookie consent (GDPR)
+- [x] Dynamic sitemap + hreflang (sitemap only)
+- [x] Basic structured data (Product, Organization, Blog, FAQ)
 - [ ] Admin dashboard widgets
-- [ ] Performance optimization
-- [ ] Security audit
+- [ ] Performance optimization (ISR, Redis, WebP)
+- [x] Security headers (CSP, HSTS)
 
-### Sprint 7 (Week 13): Launch Preparation
+### Sprint 7 (Week 13): Launch Preparation 🔴
 - [ ] Production deployment setup
 - [ ] Load testing
 - [ ] End-to-end testing (Playwright)
-- [ ] Polish, German translations (pl, de) — Russian (ru) done in Sprint 1
+- [x] Polish, German translations (pl, de)
 - [ ] Final QA pass
+- [x] **NEW:** Fix P0 audit bugs (cart cleanup, Stripe cookie, email verification)
+- [x] **NEW:** SSR refactor for categories/brands + generateMetadata()
+
+### Sprint 8 (NEW — Post-Launch): Quality & Completeness
+- [ ] Sentry error tracking
+- [ ] E2E tests for checkout flow
+- [ ] Loyalty points expiration logic
+- [ ] Missing email templates (review request, price drop, back-in-stock)
+- [ ] Admin dashboard widgets (revenue, orders, stock alerts)
+- [ ] Nova Poshta real API
+- [ ] AutomaticDiscounts collection
+- [ ] ProductBundles / "Complete Your Routine"
 
 ---
 

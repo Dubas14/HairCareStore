@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { CompareButton } from '@/components/compare/compare-button'
 import type { Product } from '@/lib/constants/home-data'
 import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics/events'
+import { formatPrice } from '@/lib/utils/format-price'
 
 interface ProductCardProps {
   product: Product
@@ -91,6 +92,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
     <Link
       href={`/products/${product.slug}`}
       className="group block bg-card rounded-card p-4 shadow-soft card-hover"
+      data-testid="product-card"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -132,7 +134,8 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
           <button
             onClick={handleWishlistClick}
             disabled={toggleWishlist.isPending}
-            className="p-2.5 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
+            className="p-3 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
+            data-testid="wishlist-button"
             aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
           >
             {toggleWishlist.isPending ? (
@@ -194,11 +197,11 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
       {/* Price */}
       <div className="flex items-baseline gap-2 mb-4">
         <span className="text-xl font-bold text-foreground">
-          {product.price} грн
+          {formatPrice(product.price)}
         </span>
         {product.oldPrice && (
           <span className="text-sm text-muted-foreground line-through">
-            {product.oldPrice} грн
+            {formatPrice(product.oldPrice)}
           </span>
         )}
       </div>

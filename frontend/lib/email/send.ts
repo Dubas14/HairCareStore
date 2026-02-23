@@ -1,5 +1,7 @@
 import { Resend } from 'resend'
+import { createLogger } from '@/lib/logger'
 
+const log = createLogger('email')
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'HAIR LAB <noreply@hairlab.store>'
@@ -14,7 +16,7 @@ export interface SendEmailOptions {
 
 export async function sendEmail(options: SendEmailOptions) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[Email] RESEND_API_KEY not set, skipping email:', options.subject)
+    log.warn('RESEND_API_KEY not set, skipping email', options.subject)
     return { success: false, error: 'RESEND_API_KEY not configured' }
   }
 
@@ -29,13 +31,13 @@ export async function sendEmail(options: SendEmailOptions) {
     })
 
     if (error) {
-      console.error('[Email] Send failed:', error)
+      log.error('Send failed', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, id: data?.id }
   } catch (err) {
-    console.error('[Email] Unexpected error:', err)
+    log.error('Unexpected error', err instanceof Error ? err : String(err))
     return { success: false, error: 'Unexpected email error' }
   }
 }

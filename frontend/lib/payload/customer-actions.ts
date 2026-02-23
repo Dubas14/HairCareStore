@@ -21,7 +21,7 @@ export async function updateCustomerProfile(id: number | string, data: { firstNa
 export async function addCustomerAddress(customerId: number | string, address: CustomerAddress): Promise<PayloadCustomer> {
   const payload = await getPayload({ config })
   const customer = await payload.findByID({ collection: 'customers', id: customerId })
-  const addresses = [...((customer as any).addresses || []), address]
+  const addresses = [...((customer as unknown as PayloadCustomer).addresses || []), address]
   const updated = await payload.update({ collection: 'customers', id: customerId, data: { addresses } })
   return updated as unknown as PayloadCustomer
 }
@@ -29,7 +29,7 @@ export async function addCustomerAddress(customerId: number | string, address: C
 export async function updateCustomerAddress(customerId: number | string, addressIndex: number, address: Partial<CustomerAddress>): Promise<PayloadCustomer> {
   const payload = await getPayload({ config })
   const customer = await payload.findByID({ collection: 'customers', id: customerId })
-  const addresses = [...((customer as any).addresses || [])]
+  const addresses = [...((customer as unknown as PayloadCustomer).addresses || [])]
   if (addresses[addressIndex]) addresses[addressIndex] = { ...addresses[addressIndex], ...address }
   const updated = await payload.update({ collection: 'customers', id: customerId, data: { addresses } })
   return updated as unknown as PayloadCustomer
@@ -38,7 +38,7 @@ export async function updateCustomerAddress(customerId: number | string, address
 export async function deleteCustomerAddress(customerId: number | string, addressIndex: number): Promise<PayloadCustomer> {
   const payload = await getPayload({ config })
   const customer = await payload.findByID({ collection: 'customers', id: customerId })
-  const addresses = [...((customer as any).addresses || [])]
+  const addresses = [...((customer as unknown as PayloadCustomer).addresses || [])]
   addresses.splice(addressIndex, 1)
   const updated = await payload.update({ collection: 'customers', id: customerId, data: { addresses } })
   return updated as unknown as PayloadCustomer
@@ -47,7 +47,7 @@ export async function deleteCustomerAddress(customerId: number | string, address
 export async function setDefaultAddress(customerId: number | string, addressIndex: number): Promise<PayloadCustomer> {
   const payload = await getPayload({ config })
   const customer = await payload.findByID({ collection: 'customers', id: customerId })
-  const addresses = ((customer as any).addresses || []).map((addr: any, i: number) => ({ ...addr, isDefaultShipping: i === addressIndex }))
+  const addresses = ((customer as unknown as PayloadCustomer).addresses || []).map((addr: CustomerAddress, i: number) => ({ ...addr, isDefaultShipping: i === addressIndex }))
   const updated = await payload.update({ collection: 'customers', id: customerId, data: { addresses } })
   return updated as unknown as PayloadCustomer
 }

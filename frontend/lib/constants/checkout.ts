@@ -1,0 +1,2 @@
+export const FREE_SHIPPING_THRESHOLD = 1000
+export const MAX_ITEM_QUANTITY = 10

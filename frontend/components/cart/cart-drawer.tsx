@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { useCartContext } from '@/components/providers/cart-provider'
 import { cn } from '@/lib/utils'
-
-const FREE_SHIPPING_THRESHOLD = 1000 // UAH
+import { FREE_SHIPPING_THRESHOLD } from '@/lib/constants/checkout'
 
 interface CartItemCardProps {
   item: {
@@ -320,7 +319,7 @@ export function CartDrawer() {
               </div>
 
               {/* Actions */}
-              <Link href="/checkout" onClick={closeCart} className="block">
+              <Link href="/checkout" onClick={closeCart} className="block" data-testid="checkout-link">
                 <BorderGradientButton variant="teal" size="lg" className="w-full">
                   Оформити замовлення
                   <ArrowRight className="w-4 h-4" />

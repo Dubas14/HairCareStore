@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { useLoyaltyStore } from '@/stores/loyalty-store'
 import { getLoyaltySummary, getLoyaltyTransactions, applyReferralCode, calculateLoyaltyForCheckout } from '@/lib/payload/loyalty-actions'
-import type { LoyaltySummary, LoyaltyTransaction } from '@/stores/loyalty-store'
+import type { LoyaltySummary, LoyaltyTransaction, LoyaltyCalculation } from '@/stores/loyalty-store'
 import { useEffect } from 'react'
 
 export type { LoyaltySummary, LoyaltyTransaction }
@@ -46,7 +46,7 @@ export function useLoyaltyTransactions(limit = 20, offset = 0) {
 
   useEffect(() => {
     if (!shouldFetch) { setTransactions([], 0); return }
-    if (query.data) setTransactions(query.data.transactions as any[], query.data.count)
+    if (query.data) setTransactions(query.data.transactions as LoyaltyTransaction[], query.data.count)
   }, [query.data, shouldFetch, setTransactions])
 
   return { transactions, count: transactionsCount, isLoading: query.isLoading, error: query.error, refetch: query.refetch }
@@ -61,7 +61,7 @@ export function useApplyReferralCode() {
       if (!customer) throw new Error('Not authenticated')
       return applyReferralCode(customer.id, referralCode)
     },
-    onSuccess: (data) => { if (data) setSummary(data as any); queryClient.invalidateQueries({ queryKey: ['loyalty'] }) },
+    onSuccess: (data) => { if (data) setSummary(data as LoyaltySummary | null); queryClient.invalidateQueries({ queryKey: ['loyalty'] }) },
     onError: (error) => { setError(error instanceof Error ? error.message : 'Помилка') },
   })
 }
@@ -72,7 +72,7 @@ export function useCalculateLoyaltyPoints() {
     mutationFn: async (data: { orderTotal: number; pointsToSpend?: number; currentBalance: number; level: string }) => {
       return calculateLoyaltyForCheckout(data.orderTotal, data.currentBalance, data.level, data.pointsToSpend)
     },
-    onSuccess: (data) => { setCalculation(data as any) },
+    onSuccess: (data) => { setCalculation(data as LoyaltyCalculation) },
   })
 }
 

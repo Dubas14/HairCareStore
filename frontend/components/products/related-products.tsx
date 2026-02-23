@@ -2,6 +2,7 @@
 
 import { useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { ProductCard } from './product-card'
 import { Button } from '@/components/ui/button'
 import type { Product } from '@/lib/constants/home-data'
@@ -15,10 +16,12 @@ interface RelatedProductsProps {
 
 export function RelatedProducts({
   products,
-  title = 'Доповніть свій догляд',
+  title,
   className,
 }: RelatedProductsProps) {
+  const t = useTranslations('product')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const heading = title ?? t('complementCare')
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return
@@ -35,7 +38,7 @@ export function RelatedProducts({
   return (
     <section className={cn("py-8", className)}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <h2 className="text-xl font-semibold">{heading}</h2>
 
         <div className="flex gap-2">
           <Button

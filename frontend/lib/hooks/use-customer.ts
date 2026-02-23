@@ -2,6 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
+import type { Customer } from '@/stores/auth-store'
+import { useCartStore } from '@/stores/cart-store'
+import { useLoyaltyStore } from '@/stores/loyalty-store'
+import { useCompareStore } from '@/stores/compare-store'
+import { useRecentlyViewedStore } from '@/stores/recently-viewed-store'
 import { useEffect } from 'react'
 import { updateCustomerProfile } from '@/lib/payload/customer-actions'
 import {
@@ -20,7 +25,7 @@ export function useCustomer() {
     queryFn: async () => {
       try {
         const data = await getCurrentCustomer()
-        return data as any
+        return data as Customer | null
       } catch {
         return null
       }
@@ -48,7 +53,7 @@ export function useLogin() {
       return loginCustomer(data.email, data.password)
     },
     onSuccess: async (customer) => {
-      setCustomer(customer as any)
+      setCustomer(customer as unknown as Customer | null)
       queryClient.invalidateQueries({ queryKey: ['customer'] })
       // Link the active cart to this customer
       if (customer?.id) {
@@ -69,8 +74,8 @@ export function useRegister() {
       return registerCustomer(data)
     },
     onSuccess: async (customer) => {
-      setCustomer(customer as any)
-      queryClient.setQueryData(['customer'], customer)
+      setCustomer(customer as unknown as Customer | null)
+      queryClient.invalidateQueries({ queryKey: ['customer'] })
       // Link the active cart to this customer
       if (customer?.id) {
         try {
@@ -91,8 +96,16 @@ export function useLogout() {
     },
     onSuccess: () => {
       logout()
+
+      // Clear all user-specific stores to prevent data leaking to next user
+      useCartStore.getState().clearCart()
+      useLoyaltyStore.getState().reset()
+      useCompareStore.getState().clearCompare()
+      useRecentlyViewedStore.getState().clearHistory()
+
       queryClient.invalidateQueries({ queryKey: ['customer'] })
       queryClient.removeQueries({ queryKey: ['customer'] })
+      queryClient.clear()
     },
   })
 }
@@ -107,7 +120,7 @@ export function useUpdateCustomer() {
       return updateCustomerProfile(customer.id, data)
     },
     onSuccess: (updated) => {
-      setCustomer(updated as any)
+      setCustomer(updated as unknown as Customer | null)
       queryClient.invalidateQueries({ queryKey: ['customer'] })
     },
   })

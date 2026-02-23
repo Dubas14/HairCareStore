@@ -1,11 +1,16 @@
 import { notFound } from 'next/navigation'
-import { getBlogPostBySlug } from '@/lib/payload/client'
+import { getBlogPostBySlug, getBlogPosts } from '@/lib/payload/client'
 import { BlogArticle } from '@/components/blog/blog-article'
 import { buildBlogPostingJsonLd } from '@/lib/structured-data'
 import { getImageUrl } from '@/lib/payload/types'
 
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+export async function generateStaticParams() {
+  const { posts } = await getBlogPosts({ limit: 50 })
+  return posts.map((post) => ({ slug: post.slug }))
 }
 
 export async function generateMetadata({ params }: Props) {

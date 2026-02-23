@@ -20,6 +20,7 @@ import type {
   Transaction,
   CustomerData,
 } from '@/components/payload/loyalty/types'
+import type { LoyaltyRecord } from '@/lib/payload/types'
 
 async function requireAdmin(): Promise<void> {
   const payload = await getPayload({ config })
@@ -27,7 +28,7 @@ async function requireAdmin(): Promise<void> {
   const cookieHeader = headersList.get('cookie') || ''
   try {
     const { user } = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
-    if (!user || (user as any).collection !== 'users') {
+    if (!user || (user as unknown as { collection?: string }).collection !== 'users') {
       throw new Error('Unauthorized: admin access required')
     }
   } catch {
@@ -49,7 +50,7 @@ export async function getLoyaltySettings(): Promise<{ settings: LoyaltySettings 
 export async function updateLoyaltySettings(data: Partial<LoyaltySettings>): Promise<{ settings: LoyaltySettings; message: string }> {
   await requireAdmin()
   const payload = await getPayload({ config })
-  const updated = await payload.updateGlobal({ slug: 'loyalty-settings', data: data as any })
+  const updated = await payload.updateGlobal({ slug: 'loyalty-settings', data: data as Record<string, unknown> })
   return { settings: updated as unknown as LoyaltySettings, message: 'Settings updated' }
 }
 
@@ -71,7 +72,7 @@ export async function getLoyaltyCustomerDetail(id: string): Promise<{ loyalty: L
 export async function toggleCustomerLoyalty(id: string, isEnabled: boolean): Promise<{ loyalty: LoyaltySummary; message: string }> {
   await requireAdmin()
   const payload = await getPayload({ config })
-  const record = await getOrCreateLoyaltyRecord(id) as any
+  const record = await getOrCreateLoyaltyRecord(id) as unknown as LoyaltyRecord
   await payload.update({ collection: 'loyalty-points', id: record.id, data: { isEnabled } })
   const updated = await getCustomerLoyaltySummary(id)
   return { loyalty: updated as unknown as LoyaltySummary, message: isEnabled ? 'Enabled' : 'Disabled' }

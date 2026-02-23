@@ -4,6 +4,7 @@ import { ProductCard } from '@/components/products/product-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import type { Product } from '@/lib/constants/home-data'
+import { Search } from 'lucide-react'
 
 interface ProductGridProps {
   products: Product[]
@@ -56,7 +57,9 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="text-6xl mb-4">🔍</div>
+        <div className="flex justify-center mb-4">
+          <Search className="w-16 h-16 text-muted-foreground" aria-hidden="true" />
+        </div>
         <h3 className="text-xl font-semibold mb-2">Товари не знайдено</h3>
         <p className="text-muted-foreground">
           Спробуйте змінити параметри фільтрації або пошуку

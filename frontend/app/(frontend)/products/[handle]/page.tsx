@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getProductByHandle, getProductRating } from '@/lib/payload/client'
+import { getProductByHandle, getProductRating, getProducts } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'
 import ProductPageContent from './ProductPageContent'
 
@@ -7,6 +7,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
 
 interface Props {
   params: Promise<{ handle: string }>
+}
+
+export async function generateStaticParams() {
+  const { products } = await getProducts({ limit: 100 })
+  return products.map((p) => ({ handle: p.handle }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

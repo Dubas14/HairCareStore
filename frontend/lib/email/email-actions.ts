@@ -5,6 +5,7 @@ import { OrderConfirmation } from './templates/order-confirmation'
 import { Welcome } from './templates/welcome'
 import { ShippingNotification } from './templates/shipping-notification'
 import { AbandonedCart } from './templates/abandoned-cart'
+import { EmailVerification } from './templates/email-verification'
 import { getImageUrl } from '@/lib/payload/types'
 import type { PayloadProduct, CartItem } from '@/lib/payload/types'
 
@@ -138,5 +139,19 @@ export async function sendAbandonedCartEmail(data: AbandonedCartEmailData) {
       promoDiscount: data.promoDiscount,
     }),
     tags: [{ name: 'type', value: 'abandoned-cart' }],
+  })
+}
+
+// ─── Email Verification ──────────────────────────────────────
+
+export async function sendVerificationEmail(email: string, customerName: string, verificationToken: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hairlab.store'
+  const verificationUrl = `${baseUrl}/account/verify-email?token=${verificationToken}`
+
+  return sendEmail({
+    to: email,
+    subject: 'Підтвердіть вашу email-адресу — HAIR LAB',
+    react: EmailVerification({ customerName, verificationUrl }),
+    tags: [{ name: 'type', value: 'email-verification' }],
   })
 }

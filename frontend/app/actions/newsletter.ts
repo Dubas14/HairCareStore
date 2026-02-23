@@ -48,7 +48,7 @@ export async function subscribeToNewsletter(formData: FormData) {
     })
 
     if (existing.docs.length > 0) {
-      const sub = existing.docs[0] as any
+      const sub = existing.docs[0] as unknown as { id: string | number; status?: string }
       if (sub.status === 'unsubscribed') {
         // Re-subscribe
         await payload.update({

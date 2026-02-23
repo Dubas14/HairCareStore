@@ -2,6 +2,12 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import type {
+  ShippingConfig,
+  ShippingZone as PayloadShippingZone,
+  ShippingMethod as PayloadShippingMethod,
+  PayloadOrder,
+} from './types'
 
 export interface ShippingMethod {
   methodId: string
@@ -29,7 +35,7 @@ export async function getShippingMethodsByCountry(
   try {
     const payload = await getPayload({ config })
     const shippingConfig = await payload.findGlobal({ slug: 'shipping-config' })
-    const zones = (shippingConfig as any).zones || []
+    const zones = (shippingConfig as unknown as ShippingConfig).zones || []
 
     // Find zones that include this country
     for (const zone of zones) {
@@ -37,8 +43,8 @@ export async function getShippingMethodsByCountry(
       const countries: string[] = zone.countries || []
       if (countries.includes(countryCode)) {
         const methods = (zone.methods || [])
-          .filter((m: any) => m.isActive)
-          .map((m: any) => ({
+          .filter((m: PayloadShippingMethod) => m.isActive)
+          .map((m: PayloadShippingMethod) => ({
             methodId: m.methodId,
             name: m.name,
             carrier: m.carrier,
@@ -52,10 +58,10 @@ export async function getShippingMethodsByCountry(
     }
 
     // Fallback to legacy methods
-    const legacyMethods = (shippingConfig as any).methods || []
+    const legacyMethods = (shippingConfig as unknown as ShippingConfig).methods || []
     return legacyMethods
-      .filter((m: any) => m.isActive)
-      .map((m: any) => ({
+      .filter((m: PayloadShippingMethod) => m.isActive)
+      .map((m: PayloadShippingMethod) => ({
         methodId: m.methodId,
         name: m.name,
         price: m.price,
@@ -74,16 +80,16 @@ export async function getShippingZones(): Promise<ShippingZone[]> {
   try {
     const payload = await getPayload({ config })
     const shippingConfig = await payload.findGlobal({ slug: 'shipping-config' })
-    const zones = (shippingConfig as any).zones || []
+    const zones = (shippingConfig as unknown as ShippingConfig).zones || []
 
     return zones
-      .filter((z: any) => z.isActive)
-      .map((z: any) => ({
+      .filter((z: PayloadShippingZone) => z.isActive)
+      .map((z: PayloadShippingZone) => ({
         name: z.name,
         countries: z.countries || [],
         methods: (z.methods || [])
-          .filter((m: any) => m.isActive)
-          .map((m: any) => ({
+          .filter((m: PayloadShippingMethod) => m.isActive)
+          .map((m: PayloadShippingMethod) => ({
             methodId: m.methodId,
             name: m.name,
             carrier: m.carrier,
@@ -130,7 +136,7 @@ export async function trackOrder(orderNumber: number, email: string): Promise<{
 
     if (result.docs.length === 0) return { found: false }
 
-    const order = result.docs[0] as any
+    const order = result.docs[0] as unknown as PayloadOrder
     return {
       found: true,
       order: {

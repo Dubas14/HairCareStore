@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Star, User, Send, CheckCircle, LogIn, Camera, X, BadgeCheck, ImageIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { Review } from '@/lib/payload/types'
 import { getImageUrl } from '@/lib/payload/types'
 import { submitReview } from '@/lib/payload/actions'
@@ -339,6 +340,7 @@ function ReviewCard({ review }: { review: Review }) {
 type ReviewFilter = 'all' | 'with_photos' | 'verified' | '5' | '4' | '3' | '2' | '1'
 
 export function ProductReviews({ reviews, productId }: ProductReviewsProps) {
+  const t = useTranslations('product')
   const { isAuthenticated } = useAuthStore()
   const [showAll, setShowAll] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -362,7 +364,7 @@ export function ProductReviews({ reviews, productId }: ProductReviewsProps) {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-1">
-            Відгуки
+            {t('reviews')}
           </h2>
           {reviews.length > 0 && (
             <div className="flex items-center gap-3 text-sm text-muted-foreground">

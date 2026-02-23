@@ -128,7 +128,7 @@ export function PaymentForm({
   const processing = isProcessing || externalProcessing
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="checkout-payment-form">
       <h2 className="text-xl font-semibold">Спосіб оплати</h2>
 
       {/* Payment Methods */}

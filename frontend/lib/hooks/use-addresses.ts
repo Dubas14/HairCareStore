@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
+import type { Customer } from '@/stores/auth-store'
 import { addCustomerAddress, updateCustomerAddress, deleteCustomerAddress, setDefaultAddress } from '@/lib/payload/customer-actions'
 import type { CustomerAddress, PayloadCustomer } from '@/lib/payload/types'
 
@@ -12,8 +13,8 @@ export type AddressInput = CustomerAddress
 
 export function useAddresses() {
   const { customer, isAuthenticated } = useAuthStore()
-  const addresses = (customer as any)?.addresses || []
-  const defaultAddress = addresses.find((a: any) => a.isDefaultShipping) || addresses[0] || null
+  const addresses = customer?.addresses || []
+  const defaultAddress = addresses.find((a: CustomerAddress) => a.isDefaultShipping) || addresses[0] || null
   return { addresses, defaultAddress, isLoading: false, refetch: () => {} }
 }
 
@@ -25,7 +26,7 @@ export function useAddAddress() {
       if (!customer) throw new Error('Not authenticated')
       return addCustomerAddress(customer.id, data)
     },
-    onSuccess: (updated) => { setCustomer(updated as any); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
+    onSuccess: (updated) => { setCustomer(updated as unknown as Customer | null); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
   })
 }
 
@@ -37,7 +38,7 @@ export function useUpdateAddress() {
       if (!customer) throw new Error('Not authenticated')
       return updateCustomerAddress(customer.id, index, data)
     },
-    onSuccess: (updated) => { setCustomer(updated as any); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
+    onSuccess: (updated) => { setCustomer(updated as unknown as Customer | null); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
   })
 }
 
@@ -49,7 +50,7 @@ export function useDeleteAddress() {
       if (!customer) throw new Error('Not authenticated')
       return deleteCustomerAddress(customer.id, index)
     },
-    onSuccess: (updated) => { setCustomer(updated as any); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
+    onSuccess: (updated) => { setCustomer(updated as unknown as Customer | null); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
   })
 }
 
@@ -61,6 +62,6 @@ export function useSetDefaultAddress() {
       if (!customer) throw new Error('Not authenticated')
       return setDefaultAddress(customer.id, index)
     },
-    onSuccess: (updated) => { setCustomer(updated as any); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
+    onSuccess: (updated) => { setCustomer(updated as unknown as Customer | null); queryClient.invalidateQueries({ queryKey: ['customer'] }) },
   })
 }

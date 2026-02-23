@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import type { PayloadCart } from '@/lib/payload/types'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('cron:abandoned-carts')
 
 const CRON_SECRET = process.env.CRON_SECRET
 
@@ -46,21 +50,22 @@ export async function GET(request: NextRequest) {
       })
 
       for (const cart of result.docs) {
-        const items = (cart as any).items || []
+        const typedCart = cart as unknown as PayloadCart
+        const items = typedCart.items || []
         if (items.length === 0) continue
 
         try {
           const { sendAbandonedCartEmail } = await import('@/lib/email/email-actions')
-          const shippingAddr = (cart as any).shippingAddress
+          const shippingAddr = typedCart.shippingAddress
 
           await sendAbandonedCartEmail({
-            email: (cart as any).email,
+            email: typedCart.email || '',
             customerName: shippingAddr?.firstName || '',
             items,
-            total: (cart as any).total || 0,
-            currency: (cart as any).currency || 'UAH',
-            promoCode: (cart as any).promoCode || undefined,
-            promoDiscount: (cart as any).promoDiscount || undefined,
+            total: typedCart.total || 0,
+            currency: typedCart.currency || 'UAH',
+            promoCode: typedCart.promoCode || undefined,
+            promoDiscount: typedCart.promoDiscount || undefined,
           })
 
           // Update counter
@@ -72,18 +77,58 @@ export async function GET(request: NextRequest) {
 
           totalSent++
         } catch (err) {
-          console.error(`[Abandoned Cart] Failed to send email for cart ${cart.id}:`, err)
+          log.error(`Failed to send email for cart ${cart.id}`, err instanceof Error ? err : String(err))
         }
       }
+    }
+
+    // Expire old loyalty points (older than 12 months)
+    let pointsExpired = 0
+    try {
+      const { expireOldPoints } = await import('@/lib/payload/loyalty-service')
+      pointsExpired = await expireOldPoints()
+      if (pointsExpired > 0) {
+        log.info(`Expired ${pointsExpired} loyalty points`)
+      }
+    } catch (err) {
+      log.error('Loyalty expiration failed', err instanceof Error ? err : String(err))
+    }
+
+    // Cleanup: delete abandoned/active carts older than 30 days
+    let deletedCount = 0
+    const cleanupCutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    try {
+      const staleCarts = await payload.find({
+        collection: 'carts',
+        where: {
+          and: [
+            { status: { in: ['active', 'abandoned'] } },
+            { updatedAt: { less_than: cleanupCutoff.toISOString() } },
+          ],
+        },
+        limit: 100,
+        depth: 0,
+      })
+      for (const cart of staleCarts.docs) {
+        await payload.delete({ collection: 'carts', id: cart.id })
+        deletedCount++
+      }
+      if (deletedCount > 0) {
+        log.info(`Cleaned up ${deletedCount} stale carts`)
+      }
+    } catch (err) {
+      log.error('Cart cleanup failed', err instanceof Error ? err : String(err))
     }
 
     return NextResponse.json({
       success: true,
       emailsSent: totalSent,
+      cartsDeleted: deletedCount,
+      loyaltyPointsExpired: pointsExpired,
       timestamp: now.toISOString(),
     })
   } catch (error) {
-    console.error('[Abandoned Cart Cron] Error:', error)
+    log.error('Cron job error', error instanceof Error ? error : String(error))
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

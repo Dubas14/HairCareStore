@@ -97,15 +97,15 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
             ))}
           </div>
         </div>
-        <button onClick={scrollPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Previous">
+        <button onClick={scrollPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Попередній слайд">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <button onClick={scrollNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Next">
+        <button onClick={scrollNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Наступний слайд">
           <ChevronRight className="w-6 h-6" />
         </button>
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
           {heroSlides.map((_, index) => (
-            <button key={index} onClick={() => emblaApi?.scrollTo(index)} className={`w-2 h-2 rounded-full transition-all ${selectedIndex === index ? 'bg-white w-6' : 'bg-white/50'}`} aria-label={`Slide ${index + 1}`} />
+            <button key={index} onClick={() => emblaApi?.scrollTo(index)} className={`w-2 h-2 rounded-full transition-all ${selectedIndex === index ? 'bg-white w-6' : 'bg-white/50'}`} aria-label={`Слайд ${index + 1}`} />
           ))}
         </div>
       </section>
@@ -169,15 +169,15 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
           })}
         </div>
       </div>
-      <button onClick={scrollPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Previous">
+      <button onClick={scrollPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Попередній слайд">
         <ChevronLeft className="w-6 h-6" />
       </button>
-      <button onClick={scrollNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Next">
+      <button onClick={scrollNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all" aria-label="Наступний слайд">
         <ChevronRight className="w-6 h-6" />
       </button>
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
         {banners.map((_, index) => (
-          <button key={index} onClick={() => emblaApi?.scrollTo(index)} className={`w-2 h-2 rounded-full transition-all ${selectedIndex === index ? 'bg-white w-6' : 'bg-white/50'}`} aria-label={`Slide ${index + 1}`} />
+          <button key={index} onClick={() => emblaApi?.scrollTo(index)} className={`w-2 h-2 rounded-full transition-all ${selectedIndex === index ? 'bg-white w-6' : 'bg-white/50'}`} aria-label={`Слайд ${index + 1}`} />
         ))}
       </div>
     </section>

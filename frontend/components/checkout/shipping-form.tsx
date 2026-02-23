@@ -124,7 +124,7 @@ export function ShippingForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" data-testid="checkout-shipping-form">
       <h2 className="text-xl font-semibold">Спосіб доставки</h2>
 
       {/* Saved addresses selector */}

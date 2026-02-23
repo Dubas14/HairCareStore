@@ -1,13 +1,30 @@
 import Stripe from 'stripe'
+import { createLogger } from '@/lib/logger'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn('STRIPE_SECRET_KEY is not set — Stripe payments will not work')
+const log = createLogger('stripe')
+
+function createStripeClient(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    // Return a proxy that throws a descriptive error on any method call
+    // instead of silently returning null and causing cryptic TypeErrors
+    return new Proxy({} as Stripe, {
+      get(_, prop) {
+        if (prop === 'then' || prop === Symbol.toPrimitive || prop === Symbol.toStringTag) return undefined
+        throw new Error(
+          `STRIPE_SECRET_KEY is not set. Cannot use Stripe.${String(prop)}. ` +
+          'Set STRIPE_SECRET_KEY in your environment variables to enable payments.'
+        )
+      },
+    })
+  }
+  return new Stripe(key, {
+    apiVersion: '2026-01-28.clover',
+    typescript: true,
+  })
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2026-01-28.clover',
-  typescript: true,
-})
+export const stripe = createStripeClient()
 
 /**
  * Supported currencies with their display info

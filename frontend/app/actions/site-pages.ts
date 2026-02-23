@@ -18,7 +18,7 @@ export async function updateSitePageSettings(
   const payload = await getPayload({ config })
   const updated = await payload.updateGlobal({
     slug: 'site-settings',
-    data: data as any,
+    data: data as Record<string, unknown>,
   })
   return {
     settings: updated as unknown as SiteSettingsData,

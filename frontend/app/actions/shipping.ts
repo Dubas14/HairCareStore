@@ -28,7 +28,7 @@ export async function updateShippingConfig(
   const payload = await getPayload({ config })
   const updated = await payload.updateGlobal({
     slug: 'shipping-config',
-    data: data as any,
+    data: data as unknown as Record<string, unknown>,
   })
   return {
     config: updated as unknown as ShippingConfigData,

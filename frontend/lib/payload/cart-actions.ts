@@ -187,7 +187,7 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
   const shippingTotal = cart.shippingTotal || 0
   const discountTotal = cart.discountTotal || 0
   const loyaltyDiscount = cart.loyaltyDiscount || 0
-  const recalculatedTotal = recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount
+  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount)
 
   const order = await payload.create({
     collection: 'orders',

@@ -5,6 +5,7 @@ import { Heart, Minus, Plus, Check, Truck, Shield, RotateCcw } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { cn } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils/format-price'
 
 interface Variant {
   id: string
@@ -135,7 +136,7 @@ export function BuyBox({
               >
                 <span className="block">{variant.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {variant.price} ₴
+                  {formatPrice(variant.price)}
                 </span>
               </button>
             ))}
@@ -146,12 +147,12 @@ export function BuyBox({
       {/* Price */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-bold text-foreground">
-          {selectedVariant.price} ₴
+          {formatPrice(selectedVariant.price)}
         </span>
         {selectedVariant.oldPrice && (
           <>
             <span className="text-lg text-muted-foreground line-through">
-              {selectedVariant.oldPrice} ₴
+              {formatPrice(selectedVariant.oldPrice)}
             </span>
             <span className="px-2 py-0.5 bg-sale text-sale-foreground text-sm font-semibold rounded">
               -{discount}%
