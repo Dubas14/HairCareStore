@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import Image from 'next/image'
 import { LoyaltyPointsSection } from './loyalty-points-section'
-
-const FREE_SHIPPING_THRESHOLD = 1000
+import { FREE_SHIPPING_THRESHOLD } from '@/lib/constants/checkout'
 
 function getImageUrl(url: string | null | undefined): string {
   if (!url) return '/placeholder-product.jpg'
-  return url
+  const trimmed = url.trim()
+  if (trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed
+  }
+  return '/placeholder-product.jpg'
 }
 
 interface CartLike {
@@ -39,10 +43,13 @@ function OrderItem({ item }: { item: CartLike['items'][number] }) {
   return (
     <div className="flex gap-3 py-3">
       <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
-        <img
+        <Image
           src={imageUrl}
           alt={productName}
+          width={64}
+          height={64}
           className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-product.jpg' }}
         />
         <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
           {item.quantity}
@@ -101,10 +108,15 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
               ? 'Безкоштовно'
               : shippingTotal > 0
               ? `${Math.round(shippingTotal)} ₴`
-              : 'За тарифами НП'}
+              : `від 70 ₴ (безкоштовно від ${FREE_SHIPPING_THRESHOLD} ₴)`}
           </span>
         </div>
-        {cart?.discountTotal && cart.discountTotal > 0 && (
+        {!isFreeShipping && subtotal > 0 && (
+          <div className="text-xs text-muted-foreground">
+            До безкоштовної доставки: {Math.round(FREE_SHIPPING_THRESHOLD - subtotal)} ₴
+          </div>
+        )}
+        {cart != null && cart.discountTotal > 0 && (
           <div className="flex justify-between text-sm text-success">
             <span>Знижка</span>
             <span>-{Math.round(cart.discountTotal)} ₴</span>
