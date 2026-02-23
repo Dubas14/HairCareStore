@@ -114,6 +114,54 @@ export function StyledCheckbox({ label, checked, onChange }: CheckboxProps) {
   )
 }
 
+// ─── Datetime Field ──────────────────────────────────────────────────────────
+
+interface DatetimeProps {
+  label: string
+  value: string
+  onChange: (val: string) => void
+  required?: boolean
+  disabled?: boolean
+}
+
+export function StyledDatetime({ label, value, onChange, required, disabled }: DatetimeProps) {
+  // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:MM)
+  const toLocalValue = (iso: string) => {
+    if (!iso) return ''
+    try {
+      const d = new Date(iso)
+      if (isNaN(d.getTime())) return iso
+      const pad = (n: number) => String(n).padStart(2, '0')
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    } catch {
+      return iso
+    }
+  }
+
+  // Convert datetime-local value back to ISO string
+  const fromLocalValue = (local: string) => {
+    if (!local) return ''
+    try {
+      return new Date(local).toISOString()
+    } catch {
+      return local
+    }
+  }
+
+  return (
+    <Field label={label} required={required}>
+      <input
+        className="hl-field__input"
+        type="datetime-local"
+        value={toLocalValue(value)}
+        onChange={(e) => onChange(fromLocalValue(e.target.value))}
+        disabled={disabled}
+        style={disabled ? { background: 'var(--color-base-50)', color: 'var(--color-base-400)' } : undefined}
+      />
+    </Field>
+  )
+}
+
 interface FieldGroupProps {
   title?: string
   children: React.ReactNode

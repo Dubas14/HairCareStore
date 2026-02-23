@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteCollectionDoc, getCollectionFieldDefaults } from '@/app/actions/admin-views'
 import type { FieldSchema } from '@/app/actions/admin-views'
-import { StyledInput, StyledTextarea, StyledCheckbox, StyledSelect, StyledUpload, FieldGroup, FieldRow } from './CustomFields'
+import { StyledInput, StyledTextarea, StyledCheckbox, StyledSelect, StyledUpload, StyledDatetime, FieldGroup, FieldRow } from './CustomFields'
 import { SidebarMeta, QuickActions } from './SidebarMeta'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -151,8 +151,10 @@ function renderField(
           )
         }
         return null
+      case 'date':
+        return <StyledDatetime key={key} label={label} value={String(value ?? '')} onChange={ro ? () => {} : (v) => onChange(key, v)} required={fieldMeta.required} disabled={ro} />
       default:
-        // text, email, date, code, etc.
+        // text, email, code, etc.
         return <StyledInput key={key} label={label} value={String(value ?? '')} onChange={ro ? () => {} : (v) => onChange(key, v)} required={fieldMeta.required} disabled={ro} />
     }
   }
