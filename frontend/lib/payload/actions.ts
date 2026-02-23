@@ -24,12 +24,13 @@ import {
   getProductsByBrand as _getProductsByBrand,
   getReviewsByProduct as _getReviewsByProduct,
   getProductRating as _getProductRating,
+  getFilterFacets as _getFilterFacets,
   getBlogPosts as _getBlogPosts,
   getBlogPostBySlug as _getBlogPostBySlug,
   getSiteSettings as _getSiteSettings,
 } from './client'
 
-import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost } from './client'
+import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost, FilterFacets } from './client'
 import type { PayloadProduct } from './types'
 import type { SiteSettingsData } from './client'
 
@@ -123,6 +124,15 @@ export async function getReviewsByProduct(productId: number | string): Promise<R
 
 export async function getProductRating(productId: number | string): Promise<{ average: number; count: number }> {
   return _getProductRating(productId)
+}
+
+export async function getFilterFacets(options?: {
+  categoryIds?: (string | number)[]
+  brandIds?: (string | number)[]
+  search?: string
+}): Promise<FilterFacets> {
+  const locale = await getLocale()
+  return _getFilterFacets({ ...options, locale })
 }
 
 export async function getBlogPosts(options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; count: number }> {

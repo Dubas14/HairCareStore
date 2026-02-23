@@ -420,8 +420,8 @@ export async function getProducts(options: {
       case 'price_asc': sort = 'variants.price'; break
       case 'price_desc': sort = '-variants.price'; break
       case 'newest': sort = '-createdAt'; break
-      case 'popular': sort = '-createdAt'; break // TODO: add popularity/sales field
-      case 'rating': sort = '-createdAt'; break // TODO: add rating field
+      case 'popular': sort = '-salesCount'; break
+      case 'rating': sort = '-averageRating'; break
     }
 
     const limit = options.limit || 24
@@ -445,6 +445,118 @@ export async function getProducts(options: {
   } catch (error) {
     log.error('Error fetching products', error)
     return { products: [], count: 0, totalPages: 0, currentPage: 1, hasNextPage: false }
+  }
+}
+
+export interface FilterFacets {
+  categories: Array<{ id: string; name: string; count: number }>
+  brands: Array<{ id: string; name: string; slug: string; count: number }>
+  priceRange: { min: number; max: number }
+}
+
+export async function getFilterFacets(options: {
+  categoryIds?: (string | number)[]
+  brandIds?: (string | number)[]
+  search?: string
+  locale?: string
+} = {}): Promise<FilterFacets> {
+  try {
+    const payload = await getPayload({ config })
+
+    // Build base where for active products (same filters minus the facet dimension)
+    const baseConditions: Record<string, unknown>[] = [{ status: { equals: 'active' } }]
+    if (options.search) {
+      baseConditions.push({
+        or: [
+          { title: { like: options.search } },
+          { subtitle: { like: options.search } },
+        ],
+      })
+    }
+
+    const baseWhere = (baseConditions.length === 1
+      ? baseConditions[0]
+      : { and: baseConditions }) as import('payload').Where
+
+    // Fetch all active products with minimal fields for counting
+    const allProducts = await payload.find({
+      collection: 'products',
+      where: baseWhere,
+      limit: 0, // just count
+      depth: 0,
+    })
+
+    // Get products with category/brand data for facet counting
+    const productsForFacets = await payload.find({
+      collection: 'products',
+      where: baseWhere,
+      limit: allProducts.totalDocs || 500,
+      depth: 1,
+      select: { categories: true, brand: true, variants: true },
+    })
+
+    // Count categories
+    const categoryCounts = new Map<string, { name: string; count: number }>()
+    // Count brands
+    const brandCounts = new Map<string, { name: string; slug: string; count: number }>()
+    // Track price range
+    let minPrice = Infinity
+    let maxPrice = 0
+
+    for (const doc of productsForFacets.docs) {
+      const product = doc as unknown as PayloadProduct
+
+      // Categories
+      if (product.categories && Array.isArray(product.categories)) {
+        for (const cat of product.categories) {
+          if (typeof cat === 'object' && cat !== null) {
+            const catObj = cat as Category
+            const catId = String(catObj.id)
+            const existing = categoryCounts.get(catId)
+            if (existing) {
+              existing.count++
+            } else {
+              categoryCounts.set(catId, { name: catObj.name, count: 1 })
+            }
+          }
+        }
+      }
+
+      // Brand
+      if (product.brand && typeof product.brand === 'object') {
+        const brandObj = product.brand as Brand
+        const brandId = brandObj.slug
+        const existing = brandCounts.get(brandId)
+        if (existing) {
+          existing.count++
+        } else {
+          brandCounts.set(brandId, { name: brandObj.name, slug: brandObj.slug, count: 1 })
+        }
+      }
+
+      // Price range
+      if (product.variants?.length) {
+        const price = product.variants[0].price
+        if (price < minPrice) minPrice = price
+        if (price > maxPrice) maxPrice = price
+      }
+    }
+
+    return {
+      categories: Array.from(categoryCounts.entries())
+        .map(([id, data]) => ({ id, name: data.name, count: data.count }))
+        .sort((a, b) => b.count - a.count),
+      brands: Array.from(brandCounts.entries())
+        .map(([id, data]) => ({ id, name: data.name, slug: data.slug, count: data.count }))
+        .sort((a, b) => b.count - a.count),
+      priceRange: {
+        min: minPrice === Infinity ? 0 : Math.floor(minPrice),
+        max: maxPrice === 0 ? 5000 : Math.ceil(maxPrice),
+      },
+    }
+  } catch (error) {
+    log.error('Error fetching filter facets', error)
+    return { categories: [], brands: [], priceRange: { min: 0, max: 5000 } }
   }
 }
 

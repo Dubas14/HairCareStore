@@ -131,6 +131,28 @@ export const Products: CollectionConfig = {
       hasMany: true,
     },
     {
+      name: 'averageRating',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      max: 5,
+      admin: { position: 'sidebar', readOnly: true, description: 'Середній рейтинг (оновлюється автоматично)' },
+    },
+    {
+      name: 'reviewCount',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: { position: 'sidebar', readOnly: true, description: 'Кількість відгуків' },
+    },
+    {
+      name: 'salesCount',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: { position: 'sidebar', readOnly: true, description: 'Кількість продажів' },
+    },
+    {
       name: 'status',
       type: 'select',
       defaultValue: 'draft',

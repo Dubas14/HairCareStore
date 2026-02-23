@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Slider } from '@/components/ui/slider'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { getBrands, getCategories } from '@/lib/payload/actions'
+import { getFilterFacets } from '@/lib/payload/actions'
 import { formatPrice } from '@/lib/utils/format-price'
 
 export interface FilterState {
@@ -23,11 +23,13 @@ interface FilterSidebarProps {
   className?: string
   hideBrandFilter?: boolean
   hideCategoryFilter?: boolean
+  search?: string
 }
 
 interface FilterOption {
   id: string
   label: string
+  count?: number
 }
 
 interface FilterSectionProps {
@@ -59,22 +61,24 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   )
 }
 
-function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter, hideCategoryFilter }: FilterSidebarProps) {
+function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter, hideCategoryFilter, search }: FilterSidebarProps) {
   const [brandOptions, setBrandOptions] = useState<FilterOption[]>([])
   const [categoryOptions, setCategoryOptions] = useState<FilterOption[]>([])
+  const [dynamicMaxPrice, setDynamicMaxPrice] = useState(maxPrice)
 
   useEffect(() => {
-    if (!hideBrandFilter) {
-      getBrands().then((brands) => {
-        setBrandOptions(brands.map((b) => ({ id: b.slug, label: b.name })))
-      })
-    }
-    if (!hideCategoryFilter) {
-      getCategories().then((categories) => {
-        setCategoryOptions(categories.map((c) => ({ id: String(c.id), label: c.name })))
-      })
-    }
-  }, [hideBrandFilter, hideCategoryFilter])
+    getFilterFacets({ search }).then((facets) => {
+      if (!hideCategoryFilter) {
+        setCategoryOptions(facets.categories.map((c) => ({ id: c.id, label: c.name, count: c.count })))
+      }
+      if (!hideBrandFilter) {
+        setBrandOptions(facets.brands.map((b) => ({ id: b.slug, label: b.name, count: b.count })))
+      }
+      if (facets.priceRange.max > 0) {
+        setDynamicMaxPrice(facets.priceRange.max)
+      }
+    })
+  }, [hideBrandFilter, hideCategoryFilter, search])
 
   const handleBrandChange = (brandId: string, checked: boolean) => {
     const newBrands = checked
@@ -135,7 +139,7 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
             categoryOptions.map((cat) => (
               <Checkbox
                 key={cat.id}
-                label={cat.label}
+                label={`${cat.label}${cat.count !== undefined ? ` (${cat.count})` : ''}`}
                 checked={(filters.categoryIds || []).includes(cat.id)}
                 onChange={(e) => handleCategoryChange(cat.id, e.target.checked)}
               />
@@ -152,7 +156,7 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
             brandOptions.map((brand) => (
               <Checkbox
                 key={brand.id}
-                label={brand.label}
+                label={`${brand.label}${brand.count !== undefined ? ` (${brand.count})` : ''}`}
                 checked={filters.brands.includes(brand.id)}
                 onChange={(e) => handleBrandChange(brand.id, e.target.checked)}
               />
@@ -164,7 +168,7 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
       <FilterSection title="Ціна">
         <Slider
           min={0}
-          max={maxPrice}
+          max={dynamicMaxPrice}
           value={filters.priceRange}
           onChange={handlePriceChange}
           step={50}
@@ -209,7 +213,7 @@ export function FilterSidebar(props: FilterSidebarProps) {
       </Sheet>
 
       <aside className={cn("hidden lg:block", props.className)}>
-        <div className="sticky top-24">
+        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
           <h2 className="text-lg font-semibold mb-4">Фільтри</h2>
           <FilterContent {...props} />
         </div>

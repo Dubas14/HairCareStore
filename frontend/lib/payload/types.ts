@@ -204,6 +204,9 @@ export interface PayloadProduct {
   brand?: Brand | number | string
   tags?: Array<{ tag: string }>
   ingredients?: Array<PayloadIngredient | number | string>
+  averageRating?: number
+  reviewCount?: number
+  salesCount?: number
   status: 'draft' | 'active' | 'archived'
   createdAt: string
   updatedAt: string
@@ -242,8 +245,8 @@ export function transformProduct(doc: PayloadProduct): Product {
     imageUrl: thumbnailUrl || '/placeholder-product.jpg',
     price: Math.round(price),
     oldPrice: hasDiscount ? Math.round(compareAtPrice) : undefined,
-    rating: 0,
-    reviewCount: 0,
+    rating: doc.averageRating || 0,
+    reviewCount: doc.reviewCount || 0,
     discount,
   }
 }

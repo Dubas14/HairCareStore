@@ -192,6 +192,7 @@ function ShopContent() {
             onFiltersChange={handleFiltersChange}
             maxPrice={5000}
             className="w-full lg:w-64 flex-shrink-0"
+            search={debouncedSearch}
           />
 
           {/* Main content */}

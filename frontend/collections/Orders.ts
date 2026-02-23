@@ -242,6 +242,27 @@ export const Orders: CollectionConfig = {
       },
     ],
     afterChange: [
+      async ({ doc, operation, req }) => {
+        // Increment salesCount on products when order is created
+        if (operation === 'create' && doc.items && Array.isArray(doc.items)) {
+          for (const item of doc.items) {
+            const productId = item.productId
+            if (!productId) continue
+            try {
+              const product = await req.payload.findByID({ collection: 'products', id: productId, depth: 0 })
+              if (product) {
+                const currentSales = (product as any).salesCount || 0
+                await req.payload.update({
+                  collection: 'products',
+                  id: productId,
+                  data: { salesCount: currentSales + (item.quantity || 1) },
+                  depth: 0,
+                })
+              }
+            } catch { /* ignore */ }
+          }
+        }
+      },
       async ({ doc, previousDoc, operation }) => {
         // Send shipping notification when fulfillmentStatus changes to 'shipped'
         if (

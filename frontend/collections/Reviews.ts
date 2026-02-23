@@ -1,8 +1,49 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
+
+const recalcProductRating = async (productId: number | string, payload: any) => {
+  try {
+    const reviews = await payload.find({
+      collection: 'reviews',
+      where: {
+        product: { equals: productId },
+        isApproved: { equals: true },
+      },
+      limit: 0,
+    })
+    const count = reviews.totalDocs
+    if (count === 0) {
+      await payload.update({ collection: 'products', id: productId, data: { averageRating: 0, reviewCount: 0 }, depth: 0 })
+      return
+    }
+    const allReviews = await payload.find({
+      collection: 'reviews',
+      where: { product: { equals: productId }, isApproved: { equals: true } },
+      limit: 500,
+    })
+    const sum = allReviews.docs.reduce((acc: number, r: any) => acc + (r.rating || 0), 0)
+    const avg = Math.round((sum / allReviews.totalDocs) * 10) / 10
+    await payload.update({ collection: 'products', id: productId, data: { averageRating: avg, reviewCount: allReviews.totalDocs }, depth: 0 })
+  } catch { /* ignore */ }
+}
+
+const reviewAfterChange: CollectionAfterChangeHook = async ({ doc, req }) => {
+  const productId = typeof doc.product === 'object' && doc.product ? doc.product.id : doc.product
+  if (productId) await recalcProductRating(productId, req.payload)
+  return doc
+}
+
+const reviewAfterDelete: CollectionAfterDeleteHook = async ({ doc, req }) => {
+  const productId = typeof doc.product === 'object' && doc.product ? doc.product.id : doc.product
+  if (productId) await recalcProductRating(productId, req.payload)
+}
 
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
   labels: { singular: 'Відгук', plural: 'Відгуки' },
+  hooks: {
+    afterChange: [reviewAfterChange],
+    afterDelete: [reviewAfterDelete],
+  },
   admin: {
     useAsTitle: 'customerName',
     defaultColumns: ['customerName', 'rating', 'product', 'isApproved'],

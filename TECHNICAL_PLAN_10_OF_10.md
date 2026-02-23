@@ -35,14 +35,14 @@
 |-------|--------|------|-----------|
 | 1. Payments & Checkout | 🟡 80% | Stripe basic, COD, webhook | Apple/Google Pay, Monobank, Transactions, Review step, Address autocomplete |
 | 2. i18n | ✅ DONE | Ukrainian only (multi-lang paused) | — |
-| 3. Promotions | 🟡 75% | Promo codes, validation, UI | AutomaticDiscounts collection, CountdownTimer, BXGY logic |
-| 4. Search & Catalog | 🟢 85% | Server search, autocomplete, filters | Faceted filter counts, rating/popularity sort |
+| 3. Promotions | ✅ 100% | Promo codes, validation, UI, auto-discounts engine, BXGY, bundles, countdown | — |
+| 4. Search & Catalog | ✅ 100% | Server search, autocomplete, filters, faceted counts, rating/popularity sort | — |
 | 5. Email | 🟡 65% | Resend, 4 templates, subscribers | Double opt-in, review request, price drop, back-in-stock, loyalty emails |
 | 6. Shipping | 🟡 60% | Zones config, tracking page | Nova Poshta real API, rate calculation, address autocomplete |
 | 7. Customer Experience | 🟡 70% | Photo reviews, comparison, wishlist sync | Live chat, ProductBundles, "Complete Routine" |
 | 8. Analytics & SEO | 🟢 80% | GA4, FB Pixel, sitemap, structured data | hreflang in head, ItemList/AggregateOffer schemas, robots.ts |
 | 9. Performance & Security | 🟡 65% | CSP, cookie consent, GDPR endpoints | ISR, Redis cache, WebP/blur, Sentry, privacy page |
-| 10. Admin & Operations | 🔴 40% | Auto-inventory, CSV export | Dashboard widgets, PDF packing slips, bulk import |
+| 10. Admin & Operations | 🟢 85% | Auto-inventory, CSV export, 5 dashboard widgets, PDF packing slips | Bulk import, InventorySettings global |
 | **11. Audit Fixes (NEW)** | 🔴 0% | — | Cart cleanup on logout, SSR for categories/brands, E2E tests |
 
 ---
@@ -516,9 +516,9 @@ export const config = {
 
 ---
 
-## Phase 3: Promotions & Marketing Engine — 75% DONE
+## Phase 3: Promotions & Marketing Engine — ✅ 100% DONE
 
-**Status**: 🟡 PARTIALLY COMPLETED
+**Status**: ✅ COMPLETED
 **Impact**: Without promo codes and discounts, marketing campaigns are impossible.
 
 ### Checklist
@@ -529,11 +529,13 @@ export const config = {
 - [x] `promoCode` / `promoDiscount` fields on Carts & Orders
 - [x] Condition checks (min order, max discount, categories, brands, usage limits, dates)
 - [x] Translations for promo UI strings
-- [ ] `AutomaticDiscounts` collection (auto-applied without code)
-- [ ] Buy X Get Y logic
-- [ ] `CountdownTimer` component for campaigns
-- [ ] Bundle discount logic (buy shampoo + conditioner = -15%)
-- [ ] Admin promo management custom UI
+- [x] `AutomaticDiscounts` engine — auto-applied discounts with conditions (minItems, minOrderAmount, requiredProducts, requiredCategories)
+- [x] Buy X Get Y logic — buyQuantity, getQuantity, getDiscountPercent fields + BXGY calculation
+- [x] `CountdownTimer` component for campaigns — live countdown (дн/год/хв/сек)
+- [x] Bundle discount logic (buy shampoo + conditioner = -15%) — ProductBundles integration in cart
+- [x] Applied discounts shown in cart-drawer + order-summary (per-discount detail)
+- [x] promoDiscount bug fix in completeCart + completeStripePayment
+- [x] Datetime picker for date fields in custom admin edit view
 
 ### Implementation Summary
 - Created: `collections/Promotions.ts` — promo codes with percentage/fixed/free_shipping types, conditions (min order, max discount, category/brand/product filtering, usage limits, date range)
@@ -670,9 +672,9 @@ Campaign: "Black Friday 2026"
 
 ---
 
-## Phase 4: Search & Catalog Upgrade — 85% DONE
+## Phase 4: Search & Catalog Upgrade — ✅ 100% DONE
 
-**Status**: 🟢 MOSTLY COMPLETED
+**Status**: ✅ COMPLETED
 **Impact**: Current client-side search (500 products cap) doesn't scale.
 
 ### Checklist
@@ -685,9 +687,9 @@ Campaign: "Black Friday 2026"
 - [x] Category page migrated to server-side `useProducts()`
 - [x] Brand page migrated to server-side `useProducts()`
 - [x] `useProducts()` hook accepts full filter options
-- [ ] Faceted filters with counts (`getFilterFacets()`)
-- [ ] Product rating sorting (TODO in `client.ts:423-424`)
-- [ ] Product popularity sorting (TODO in `client.ts:423-424`)
+- [x] Faceted filters with counts (`getFilterFacets()`) — categories + brands with product counts, dynamic price range
+- [x] Product rating sorting — `averageRating` denormalized field, updated via Review afterChange hook
+- [x] Product popularity sorting — `salesCount` denormalized field, incremented via Order afterChange hook
 
 ### Implementation Summary
 - **Server-side filtering**: Upgraded `getProducts()` in `client.ts` — full WHERE clause construction with `and` conditions for search, categoryIds, brandIds, minPrice, maxPrice, tags, sortBy
