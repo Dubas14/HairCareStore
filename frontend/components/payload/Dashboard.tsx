@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Package,
   ShoppingBag,
@@ -19,8 +19,37 @@ import {
   Plus,
   ArrowUpRight,
   ChevronRight,
+  AlertTriangle,
+  Trophy,
+  RotateCcw,
+  BarChart3,
 } from 'lucide-react'
-import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts'
+import {
+  getDashboardStats,
+  getRevenueOverTime,
+  getOrdersByStatus,
+  getTopProducts,
+  getLowStockProducts,
+  getAbandonedCartStats,
+  type DashboardStats,
+  type RevenueDataPoint,
+  type OrderStatusBreakdown,
+  type TopProduct,
+  type LowStockItem,
+  type AbandonedCartStats,
+} from '@/app/actions/dashboard-stats'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -257,17 +286,426 @@ function NavGroupCard({
   )
 }
 
+// ── Widget Sub-components ────────────────────────────────────────────────────
+
+function WidgetCard({
+  title,
+  icon: Icon,
+  action,
+  children,
+  loading,
+}: {
+  title: string
+  icon?: React.FC<{ size?: number }>
+  action?: React.ReactNode
+  children: React.ReactNode
+  loading?: boolean
+}) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon size={15} />}
+          <span className="text-[13px] font-semibold text-gray-700">{title}</span>
+        </div>
+        {action}
+      </div>
+      <div className="px-5 pb-5">
+        {loading ? (
+          <div className="flex items-center justify-center py-10">
+            <span className="inline-block w-6 h-6 border-2 border-gray-200 border-t-teal-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          children
+        )}
+      </div>
+    </div>
+  )
+}
+
+type RevenuePeriod = 'daily' | 'weekly' | 'monthly'
+const periodOptions: { value: RevenuePeriod; label: string }[] = [
+  { value: 'daily', label: 'День' },
+  { value: 'weekly', label: 'Тиждень' },
+  { value: 'monthly', label: 'Місяць' },
+]
+
+function PeriodToggle({
+  value,
+  onChange,
+}: {
+  value: RevenuePeriod
+  onChange: (v: RevenuePeriod) => void
+}) {
+  return (
+    <div className="flex bg-gray-100 rounded-lg p-0.5">
+      {periodOptions.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`px-3 py-1 text-[11px] font-medium rounded-md transition-all ${
+            value === opt.value
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function RevenueChartWidget({
+  data,
+  loading,
+  period,
+  onPeriodChange,
+}: {
+  data: RevenueDataPoint[]
+  loading: boolean
+  period: RevenuePeriod
+  onPeriodChange: (v: RevenuePeriod) => void
+}) {
+  return (
+    <WidgetCard
+      title="Динаміка доходу"
+      icon={BarChart3}
+      loading={loading}
+      action={<PeriodToggle value={period} onChange={onPeriodChange} />}
+    >
+      {data.length === 0 ? (
+        <div className="text-center text-gray-400 text-sm py-8">Немає даних за обраний період</div>
+      ) : (
+        <div className="h-[260px] -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2a9d8f" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#2a9d8f" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))}
+                width={45}
+              />
+              <RechartsTooltip
+                contentStyle={{
+                  background: '#fff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                }}
+                formatter={((value?: number, name?: string) => [
+                  name === 'revenue' ? formatPrice(value ?? 0) : (value ?? 0),
+                  name === 'revenue' ? 'Дохід' : 'Замовлення',
+                ]) as never}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#2a9d8f"
+                strokeWidth={2}
+                fill="url(#revenueGrad)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </WidgetCard>
+  )
+}
+
+function OrdersOverviewWidget({
+  data,
+  loading,
+}: {
+  data: OrderStatusBreakdown[]
+  loading: boolean
+}) {
+  const total = data.reduce((s, d) => s + d.count, 0)
+
+  return (
+    <WidgetCard title="Замовлення за статусом" icon={ShoppingBag} loading={loading}>
+      {data.length === 0 ? (
+        <div className="text-center text-gray-400 text-sm py-8">Замовлень поки немає</div>
+      ) : (
+        <div className="flex items-center gap-4">
+          <div className="w-[180px] h-[180px] flex-shrink-0 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="count"
+                  nameKey="label"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={2}
+                  strokeWidth={0}
+                >
+                  {data.map((entry) => (
+                    <Cell key={entry.status} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Legend
+                  content={() => null}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="text-[22px] font-bold text-gray-900">{total}</div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-wider">всього</div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            {data.map((item) => (
+              <div key={item.status} className="flex items-center gap-2.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ background: item.color }}
+                />
+                <span className="text-[12.5px] text-gray-600 flex-1 truncate">{item.label}</span>
+                <span className="text-[13px] font-semibold text-gray-900 font-mono">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </WidgetCard>
+  )
+}
+
+function TopProductsWidget({
+  data,
+  loading,
+}: {
+  data: TopProduct[]
+  loading: boolean
+}) {
+  return (
+    <WidgetCard title="Топ товарів" icon={Trophy} loading={loading}>
+      {data.length === 0 ? (
+        <div className="text-center text-gray-400 text-sm py-8">Немає даних про продажі</div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {data.map((p, i) => (
+            <a
+              key={p.id}
+              href={p.handle ? `/admin/collections/products/${p.id}` : '#'}
+              className="flex items-center gap-3 p-2 -mx-2 rounded-lg no-underline text-inherit transition-colors hover:bg-gray-50"
+            >
+              <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[11px] font-bold text-gray-400 flex-shrink-0">
+                {i + 1}
+              </span>
+              {p.thumbnail ? (
+                <img
+                  src={p.thumbnail}
+                  alt=""
+                  className="w-8 h-8 rounded-md object-cover flex-shrink-0"
+                />
+              ) : (
+                <span className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <Package size={14} className="text-gray-300" />
+                </span>
+              )}
+              <span className="flex-1 min-w-0 text-[12.5px] font-medium text-gray-700 truncate">
+                {p.title}
+              </span>
+              <span className="text-[11px] text-gray-400 flex-shrink-0">{p.totalQuantity} шт.</span>
+              <span className="text-[12px] font-semibold font-mono text-gray-900 flex-shrink-0">
+                {formatPrice(p.totalRevenue)}
+              </span>
+            </a>
+          ))}
+        </div>
+      )}
+    </WidgetCard>
+  )
+}
+
+function LowStockWidget({
+  data,
+  loading,
+}: {
+  data: LowStockItem[]
+  loading: boolean
+}) {
+  return (
+    <WidgetCard title="Низький запас" icon={AlertTriangle} loading={loading}>
+      {data.length === 0 ? (
+        <div className="text-center text-gray-400 text-sm py-8">Всі товари в достатній кількості</div>
+      ) : (
+        <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto -mx-1 px-1">
+          {data.map((item, i) => {
+            const severity =
+              item.inventory === 0
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : item.inventory <= 2
+                  ? 'bg-amber-50 border-amber-200 text-amber-700'
+                  : 'bg-gray-50 border-gray-200 text-gray-600'
+            const dotColor =
+              item.inventory === 0
+                ? 'bg-red-500'
+                : item.inventory <= 2
+                  ? 'bg-amber-500'
+                  : 'bg-gray-400'
+
+            return (
+              <a
+                key={`${item.productId}-${item.variantTitle}-${i}`}
+                href={`/admin/collections/products/${item.productId}`}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg border no-underline transition-colors hover:shadow-sm ${severity}`}
+              >
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[12px] font-medium truncate">{item.productTitle}</span>
+                  {item.variantTitle && (
+                    <span className="block text-[10.5px] opacity-70 truncate">{item.variantTitle}</span>
+                  )}
+                </span>
+                {item.sku && (
+                  <span className="text-[10px] font-mono opacity-50 flex-shrink-0">{item.sku}</span>
+                )}
+                <span className="text-[13px] font-bold flex-shrink-0 font-mono">
+                  {item.inventory}
+                </span>
+              </a>
+            )
+          })}
+        </div>
+      )}
+    </WidgetCard>
+  )
+}
+
+function AbandonedCartsWidget({
+  data,
+  loading,
+}: {
+  data: AbandonedCartStats | null
+  loading: boolean
+}) {
+  const metrics = data
+    ? [
+        { label: 'Покинуті кошики', value: String(data.abandonedCount), icon: ShoppingCart, color: '#f59e0b' },
+        { label: 'Втрачена вартість', value: formatPrice(data.abandonedValue), icon: TrendingUp, color: '#ef4444' },
+        { label: 'Відновлено', value: String(data.recoveredCount), icon: RotateCcw, color: '#10b981' },
+        { label: 'Коефіцієнт повернення', value: `${data.recoveryRate.toFixed(1)}%`, icon: BarChart3, color: '#3b82f6' },
+      ]
+    : []
+
+  return (
+    <WidgetCard title="Покинуті кошики" icon={ShoppingCart} loading={loading}>
+      {!data || (data.abandonedCount === 0 && data.recoveredCount === 0) ? (
+        <div className="text-center text-gray-400 text-sm py-8">Покинутих кошиків немає</div>
+      ) : (
+        <div className="grid grid-cols-4 gap-3 max-[700px]:grid-cols-2">
+          {metrics.map((m) => {
+            const Icon = m.icon
+            return (
+              <div
+                key={m.label}
+                className="bg-gray-50 rounded-lg p-3.5 flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-7 h-7 rounded-md flex items-center justify-center"
+                    style={{ background: `${m.color}1a`, color: m.color }}
+                  >
+                    <Icon size={14} />
+                  </span>
+                </div>
+                <span className="text-[18px] font-bold text-gray-900 font-mono leading-none">
+                  {m.value}
+                </span>
+                <span className="text-[11px] text-gray-400">{m.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </WidgetCard>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Analytics states
+  const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>('daily')
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([])
+  const [revenueLoading, setRevenueLoading] = useState(true)
+  const [ordersBreakdown, setOrdersBreakdown] = useState<OrderStatusBreakdown[]>([])
+  const [ordersBreakdownLoading, setOrdersBreakdownLoading] = useState(true)
+  const [topProductsData, setTopProductsData] = useState<TopProduct[]>([])
+  const [topProductsLoading, setTopProductsLoading] = useState(true)
+  const [lowStockData, setLowStockData] = useState<LowStockItem[]>([])
+  const [lowStockLoading, setLowStockLoading] = useState(true)
+  const [abandonedStats, setAbandonedStats] = useState<AbandonedCartStats | null>(null)
+  const [abandonedLoading, setAbandonedLoading] = useState(true)
+
   useEffect(() => {
     getDashboardStats()
       .then(setStats)
       .catch(console.error)
       .finally(() => setLoading(false))
+
+    // Load analytics in parallel
+    getOrdersByStatus()
+      .then(setOrdersBreakdown)
+      .catch(console.error)
+      .finally(() => setOrdersBreakdownLoading(false))
+
+    getTopProducts(10)
+      .then(setTopProductsData)
+      .catch(console.error)
+      .finally(() => setTopProductsLoading(false))
+
+    getLowStockProducts()
+      .then(setLowStockData)
+      .catch(console.error)
+      .finally(() => setLowStockLoading(false))
+
+    getAbandonedCartStats()
+      .then(setAbandonedStats)
+      .catch(console.error)
+      .finally(() => setAbandonedLoading(false))
+  }, [])
+
+  // Revenue chart: load on mount and when period changes
+  const loadRevenue = useCallback((period: RevenuePeriod) => {
+    setRevenueLoading(true)
+    getRevenueOverTime(period)
+      .then(setRevenueData)
+      .catch(console.error)
+      .finally(() => setRevenueLoading(false))
+  }, [])
+
+  useEffect(() => {
+    loadRevenue(revenuePeriod)
+  }, [revenuePeriod, loadRevenue])
+
+  const handlePeriodChange = useCallback((p: RevenuePeriod) => {
+    setRevenuePeriod(p)
   }, [])
 
   return (
@@ -411,6 +849,28 @@ const Dashboard: React.FC = () => {
             Замовлень поки немає
           </div>
         )}
+      </section>
+
+      {/* ── Analytics Row 1: Revenue + Orders Breakdown ── */}
+      <section className="grid grid-cols-2 gap-3.5 mb-6 max-[800px]:grid-cols-1" aria-label="Аналітика доходу">
+        <RevenueChartWidget
+          data={revenueData}
+          loading={revenueLoading}
+          period={revenuePeriod}
+          onPeriodChange={handlePeriodChange}
+        />
+        <OrdersOverviewWidget data={ordersBreakdown} loading={ordersBreakdownLoading} />
+      </section>
+
+      {/* ── Analytics Row 2: Top Products + Low Stock ── */}
+      <section className="grid grid-cols-2 gap-3.5 mb-6 max-[800px]:grid-cols-1" aria-label="Товарна аналітика">
+        <TopProductsWidget data={topProductsData} loading={topProductsLoading} />
+        <LowStockWidget data={lowStockData} loading={lowStockLoading} />
+      </section>
+
+      {/* ── Analytics Row 3: Abandoned Carts ── */}
+      <section className="mb-9" aria-label="Покинуті кошики">
+        <AbandonedCartsWidget data={abandonedStats} loading={abandonedLoading} />
       </section>
 
       {/* ── Quick Navigation ── */}
