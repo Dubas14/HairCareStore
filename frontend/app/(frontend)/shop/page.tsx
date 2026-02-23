@@ -9,7 +9,6 @@ import { SortSelect, type SortOption } from '@/components/shop/sort-select'
 import { Pagination } from '@/components/shop/pagination'
 import { useProducts } from '@/lib/hooks/use-products'
 import { transformProducts } from '@/lib/payload/types'
-import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 const PRODUCTS_PER_PAGE = 24
 
@@ -135,8 +134,7 @@ function ShopContent() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <ScrollReveal variant="fade-down" duration={500}>
-        <div className="bg-muted/50 border-b">
+      <div className="bg-muted/50 border-b">
           <div className="container mx-auto px-4 py-8 md:py-12">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               {debouncedSearch ? `Результати пошуку: "${debouncedSearch}"` : 'Каталог товарів'}
@@ -178,7 +176,6 @@ function ShopContent() {
             </div>
           </div>
         </div>
-      </ScrollReveal>
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
@@ -190,18 +187,15 @@ function ShopContent() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <ScrollReveal variant="fade-right" delay={100} duration={600}>
-            <FilterSidebar
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              maxPrice={5000}
-              className="w-full lg:w-64 flex-shrink-0"
-            />
-          </ScrollReveal>
+          <FilterSidebar
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            maxPrice={5000}
+            className="w-full lg:w-64 flex-shrink-0"
+          />
 
           {/* Main content */}
-          <ScrollReveal variant="fade-up" delay={200} duration={600} className="flex-1">
-            <div>
+          <div className="flex-1">
               {/* Toolbar */}
               <div className="flex items-center justify-between mb-6">
                 {!isLoading && (
@@ -223,8 +217,7 @@ function ShopContent() {
                   onPageChange={handlePageChange}
                 />
               )}
-            </div>
-          </ScrollReveal>
+          </div>
         </div>
       </div>
     </main>
