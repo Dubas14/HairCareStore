@@ -61,6 +61,7 @@ export interface PromoBlock {
   buttonText?: string
   buttonLink?: string
   backgroundColor?: string
+  expiresAt?: string
   isActive: boolean
 }
 
@@ -311,6 +312,12 @@ export interface CartAddress {
 
 export type CurrencyCode = 'UAH' | 'EUR' | 'PLN' | 'USD'
 
+export interface AppliedDiscount {
+  title: string
+  type: string
+  amount: number
+}
+
 export interface PayloadCart {
   id: number | string
   customer?: PayloadCustomer | number | string
@@ -326,6 +333,7 @@ export interface PayloadCart {
   loyaltyDiscount: number
   promoCode?: string
   promoDiscount: number
+  appliedDiscounts?: AppliedDiscount[]
   total: number
   currency: CurrencyCode
   paymentMethod?: string

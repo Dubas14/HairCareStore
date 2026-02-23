@@ -67,6 +67,11 @@ export const Carts: CollectionConfig = {
     { name: 'promoCode', type: 'text', admin: { description: 'Застосований промокод' } },
     { name: 'promoDiscount', type: 'number', defaultValue: 0, admin: { description: 'Сума знижки за промокодом' } },
     {
+      name: 'appliedDiscounts',
+      type: 'json',
+      admin: { description: 'Деталі автоматичних знижок (заповнюється автоматично)' },
+    },
+    {
       name: 'status',
       type: 'select',
       defaultValue: 'active',

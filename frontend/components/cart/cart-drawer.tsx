@@ -291,11 +291,30 @@ export function CartDrawer() {
                   <span className="text-muted-foreground">Підсумок</span>
                   <span className="font-medium">{Math.round(subtotal)} ₴</span>
                 </div>
-                {cart?.discountTotal && cart.discountTotal > 0 && (
+                {cart?.appliedDiscounts && cart.appliedDiscounts.length > 0 ? (
+                  cart.appliedDiscounts.map((d, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-[#606C38] font-medium">{d.title}</span>
+                      <span className="text-[#606C38] font-medium">
+                        -{Math.round(d.amount)} ₴
+                      </span>
+                    </div>
+                  ))
+                ) : cart?.discountTotal && cart.discountTotal > 0 ? (
                   <div className="flex justify-between text-sm">
                     <span className="text-[#606C38] font-medium">Знижка</span>
                     <span className="text-[#606C38] font-medium">
                       -{Math.round(cart.discountTotal)} ₴
+                    </span>
+                  </div>
+                ) : null}
+                {cart?.promoDiscount && cart.promoDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#606C38] font-medium">
+                      Промокод{cart.promoCode ? ` (${cart.promoCode})` : ''}
+                    </span>
+                    <span className="text-[#606C38] font-medium">
+                      -{Math.round(cart.promoDiscount)} ₴
                     </span>
                   </div>
                 )}

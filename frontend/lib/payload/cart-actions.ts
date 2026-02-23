@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { PayloadCart, PayloadProduct, CartItem, CartAddress } from './types'
+import { applyAutoDiscounts } from './auto-discount-actions'
 import { cartAddressUpdateSchema } from '@/lib/validations/schemas'
 import { createLogger } from '@/lib/logger'
 
@@ -86,7 +87,11 @@ export async function addToCart(productId: number | string, variantIndex: number
   }
 
   const updated = await payload.update({ collection: 'carts', id: cart.id, data: { items }, depth: 1 })
-  return updated as unknown as PayloadCart
+
+  // Re-evaluate auto discounts
+  await applyAutoDiscounts(cart.id)
+  const refreshed = await payload.findByID({ collection: 'carts', id: cart.id, depth: 1 })
+  return refreshed as unknown as PayloadCart
 }
 
 export async function updateCartItem(itemIndex: number, quantity: number): Promise<PayloadCart> {
@@ -96,7 +101,11 @@ export async function updateCartItem(itemIndex: number, quantity: number): Promi
   if (quantity <= 0) items.splice(itemIndex, 1)
   else if (items[itemIndex]) items[itemIndex] = { ...items[itemIndex], quantity: Math.min(quantity, 10) }
   const updated = await payload.update({ collection: 'carts', id: cart.id, data: { items }, depth: 1 })
-  return updated as unknown as PayloadCart
+
+  // Re-evaluate auto discounts
+  await applyAutoDiscounts(cart.id)
+  const refreshed = await payload.findByID({ collection: 'carts', id: cart.id, depth: 1 })
+  return refreshed as unknown as PayloadCart
 }
 
 export async function removeCartItem(itemIndex: number): Promise<PayloadCart> {
@@ -187,7 +196,8 @@ export async function completeCart(): Promise<{ orderId: number | string; displa
   const shippingTotal = cart.shippingTotal || 0
   const discountTotal = cart.discountTotal || 0
   const loyaltyDiscount = cart.loyaltyDiscount || 0
-  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount)
+  const promoDiscount = cart.promoDiscount || 0
+  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount - promoDiscount)
 
   const order = await payload.create({
     collection: 'orders',

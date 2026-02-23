@@ -36,6 +36,7 @@ export const AutomaticDiscounts: CollectionConfig = {
       options: [
         { label: 'Відсоток', value: 'percentage' },
         { label: 'Фіксована сума', value: 'fixed' },
+        { label: 'Купи X — отримай Y', value: 'buyXgetY' },
       ],
     },
     {
@@ -76,6 +77,38 @@ export const AutomaticDiscounts: CollectionConfig = {
           type: 'relationship',
           relationTo: 'categories',
           hasMany: true,
+        },
+        {
+          name: 'buyQuantity',
+          label: 'Купи (кількість)',
+          type: 'number',
+          min: 1,
+          admin: {
+            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+            description: 'Скільки товарів потрібно купити',
+          },
+        },
+        {
+          name: 'getQuantity',
+          label: 'Отримай (кількість)',
+          type: 'number',
+          min: 1,
+          admin: {
+            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+            description: 'Скільки товарів отримає клієнт зі знижкою',
+          },
+        },
+        {
+          name: 'getDiscountPercent',
+          label: 'Знижка на Y товар (%)',
+          type: 'number',
+          min: 0,
+          max: 100,
+          defaultValue: 100,
+          admin: {
+            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+            description: '100 = безкоштовно, 50 = половина ціни',
+          },
         },
       ],
     },

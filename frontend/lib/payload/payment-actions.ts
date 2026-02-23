@@ -163,7 +163,8 @@ export async function completeStripePayment(cartId: number | string, paymentInte
   const shippingTotal = cart.shippingTotal || 0
   const discountTotal = cart.discountTotal || 0
   const loyaltyDiscount = cart.loyaltyDiscount || 0
-  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount)
+  const promoDiscount = cart.promoDiscount || 0
+  const recalculatedTotal = Math.max(0, recalculatedSubtotal + shippingTotal - discountTotal - loyaltyDiscount - promoDiscount)
 
   const order = await payload.create({
     collection: 'orders',

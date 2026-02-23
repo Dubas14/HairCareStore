@@ -27,6 +27,9 @@ interface CartLike {
   shippingTotal: number
   discountTotal: number
   total: number
+  appliedDiscounts?: Array<{ title: string; type: string; amount: number }>
+  promoCode?: string
+  promoDiscount?: number
 }
 
 interface OrderSummaryProps {
@@ -116,10 +119,23 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
             До безкоштовної доставки: {Math.round(FREE_SHIPPING_THRESHOLD - subtotal)} ₴
           </div>
         )}
-        {cart != null && cart.discountTotal > 0 && (
+        {cart != null && cart.appliedDiscounts && cart.appliedDiscounts.length > 0 ? (
+          cart.appliedDiscounts.map((d, i) => (
+            <div key={i} className="flex justify-between text-sm text-success">
+              <span>{d.title}</span>
+              <span>-{Math.round(d.amount)} ₴</span>
+            </div>
+          ))
+        ) : cart != null && cart.discountTotal > 0 ? (
           <div className="flex justify-between text-sm text-success">
             <span>Знижка</span>
             <span>-{Math.round(cart.discountTotal)} ₴</span>
+          </div>
+        ) : null}
+        {cart != null && (cart.promoDiscount ?? 0) > 0 && (
+          <div className="flex justify-between text-sm text-success">
+            <span>Промокод{cart.promoCode ? ` (${cart.promoCode})` : ''}</span>
+            <span>-{Math.round(cart.promoDiscount!)} ₴</span>
           </div>
         )}
         {loyaltyDiscount > 0 && (

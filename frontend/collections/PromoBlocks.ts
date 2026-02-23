@@ -58,6 +58,12 @@ export const PromoBlocks: CollectionConfig = {
       defaultValue: '#1a1a1a',
     },
     {
+      name: 'expiresAt',
+      label: 'Закінчення акції',
+      type: 'date',
+      admin: { date: { pickerAppearance: 'dayAndTime' } },
+    },
+    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,

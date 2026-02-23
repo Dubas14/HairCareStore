@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { PromoBlock, getImageUrl } from '@/lib/payload/types'
+import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 interface PromoBlocksProps {
   blocks: PromoBlock[]
@@ -44,6 +45,9 @@ export function PromoBlocks({ blocks }: PromoBlocksProps) {
                         ? block.description
                         : ''}
                     </p>
+                  )}
+                  {block.expiresAt && (
+                    <CountdownTimer targetDate={block.expiresAt} className="mt-2" />
                   )}
                 </div>
 
