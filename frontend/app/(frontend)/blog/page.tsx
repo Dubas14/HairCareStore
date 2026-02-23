@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // ISR: revalidate every 5 minutes
 
 import { getBlogPosts } from '@/lib/payload/client'
 import { BlogList } from '@/components/blog/blog-list'

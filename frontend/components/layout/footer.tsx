@@ -36,6 +36,7 @@ export function Footer() {
       links: [
         { name: tNav('about'), href: "/pages/about" },
         { name: tNav('account'), href: "/account" },
+        { name: t('privacy'), href: "/privacy" },
       ],
     },
   }

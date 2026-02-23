@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 600 // ISR: revalidate every 10 minutes
 
 import { notFound } from 'next/navigation'
 import { getPageBySlug, getPages, getSiteSettings } from '@/lib/payload/client'

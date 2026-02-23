@@ -1,3 +1,5 @@
+export const revalidate = 300 // ISR: revalidate every 5 minutes
+
 import type { Metadata } from 'next'
 import { getProductByHandle, getProductRating, getProducts, getReviewsByProduct } from '@/lib/payload/client'
 import { getImageUrl } from '@/lib/payload/types'

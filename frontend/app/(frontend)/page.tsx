@@ -5,7 +5,7 @@ import { getBanners, getPromoBlocks, getCategories, getBrands } from '@/lib/payl
 import { HomePageAnimations } from '@/components/home/home-page-animations'
 import { buildWebSiteJsonLd, buildSiteNavigationJsonLd } from '@/lib/structured-data'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // ISR: revalidate every 5 minutes
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'
 
