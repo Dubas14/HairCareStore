@@ -40,7 +40,7 @@ export function NewsletterSection() {
           Отримуйте ексклюзивні пропозиції
         </h2>
         <p className="text-sm text-white/90 mb-6">
-          Підпішіться на розсилку та отримайте знижку -10% на першу покупку
+          Підпишіться на розсилку та отримайте знижку -10% на першу покупку
         </p>
 
         {/* Form */}
@@ -89,6 +89,8 @@ export function NewsletterSection() {
           {/* Message */}
           {message && (
             <div
+              role="status"
+              aria-live="polite"
               className={`flex items-center justify-center gap-2 p-3 rounded-card ${
                 message.type === 'success' ? 'bg-success/30 text-white' : 'bg-destructive/30 text-white'
               }`}

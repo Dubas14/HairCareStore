@@ -46,7 +46,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             key={index}
             onClick={() => setActiveIndex(index)}
             className={cn(
-              "flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all",
+              "flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
               activeIndex === index
                 ? "border-primary"
                 : "border-transparent hover:border-muted-foreground/30"
@@ -71,7 +71,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         <div
           ref={imageRef}
           className={cn(
-            "relative aspect-square rounded-card overflow-hidden bg-muted cursor-zoom-in",
+            "relative aspect-[3/4] lg:aspect-square max-h-[60vh] lg:max-h-none rounded-card overflow-hidden bg-muted cursor-zoom-in",
             isZoomed && "cursor-zoom-out"
           )}
           onMouseEnter={() => setIsZoomed(true)}

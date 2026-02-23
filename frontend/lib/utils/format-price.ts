@@ -5,6 +5,10 @@
  * DO NOT divide by 100!
  */
 
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('format-price')
+
 /**
  * Format price with currency symbol
  *
@@ -23,6 +27,15 @@ export function formatPrice(
   locale: string = "uk-UA"
 ): string {
   try {
+    // For UAH: format number only + hardcoded symbol to avoid
+    // Intl.NumberFormat SSR/client mismatch (server: "грн", browser: "₴")
+    if (currencyCode === "UAH") {
+      const formatted = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount)
+      return `${formatted} ₴`
+    }
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currencyCode,
@@ -30,7 +43,7 @@ export function formatPrice(
       maximumFractionDigits: 2,
     }).format(amount)
   } catch (error) {
-    console.error("Error formatting price:", error)
+    log.error('Error formatting price', error instanceof Error ? error : String(error))
     return `${amount} ${currencyCode}`
   }
 }

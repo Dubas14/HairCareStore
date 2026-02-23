@@ -5,7 +5,6 @@ import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { Instagram, Facebook, Youtube } from "lucide-react"
 
-// TODO: Замінити на реальні URL соціальних мереж магазину
 const socialLinks = [
   { name: "Instagram", href: "https://instagram.com/hairlab.ua", icon: Instagram },
   { name: "Facebook", href: "https://facebook.com/hairlab.ua", icon: Facebook },
@@ -21,6 +20,8 @@ export function Footer() {
       title: tNav('shop'),
       links: [
         { name: tNav('shop'), href: "/shop" },
+        { name: tNav('brands'), href: "/brands" },
+        { name: tNav('blog'), href: "/blog" },
       ],
     },
     help: {
@@ -34,6 +35,7 @@ export function Footer() {
       title: t('about'),
       links: [
         { name: tNav('about'), href: "/pages/about" },
+        { name: tNav('account'), href: "/account" },
       ],
     },
   }

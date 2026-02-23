@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useInView } from 'react-intersection-observer'
+import { useTranslations } from 'next-intl'
 import { ProductCard } from '@/components/products/product-card'
 import { BorderGradientButton } from '@/components/ui/border-gradient-button'
 import { ArrowRight, Loader2 } from 'lucide-react'
@@ -18,11 +19,18 @@ const tabs: Array<{ id: Tab; label: string }> = [
 ]
 
 export function FeaturedProducts() {
+  const t = useTranslations('home')
   const [activeTab, setActiveTab] = useState<Tab>('bestsellers')
+  const [ready, setReady] = useState(false)
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1
   })
+
+  useEffect(() => {
+    const id = setTimeout(() => setReady(true), 150)
+    return () => clearTimeout(id)
+  }, [])
 
   // Завантажуємо товари з Payload CMS
   const { data: productsData, isLoading } = useProducts({ limit: 12 })
@@ -53,10 +61,10 @@ export function FeaturedProducts() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-            Популярні товари
+            {t('popularProducts')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Найкращий вибір наших клієнтів
+            {t('bestSelection')}
           </p>
         </div>
 
@@ -95,7 +103,7 @@ export function FeaturedProducts() {
             {products.map((product, index) => (
               <div
                 key={product.productId || product.id}
-                className={inView ? 'animate-fadeInUp' : 'opacity-0'}
+                className={!ready || inView ? 'animate-fadeInUp' : 'opacity-0'}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <ProductCard product={product} />
@@ -108,7 +116,7 @@ export function FeaturedProducts() {
         <div className="text-center">
           <Link href="/shop">
             <BorderGradientButton variant="mono" size="lg">
-              Дивитись всі товари
+              {t('viewAll')}
               <ArrowRight className="w-4 h-4" />
             </BorderGradientButton>
           </Link>

@@ -17,6 +17,7 @@ interface ScrollRevealProps {
   as?: React.ElementType
 }
 
+// Transforms only — no opacity hide. Content is always readable (SEO, a11y).
 const variantClasses: Record<RevealVariant, { initial: string; animate: string }> = {
   "fade-up": {
     initial: "opacity-0 translate-y-8",
@@ -58,19 +59,32 @@ export function ScrollReveal({
   triggerOnce = true,
   as: Component = "div",
 }: ScrollRevealProps) {
+  const [ready, setReady] = React.useState(false)
   const { ref, inView } = useInView({
     threshold,
     triggerOnce,
   })
 
+  // Only apply hidden state after client hydration + observer setup
+  React.useEffect(() => {
+    // Small delay lets IntersectionObserver fire for already-visible elements
+    // Delay lets IntersectionObserver fire first for above-fold elements
+    const id = setTimeout(() => setReady(true), 150)
+    return () => clearTimeout(id)
+  }, [])
+
   const variants = variantClasses[variant]
+
+  // Before ready: always show content (SSR & first paint).
+  // After ready: use IntersectionObserver result.
+  const isVisible = !ready || inView
 
   return (
     <Component
       ref={ref}
       className={cn(
         "transition-all will-change-transform",
-        inView ? variants.animate : variants.initial,
+        isVisible ? variants.animate : variants.initial,
         className
       )}
       style={{
@@ -104,12 +118,20 @@ export function ScrollRevealGroup({
   threshold = 0.1,
   triggerOnce = true,
 }: ScrollRevealGroupProps) {
+  const [ready, setReady] = React.useState(false)
   const { ref, inView } = useInView({
     threshold,
     triggerOnce,
   })
 
+  React.useEffect(() => {
+    // Delay lets IntersectionObserver fire first for above-fold elements
+    const id = setTimeout(() => setReady(true), 150)
+    return () => clearTimeout(id)
+  }, [])
+
   const variants = variantClasses[variant]
+  const isVisible = !ready || inView
 
   return (
     <div ref={ref} className={className}>
@@ -120,7 +142,7 @@ export function ScrollRevealGroup({
           <div
             className={cn(
               "transition-all will-change-transform",
-              inView ? variants.animate : variants.initial
+              isVisible ? variants.animate : variants.initial
             )}
             style={{
               transitionDuration: `${duration}ms`,
