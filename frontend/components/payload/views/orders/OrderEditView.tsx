@@ -10,6 +10,7 @@ import {
   FULFILLMENT_STATUS_LABELS,
   FULFILLMENT_STATUS_HEX,
 } from '@/lib/payload/types'
+import { generatePackingSlip } from '@/lib/pdf/packing-slip'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -157,6 +158,16 @@ function IconUser() {
   return (
     <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function IconPrint() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
     </svg>
   )
 }
@@ -455,6 +466,19 @@ export default function OrderEditView() {
           {!isCreate && (
             <button className="hl-btn hl-btn--danger hl-btn--sm" onClick={handleDelete}>
               <IconTrash /> Видалити
+            </button>
+          )}
+          {!isCreate && (
+            <button
+              className="hl-btn hl-btn--secondary hl-btn--sm"
+              onClick={() => {
+                generatePackingSlip(form).catch((err) => {
+                  console.error('PDF generation error:', err)
+                  showToast('Помилка генерації PDF', 'error')
+                })
+              }}
+            >
+              <IconPrint /> Накладна PDF
             </button>
           )}
           <button className="hl-btn hl-btn--primary" onClick={handleSave} disabled={isSaving}>
