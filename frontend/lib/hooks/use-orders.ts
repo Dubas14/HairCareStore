@@ -4,6 +4,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { getCustomerOrders, getOrderById } from '@/lib/payload/order-actions'
 import type { PayloadOrder } from '@/lib/payload/types'
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_COLORS,
+  FULFILLMENT_STATUS_LABELS,
+  FULFILLMENT_STATUS_COLORS,
+} from '@/lib/payload/types'
 
 export type { PayloadOrder }
 
@@ -32,11 +40,25 @@ export function useOrder(orderId: string | null) {
 }
 
 export function getOrderStatusLabel(status: string): string {
-  const labels: Record<string, string> = { pending: 'Очікує обробки', completed: 'Виконано', canceled: 'Скасовано', requires_action: 'Потребує дії', archived: 'В архіві' }
-  return labels[status] || status
+  return ORDER_STATUS_LABELS[status] || status
 }
 
 export function getOrderStatusColor(status: string): string {
-  const colors: Record<string, string> = { pending: 'bg-yellow-500/10 text-yellow-600', completed: 'bg-success/10 text-success', canceled: 'bg-muted text-muted-foreground', requires_action: 'bg-orange-500/10 text-orange-600', archived: 'bg-muted text-muted-foreground' }
-  return colors[status] || 'bg-muted text-muted-foreground'
+  return ORDER_STATUS_COLORS[status] || 'bg-muted text-muted-foreground'
+}
+
+export function getPaymentStatusLabel(status: string): string {
+  return PAYMENT_STATUS_LABELS[status] || status
+}
+
+export function getPaymentStatusColor(status: string): string {
+  return PAYMENT_STATUS_COLORS[status] || 'bg-muted text-muted-foreground'
+}
+
+export function getFulfillmentStatusLabel(status: string): string {
+  return FULFILLMENT_STATUS_LABELS[status] || status
+}
+
+export function getFulfillmentStatusColor(status: string): string {
+  return FULFILLMENT_STATUS_COLORS[status] || 'bg-muted text-muted-foreground'
 }

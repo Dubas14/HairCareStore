@@ -112,14 +112,15 @@ function IconChevronRight() {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     active: 'active', published: 'active', completed: 'active',
-    draft: 'draft', pending: 'draft', processing: 'draft',
-    archived: 'archived', cancelled: 'archived', inactive: 'archived',
+    draft: 'draft', pending: 'draft', processing: 'draft', requires_action: 'draft',
+    archived: 'archived', canceled: 'archived', cancelled: 'archived', inactive: 'archived',
   }
   const variant = map[status] || 'muted'
   const labels: Record<string, string> = {
-    active: 'Активний', published: 'Опублікований', completed: 'Завершений',
-    draft: 'Чернетка', pending: 'Очікує', processing: 'В обробці',
-    archived: 'Архів', cancelled: 'Скасований', inactive: 'Неактивний',
+    active: 'Активний', published: 'Опублікований', completed: 'Виконано',
+    draft: 'Чернетка', pending: 'В обробці', processing: 'В обробці',
+    archived: 'Архів', canceled: 'Скасовано', cancelled: 'Скасовано', inactive: 'Неактивний',
+    requires_action: 'Потребує дій',
   }
   return (
     <span className={`hl-status-badge hl-status-badge--${variant}`}>
@@ -161,7 +162,9 @@ function getColumns(slug: string): Column[] {
         statusCol,
         dateCol,
       ]
-    case 'orders':
+    case 'orders': {
+      const paymentLabels: Record<string, string> = { awaiting: 'Очікує оплати', paid: 'Оплачено', refunded: 'Повернено' }
+      const fulfillmentLabels: Record<string, string> = { not_fulfilled: 'Не відправлено', shipped: 'Відправлено', delivered: 'Доставлено' }
       return [
         { key: 'displayId', label: '№ Замовлення', width: '140px', render: (v: number) => v != null ? <strong style={{ color: 'var(--color-base-700)' }}>#{v}</strong> : <span style={{ color: 'var(--color-base-400)' }}>—</span> },
         { key: 'email', label: 'Клієнт', render: (v: string, doc: any) => {
@@ -173,9 +176,12 @@ function getColumns(slug: string): Column[] {
           return v || '—'
         }},
         { key: 'total', label: 'Сума', width: '110px', render: (v: number) => v != null ? `${Math.round(v).toLocaleString('uk-UA')} ₴` : '—' },
+        { key: 'paymentStatus', label: 'Оплата', width: '130px', render: (v: string) => paymentLabels[v] || v || '—' },
+        { key: 'fulfillmentStatus', label: 'Доставка', width: '140px', render: (v: string) => fulfillmentLabels[v] || v || '—' },
         statusCol,
         dateCol,
       ]
+    }
     case 'customers':
       return [
         { key: 'firstName', label: 'Ім\'я', render: (_v: string, doc: any) => {
@@ -303,15 +309,15 @@ function getStatsAndFilters(
     return {
       statsItems: [
         { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },
-        { label: 'Очікує', value: stats.active, color: 'warning', icon: <IconFile /> },
-        { label: 'Завершені', value: stats.draft, color: 'success', icon: <IconCheck /> },
-        { label: 'Скасовані', value: stats.archived, color: 'muted', icon: <IconArchive /> },
+        { label: 'В обробці', value: stats.active, color: 'warning', icon: <IconFile /> },
+        { label: 'Виконано', value: stats.draft, color: 'success', icon: <IconCheck /> },
+        { label: 'Скасовано', value: stats.archived, color: 'muted', icon: <IconArchive /> },
       ],
       filterOptions: [
         { value: 'all', label: 'Всі', count: stats.total },
-        { value: 'pending', label: 'Очікує', count: stats.active },
-        { value: 'completed', label: 'Завершені', count: stats.draft },
-        { value: 'canceled', label: 'Скасовані', count: stats.archived },
+        { value: 'pending', label: 'В обробці', count: stats.active },
+        { value: 'completed', label: 'Виконано', count: stats.draft },
+        { value: 'canceled', label: 'Скасовано', count: stats.archived },
       ],
     }
   }

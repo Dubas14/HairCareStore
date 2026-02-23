@@ -7,6 +7,10 @@ import {
   type PayloadOrder,
   getOrderStatusLabel,
   getOrderStatusColor,
+  getPaymentStatusLabel,
+  getPaymentStatusColor,
+  getFulfillmentStatusLabel,
+  getFulfillmentStatusColor,
 } from '@/lib/hooks/use-orders'
 
 interface OrderCardProps {
@@ -54,7 +58,17 @@ export function OrderCard({ order }: OrderCardProps) {
             </Badge>
           </div>
 
-          <div className="flex items-center justify-between mt-3">
+          {/* Payment & fulfillment statuses */}
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            <Badge variant="outline" className={`text-xs ${getPaymentStatusColor(order.paymentStatus)}`}>
+              {getPaymentStatusLabel(order.paymentStatus)}
+            </Badge>
+            <Badge variant="outline" className={`text-xs ${getFulfillmentStatusColor(order.fulfillmentStatus)}`}>
+              {getFulfillmentStatusLabel(order.fulfillmentStatus)}
+            </Badge>
+          </div>
+
+          <div className="flex items-center justify-between mt-2">
             <p className="text-sm text-muted-foreground">
               {itemCount} {itemCount === 1 ? 'товар' : itemCount < 5 ? 'товари' : 'товарів'}
             </p>

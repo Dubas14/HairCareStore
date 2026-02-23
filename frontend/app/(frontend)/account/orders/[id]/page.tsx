@@ -17,7 +17,15 @@ import {
   Truck,
   Home,
 } from 'lucide-react'
-import { useOrder, getOrderStatusLabel, getOrderStatusColor } from '@/lib/hooks/use-orders'
+import {
+  useOrder,
+  getOrderStatusLabel,
+  getOrderStatusColor,
+  getPaymentStatusLabel,
+  getPaymentStatusColor,
+  getFulfillmentStatusLabel,
+  getFulfillmentStatusColor,
+} from '@/lib/hooks/use-orders'
 import { useCustomer } from '@/lib/hooks/use-customer'
 import { useCartContext } from '@/components/providers/cart-provider'
 
@@ -30,26 +38,25 @@ function getItemImageUrl(url: string | null | undefined): string {
   return url
 }
 
-// Order progress steps
+// Order progress steps based on fulfillmentStatus
 const progressSteps = [
   { key: 'placed', label: 'Оформлено', icon: CheckCircle },
-  { key: 'processing', label: 'Обробка', icon: Clock },
+  { key: 'processing', label: 'В обробці', icon: Clock },
   { key: 'shipped', label: 'Відправлено', icon: Truck },
   { key: 'delivered', label: 'Доставлено', icon: Home },
 ]
 
-function getProgressStep(status: string): number {
-  switch (status) {
-    case 'pending':
-    case 'requires_action':
-      return 1
-    case 'completed':
+function getProgressStep(fulfillmentStatus: string, orderStatus: string): number {
+  // Canceled/archived orders — no progress
+  if (orderStatus === 'canceled' || orderStatus === 'archived') return 0
+  switch (fulfillmentStatus) {
+    case 'delivered':
       return 4
-    case 'canceled':
-    case 'archived':
-      return 0
+    case 'shipped':
+      return 3
+    case 'not_fulfilled':
     default:
-      return 1
+      return orderStatus === 'completed' ? 4 : orderStatus === 'pending' ? 1 : 2
   }
 }
 
@@ -123,7 +130,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
     day: 'numeric',
   })
 
-  const currentStep = getProgressStep(order.status)
+  const currentStep = getProgressStep(order.fulfillmentStatus, order.status)
   const isCanceled = order.status === 'canceled' || order.status === 'archived'
 
   return (
@@ -147,10 +154,16 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* Status badge */}
-          <div className="flex items-center justify-between">
+          {/* Status badges */}
+          <div className="flex flex-wrap items-center gap-2">
             <Badge className={`${getOrderStatusColor(order.status)} px-3 py-1`}>
               {getOrderStatusLabel(order.status)}
+            </Badge>
+            <Badge variant="outline" className={`${getPaymentStatusColor(order.paymentStatus)} px-3 py-1`}>
+              {getPaymentStatusLabel(order.paymentStatus)}
+            </Badge>
+            <Badge variant="outline" className={`${getFulfillmentStatusColor(order.fulfillmentStatus)} px-3 py-1`}>
+              {getFulfillmentStatusLabel(order.fulfillmentStatus)}
             </Badge>
           </div>
 
@@ -191,6 +204,17 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                     </div>
                   )
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Tracking number */}
+          {order.trackingNumber && (
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-center gap-3">
+              <Truck className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Номер ТТН</p>
+                <p className="text-sm text-muted-foreground">{order.trackingNumber}</p>
               </div>
             </div>
           )}

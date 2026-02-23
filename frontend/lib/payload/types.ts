@@ -345,6 +345,69 @@ export interface OrderItem {
   thumbnail?: string
 }
 
+// ─── Order status labels & colors (single source of truth) ──────
+
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+  pending: 'В обробці',
+  completed: 'Виконано',
+  canceled: 'Скасовано',
+  requires_action: 'Потребує дій',
+  archived: 'Архів',
+}
+
+export const ORDER_STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-500/10 text-yellow-600',
+  completed: 'bg-success/10 text-success',
+  canceled: 'bg-muted text-muted-foreground',
+  requires_action: 'bg-orange-500/10 text-orange-600',
+  archived: 'bg-muted text-muted-foreground',
+}
+
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  awaiting: 'Очікує оплати',
+  paid: 'Оплачено',
+  refunded: 'Повернено',
+}
+
+export const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  awaiting: 'bg-yellow-500/10 text-yellow-600',
+  paid: 'bg-success/10 text-success',
+  refunded: 'bg-muted text-muted-foreground',
+}
+
+export const FULFILLMENT_STATUS_LABELS: Record<string, string> = {
+  not_fulfilled: 'Не відправлено',
+  shipped: 'Відправлено',
+  delivered: 'Доставлено',
+}
+
+export const FULFILLMENT_STATUS_COLORS: Record<string, string> = {
+  not_fulfilled: 'bg-yellow-500/10 text-yellow-600',
+  shipped: 'bg-blue-500/10 text-blue-600',
+  delivered: 'bg-success/10 text-success',
+}
+
+// Hex colors for admin views (inline styles, no Tailwind)
+export const ORDER_STATUS_HEX: Record<string, string> = {
+  pending: '#e6a84c',
+  completed: '#5ba882',
+  canceled: '#d4a5a5',
+  requires_action: '#c4855a',
+  archived: '#9ba5ab',
+}
+
+export const PAYMENT_STATUS_HEX: Record<string, string> = {
+  awaiting: '#e6a84c',
+  paid: '#5ba882',
+  refunded: '#d4a5a5',
+}
+
+export const FULFILLMENT_STATUS_HEX: Record<string, string> = {
+  not_fulfilled: '#e6a84c',
+  shipped: '#5b8ec4',
+  delivered: '#5ba882',
+}
+
 export interface PayloadOrder {
   id: number | string
   displayId: number

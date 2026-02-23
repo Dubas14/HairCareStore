@@ -2,6 +2,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_HEX,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_HEX,
+  FULFILLMENT_STATUS_LABELS,
+  FULFILLMENT_STATUS_HEX,
+} from '@/lib/payload/types'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,25 +55,23 @@ interface OrderData {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = [
-  { value: 'pending', label: 'В обробцi', color: '#e6a84c' },
-  { value: 'completed', label: 'Виконано', color: '#5ba882' },
-  { value: 'canceled', label: 'Скасовано', color: '#d4a5a5' },
-  { value: 'requires_action', label: 'Потребує дій', color: '#c4855a' },
-  { value: 'archived', label: 'Архів', color: '#9ba5ab' },
-]
+const STATUS_OPTIONS = Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+  color: ORDER_STATUS_HEX[value] || '#9ba5ab',
+}))
 
-const PAYMENT_OPTIONS = [
-  { value: 'awaiting', label: 'Очікує', color: '#e6a84c' },
-  { value: 'paid', label: 'Оплачено', color: '#5ba882' },
-  { value: 'refunded', label: 'Повернено', color: '#d4a5a5' },
-]
+const PAYMENT_OPTIONS = Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+  color: PAYMENT_STATUS_HEX[value] || '#9ba5ab',
+}))
 
-const FULFILLMENT_OPTIONS = [
-  { value: 'not_fulfilled', label: 'Не відправлено', color: '#e6a84c' },
-  { value: 'shipped', label: 'Відправлено', color: '#5b8ec4' },
-  { value: 'delivered', label: 'Доставлено', color: '#5ba882' },
-]
+const FULFILLMENT_OPTIONS = Object.entries(FULFILLMENT_STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+  color: FULFILLMENT_STATUS_HEX[value] || '#9ba5ab',
+}))
 
 const PAYMENT_METHODS: Record<string, string> = {
   cod: 'Накладний платіж',

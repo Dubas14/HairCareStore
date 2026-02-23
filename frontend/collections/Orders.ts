@@ -1,4 +1,7 @@
 import type { CollectionConfig } from 'payload'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('orders')
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -65,6 +68,7 @@ export const Orders: CollectionConfig = {
         { label: 'Потребує дій', value: 'requires_action' },
         { label: 'Архів', value: 'archived' },
       ],
+      // Labels must match ORDER_STATUS_LABELS in lib/payload/types.ts
       admin: { position: 'sidebar' },
     },
     {
@@ -73,10 +77,11 @@ export const Orders: CollectionConfig = {
       type: 'select',
       defaultValue: 'awaiting',
       options: [
-        { label: 'Очікує', value: 'awaiting' },
+        { label: 'Очікує оплати', value: 'awaiting' },
         { label: 'Оплачено', value: 'paid' },
         { label: 'Повернено', value: 'refunded' },
       ],
+      // Labels must match PAYMENT_STATUS_LABELS in lib/payload/types.ts
       admin: { position: 'sidebar' },
     },
     {
@@ -254,9 +259,9 @@ export const Orders: CollectionConfig = {
               orderNumber: doc.displayId,
               trackingNumber: doc.trackingNumber,
               carrier: doc.shippingMethod || 'Нова Пошта',
-            }).catch((err: any) => console.error('[Email] Shipping notification failed:', err))
+            }).catch((err: unknown) => log.error('Shipping notification failed', err instanceof Error ? err : String(err)))
           } catch (err) {
-            console.error('[Email] Import failed:', err)
+            log.error('Email import failed', err instanceof Error ? err : String(err))
           }
         }
       },
