@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl"
 import { Menu, X, Search, ShoppingBag, User } from "lucide-react"
 import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
-import { LocaleSwitcher } from "@/components/locale-switcher"
 import { cn } from "@/lib/utils"
 
 // Magnetic Icon Button Component
@@ -20,6 +19,7 @@ function MagneticIconButton({
   ariaLabel,
   badge,
   dataCartIcon,
+  testId,
 }: {
   children: React.ReactNode
   onClick?: () => void
@@ -28,6 +28,7 @@ function MagneticIconButton({
   ariaLabel: string
   badge?: number
   dataCartIcon?: boolean
+  testId?: string
 }) {
   const ref = useRef<HTMLButtonElement | HTMLAnchorElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -80,6 +81,7 @@ function MagneticIconButton({
     "aria-label": ariaLabel,
     style,
     ...(dataCartIcon && { "data-cart-icon": true }),
+    ...(testId && { "data-testid": testId }),
   }
 
   const content = (
@@ -193,6 +195,7 @@ export function Header() {
 
   return (
     <header
+      data-testid="site-header"
       className={cn(
         "sticky top-0 z-50 transition-all duration-500",
         scrolled
@@ -292,9 +295,7 @@ export function Header() {
 
           {/* Right side icons */}
           <div className="flex items-center gap-1">
-            <LocaleSwitcher />
-
-            <MagneticIconButton onClick={openSearch} ariaLabel={tCommon('search')}>
+            <MagneticIconButton onClick={openSearch} ariaLabel={tCommon('search')} testId="search-button">
               <Search className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
             </MagneticIconButton>
 
@@ -311,6 +312,7 @@ export function Header() {
               ariaLabel={t('cart')}
               badge={itemCount}
               dataCartIcon
+              testId="cart-button"
             >
               <ShoppingBag className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
             </MagneticIconButton>
