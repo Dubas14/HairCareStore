@@ -8,13 +8,6 @@ const log = createLogger('cron:abandoned-carts')
 
 const CRON_SECRET = process.env.CRON_SECRET
 
-// Thresholds for sending abandoned cart emails (in hours)
-const EMAIL_THRESHOLDS = [
-  { hours: 1, emailNumber: 1 },   // 1st email after 1 hour
-  { hours: 24, emailNumber: 2 },  // 2nd email after 24 hours
-  { hours: 72, emailNumber: 3 },  // 3rd email after 72 hours
-]
-
 export async function GET(request: NextRequest) {
   // Verify auth
   const authHeader = request.headers.get('authorization')
@@ -27,7 +20,31 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     let totalSent = 0
 
-    for (const threshold of EMAIL_THRESHOLDS) {
+    // Read configurable thresholds from email-settings global
+    let emailThresholds = [
+      { hours: 1, emailNumber: 1 },
+      { hours: 24, emailNumber: 2 },
+      { hours: 72, emailNumber: 3 },
+    ]
+    try {
+      const settings = await payload.findGlobal({ slug: 'email-settings' })
+      const cfg = settings.abandonedCartConfig as {
+        firstEmailHours?: number
+        secondEmailHours?: number
+        thirdEmailHours?: number
+      } | undefined
+      if (cfg) {
+        emailThresholds = [
+          { hours: cfg.firstEmailHours || 1, emailNumber: 1 },
+          { hours: cfg.secondEmailHours || 24, emailNumber: 2 },
+          { hours: cfg.thirdEmailHours || 72, emailNumber: 3 },
+        ]
+      }
+    } catch {
+      // use defaults if settings unavailable
+    }
+
+    for (const threshold of emailThresholds) {
       const cutoff = new Date(now.getTime() - threshold.hours * 60 * 60 * 1000)
 
       // Find active carts that:

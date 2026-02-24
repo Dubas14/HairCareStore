@@ -7,8 +7,28 @@ import { ShippingNotification } from './templates/shipping-notification'
 import { AbandonedCart } from './templates/abandoned-cart'
 import { EmailVerification } from './templates/email-verification'
 import { PriceDropEmail } from './templates/price-drop'
+import { ReviewRequest } from './templates/review-request'
+import { BackInStock } from './templates/back-in-stock'
+import { LoyaltyLevelUp } from './templates/loyalty-level-up'
+import { NewsletterConfirmation } from './templates/newsletter-confirmation'
 import { getImageUrl } from '@/lib/payload/types'
 import type { PayloadProduct, CartItem } from '@/lib/payload/types'
+
+// ─── Email Settings Guard ─────────────────────────────────────
+
+async function isEmailEnabled(type: string): Promise<boolean> {
+  try {
+    const { getPayload } = await import('payload')
+    const cfg = (await import('@payload-config')).default
+    const payload = await getPayload({ config: cfg })
+    const settings = await payload.findGlobal({ slug: 'email-settings' })
+    if (!settings.isActive) return false
+    const types = settings.emailTypes as Record<string, boolean> | undefined
+    return types?.[type] !== false
+  } catch {
+    return true // fail open — send if settings unavailable
+  }
+}
 
 // ─── Order Confirmation Email ──────────────────────────────────
 
@@ -28,6 +48,8 @@ interface OrderEmailData {
 }
 
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
+  if (!(await isEmailEnabled('orderConfirmation'))) return { success: false, error: 'Disabled' }
+
   const items = data.items.map((item) => {
     const product = typeof item.product === 'object' ? (item.product as PayloadProduct) : null
     return {
@@ -65,6 +87,8 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 // ─── Welcome Email ─────────────────────────────────────────────
 
 export async function sendWelcomeEmail(email: string, customerName: string) {
+  if (!(await isEmailEnabled('welcome'))) return { success: false, error: 'Disabled' }
+
   return sendEmail({
     to: email,
     subject: 'Вітаємо в HAIR LAB!',
@@ -86,6 +110,8 @@ interface ShippingEmailData {
 }
 
 export async function sendShippingNotificationEmail(data: ShippingEmailData) {
+  if (!(await isEmailEnabled('shippingNotification'))) return { success: false, error: 'Disabled' }
+
   return sendEmail({
     to: data.email,
     subject: `Замовлення #${data.orderNumber} відправлено — HAIR LAB`,
@@ -117,6 +143,8 @@ interface AbandonedCartEmailData {
 }
 
 export async function sendAbandonedCartEmail(data: AbandonedCartEmailData) {
+  if (!(await isEmailEnabled('abandonedCart'))) return { success: false, error: 'Disabled' }
+
   const items = data.items.map((item) => {
     const product = typeof item.product === 'object' ? (item.product as PayloadProduct) : null
     return {
@@ -172,6 +200,7 @@ interface PriceDropEmailData {
 }
 
 export async function sendPriceDropEmail(data: PriceDropEmailData) {
+  if (!(await isEmailEnabled('priceDrop'))) return { success: false, error: 'Disabled' }
   if (data.items.length === 0) return { success: false, error: 'No items' }
 
   return sendEmail({
@@ -182,5 +211,107 @@ export async function sendPriceDropEmail(data: PriceDropEmailData) {
       items: data.items,
     }),
     tags: [{ name: 'type', value: 'price-drop' }],
+  })
+}
+
+// ─── Review Request Email ─────────────────────────────────────
+
+interface ReviewRequestEmailData {
+  email: string
+  customerName: string
+  orderNumber: number
+  items: Array<{
+    title: string
+    handle: string
+    imageUrl?: string
+  }>
+}
+
+export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
+  if (!(await isEmailEnabled('reviewRequest'))) return { success: false, error: 'Disabled' }
+  if (data.items.length === 0) return { success: false, error: 'No items' }
+
+  return sendEmail({
+    to: data.email,
+    subject: `Як вам товари із замовлення #${data.orderNumber}? — HAIR LAB`,
+    react: ReviewRequest({
+      customerName: data.customerName,
+      orderNumber: data.orderNumber,
+      items: data.items,
+    }),
+    tags: [
+      { name: 'type', value: 'review-request' },
+      { name: 'order', value: String(data.orderNumber) },
+    ],
+  })
+}
+
+// ─── Back in Stock Email ──────────────────────────────────────
+
+interface BackInStockEmailData {
+  email: string
+  customerName: string
+  items: Array<{
+    title: string
+    handle: string
+    imageUrl?: string
+    price: number
+  }>
+}
+
+export async function sendBackInStockEmail(data: BackInStockEmailData) {
+  if (!(await isEmailEnabled('backInStock'))) return { success: false, error: 'Disabled' }
+  if (data.items.length === 0) return { success: false, error: 'No items' }
+
+  return sendEmail({
+    to: data.email,
+    subject: `${data.items[0].title} знову в наявності — HAIR LAB`,
+    react: BackInStock({
+      customerName: data.customerName,
+      items: data.items,
+    }),
+    tags: [{ name: 'type', value: 'back-in-stock' }],
+  })
+}
+
+// ─── Loyalty Level Up Email ───────────────────────────────────
+
+interface LoyaltyLevelUpEmailData {
+  email: string
+  customerName: string
+  newLevel: 'silver' | 'gold'
+  pointsBalance: number
+  multiplier: number
+}
+
+export async function sendLoyaltyLevelUpEmail(data: LoyaltyLevelUpEmailData) {
+  if (!(await isEmailEnabled('loyaltyLevelUp'))) return { success: false, error: 'Disabled' }
+
+  return sendEmail({
+    to: data.email,
+    subject: `Вітаємо! Ви досягли ${data.newLevel === 'gold' ? 'Золотого' : 'Срібного'} рівня — HAIR LAB`,
+    react: LoyaltyLevelUp({
+      customerName: data.customerName,
+      newLevel: data.newLevel,
+      pointsBalance: data.pointsBalance,
+      multiplier: data.multiplier,
+    }),
+    tags: [{ name: 'type', value: 'loyalty-level-up' }],
+  })
+}
+
+// ─── Newsletter Confirmation Email ────────────────────────────
+
+export async function sendNewsletterConfirmationEmail(email: string, confirmToken: string) {
+  if (!(await isEmailEnabled('newsletterConfirmation'))) return { success: false, error: 'Disabled' }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hairlab.store'
+  const confirmUrl = `${baseUrl}/api/newsletter/confirm?token=${confirmToken}`
+
+  return sendEmail({
+    to: email,
+    subject: 'Підтвердіть підписку на розсилку — HAIR LAB',
+    react: NewsletterConfirmation({ confirmUrl }),
+    tags: [{ name: 'type', value: 'newsletter-confirmation' }],
   })
 }

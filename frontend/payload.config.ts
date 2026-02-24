@@ -29,6 +29,7 @@ import { LoyaltySettings } from './globals/LoyaltySettings'
 import { ShippingConfig } from './globals/ShippingConfig'
 import { SiteSettings } from './globals/SiteSettings'
 import { InventorySettings } from './globals/InventorySettings'
+import { EmailSettings } from './globals/EmailSettings'
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'default-secret-change-me-in-production',
@@ -83,6 +84,7 @@ export default buildConfig({
     ShippingConfig,
     SiteSettings,
     InventorySettings,
+    EmailSettings,
   ],
 
   admin: {

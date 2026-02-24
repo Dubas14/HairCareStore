@@ -14,6 +14,28 @@ export interface SendEmailOptions {
   tags?: Array<{ name: string; value: string }>
 }
 
+/** Fire-and-forget: increment totalSent counter in email-settings global */
+async function incrementEmailStats() {
+  try {
+    const { getPayload } = await import('payload')
+    const cfg = (await import('@payload-config')).default
+    const payload = await getPayload({ config: cfg })
+    const current = await payload.findGlobal({ slug: 'email-settings' })
+    const stats = current.stats as { totalSent?: number } | undefined
+    await payload.updateGlobal({
+      slug: 'email-settings',
+      data: {
+        stats: {
+          totalSent: (stats?.totalSent || 0) + 1,
+          lastSentAt: new Date().toISOString(),
+        },
+      },
+    })
+  } catch {
+    // non-critical — don't block email delivery
+  }
+}
+
 export async function sendEmail(options: SendEmailOptions) {
   if (!process.env.RESEND_API_KEY) {
     log.warn('RESEND_API_KEY not set, skipping email', options.subject)
@@ -33,6 +55,11 @@ export async function sendEmail(options: SendEmailOptions) {
     if (error) {
       log.error('Send failed', error)
       return { success: false, error: error.message }
+    }
+
+    // Fire-and-forget stats update
+    if (data?.id) {
+      incrementEmailStats()
     }
 
     return { success: true, id: data?.id }
