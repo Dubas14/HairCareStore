@@ -5,12 +5,33 @@ export const ShippingConfig: GlobalConfig = {
   label: 'Доставка',
   admin: {
     group: 'Налаштування',
+    hidden: true,
   },
   access: {
     read: () => true,
     update: ({ req }) => req?.user?.collection === 'users',
   },
   fields: [
+    {
+      name: 'novaPoshtaSender',
+      label: 'Нова Пошта — відправник',
+      type: 'group',
+      admin: { description: 'Для розрахунку тарифів та створення ТТН' },
+      fields: [
+        { name: 'cityRef', type: 'text', label: 'Ref міста' },
+        { name: 'cityName', type: 'text', label: 'Назва міста' },
+        { name: 'warehouseRef', type: 'text', label: 'Ref відділення' },
+        { name: 'warehouseName', type: 'text', label: 'Назва відділення' },
+        { name: 'senderPhone', type: 'text', label: 'Телефон відправника' },
+      ],
+    },
+    {
+      name: 'defaultParcelWeight',
+      type: 'number',
+      label: 'Вага за замовчуванням (кг)',
+      defaultValue: 0.5,
+      min: 0.1,
+    },
     {
       name: 'zones',
       label: 'Зони доставки',

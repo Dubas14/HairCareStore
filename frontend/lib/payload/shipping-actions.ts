@@ -8,6 +8,8 @@ import type {
   ShippingMethod as PayloadShippingMethod,
   PayloadOrder,
 } from './types'
+import { trackShipment, isNovaPoshtaConfigured } from '@/lib/shipping/nova-poshta'
+import type { TrackingResult } from '@/lib/shipping/nova-poshta-types'
 
 export interface ShippingMethod {
   methodId: string
@@ -153,4 +155,15 @@ export async function trackOrder(orderNumber: number, email: string): Promise<{
   } catch {
     return { found: false }
   }
+}
+
+/**
+ * Track Nova Poshta shipment by TTN.
+ * Returns null if NP is not configured or tracking fails.
+ */
+export async function trackNovaPoshtaShipment(ttn: string): Promise<TrackingResult | null> {
+  const configured = await isNovaPoshtaConfigured()
+  if (!configured) return null
+
+  return trackShipment(ttn)
 }

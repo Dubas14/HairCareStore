@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Package } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { useState, useEffect, useCallback } from 'react'
+import { Package, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { shippingSchema, flattenZodErrors } from '@/lib/validations/schemas'
 import { AddressSelect } from './address-select'
+import { CityAutocomplete } from './city-autocomplete'
+import { WarehouseSelect } from './warehouse-select'
 import type { Address } from '@/lib/hooks/use-addresses'
+import type { ShippingRateResult } from '@/lib/shipping/nova-poshta-types'
 
 interface ShippingOption {
   methodId: string
@@ -16,10 +18,12 @@ interface ShippingOption {
   freeAbove?: number
 }
 
-interface ShippingFormData {
+export interface ShippingFormData {
   city: string
   warehouse: string
   shippingMethodId: string
+  cityRef?: string
+  warehouseRef?: string
 }
 
 interface ShippingFormProps {
@@ -45,9 +49,13 @@ export function ShippingForm({
     city: initialData?.city || '',
     warehouse: initialData?.warehouse || '',
     shippingMethodId: initialData?.shippingMethodId || (shippingOptions.length > 0 ? shippingOptions[0].methodId : ''),
+    cityRef: initialData?.cityRef || '',
+    warehouseRef: initialData?.warehouseRef || '',
   })
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>()
   const [autoFilled, setAutoFilled] = useState(false)
+  const [dynamicRate, setDynamicRate] = useState<ShippingRateResult | null>(null)
+  const [isRateLoading, setIsRateLoading] = useState(false)
 
   // Set default shipping method when options load
   useEffect(() => {
@@ -79,9 +87,44 @@ export function ShippingForm({
         ...prev,
         city: initialData.city || '',
         warehouse: initialData.warehouse || '',
+        cityRef: initialData.cityRef || prev.cityRef || '',
+        warehouseRef: initialData.warehouseRef || prev.warehouseRef || '',
       }))
     }
-  }, [initialData?.city, initialData?.warehouse])
+  }, [initialData?.city, initialData?.warehouse, initialData?.cityRef, initialData?.warehouseRef])
+
+  // Fetch dynamic shipping rate when cityRef changes
+  const fetchRate = useCallback(async (cityRef: string) => {
+    if (!cityRef) {
+      setDynamicRate(null)
+      return
+    }
+
+    setIsRateLoading(true)
+    try {
+      const res = await fetch('/api/nova-poshta/shipping-rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientCityRef: cityRef }),
+      })
+      const data = await res.json()
+      if (data.rate && !data.fallback) {
+        setDynamicRate(data.rate)
+      } else {
+        setDynamicRate(null)
+      }
+    } catch {
+      setDynamicRate(null)
+    } finally {
+      setIsRateLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (formData.cityRef) {
+      fetchRate(formData.cityRef)
+    }
+  }, [formData.cityRef, fetchRate])
 
   const handleAddressSelect = (address: Address) => {
     setSelectedAddressId(address.id)
@@ -89,18 +132,36 @@ export function ShippingForm({
       ...prev,
       city: address.city || '',
       warehouse: address.address1 || '',
+      cityRef: '',
+      warehouseRef: '',
     }))
   }
 
-  const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({})
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name as keyof ShippingFormData]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }))
+  const handleCityChange = (name: string, ref: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      city: name,
+      cityRef: ref,
+      // Clear warehouse when city changes
+      ...(ref !== prev.cityRef ? { warehouse: '', warehouseRef: '' } : {}),
+    }))
+    if (errors.city) {
+      setErrors((prev) => ({ ...prev, city: undefined }))
     }
   }
+
+  const handleWarehouseChange = (description: string, ref: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      warehouse: description,
+      warehouseRef: ref,
+    }))
+    if (errors.warehouse) {
+      setErrors((prev) => ({ ...prev, warehouse: undefined }))
+    }
+  }
+
+  const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({})
 
   const validate = () => {
     const dataToValidate = {
@@ -121,6 +182,40 @@ export function ShippingForm({
     if (validate()) {
       onSubmit(formData)
     }
+  }
+
+  // Build price display for shipping option
+  const getShippingPriceLabel = (option: ShippingOption) => {
+    // If we have a dynamic rate and this is a Nova Poshta option
+    if (dynamicRate && option.name.toLowerCase().includes('пошт')) {
+      return (
+        <span className="text-sm text-muted-foreground">
+          {`~${Math.round(dynamicRate.cost)} ₴`}
+          {dynamicRate.estimatedDeliveryDate && (
+            <span className="ml-1">
+              (до {dynamicRate.estimatedDeliveryDate})
+            </span>
+          )}
+        </span>
+      )
+    }
+
+    if (isRateLoading && option.name.toLowerCase().includes('пошт')) {
+      return (
+        <span className="text-sm text-muted-foreground flex items-center gap-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Розраховуємо...
+        </span>
+      )
+    }
+
+    return (
+      <span className="text-sm text-muted-foreground">
+        {option.freeAbove
+          ? `Безкоштовно від ${option.freeAbove} ₴, інакше ${option.price} ₴`
+          : `${option.price} ₴`}
+      </span>
+    )
   }
 
   return (
@@ -166,11 +261,7 @@ export function ShippingForm({
                 </div>
                 <div className="flex-1">
                   <span className="font-medium block">{option.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {option.freeAbove
-                      ? `Безкоштовно від ${option.freeAbove} ₴, інакше ${option.price} ₴`
-                      : `${option.price} ₴`}
-                  </span>
+                  {getShippingPriceLabel(option)}
                 </div>
                 <div
                   className={cn(
@@ -202,26 +293,31 @@ export function ShippingForm({
           </div>
           <div className="flex-1">
             <span className="font-medium block">Нова Пошта</span>
-            <span className="text-sm text-muted-foreground">
-              Доставка 2-3 робочі дні, за тарифами перевізника
-            </span>
+            {dynamicRate ? (
+              <span className="text-sm text-muted-foreground">
+                {`~${Math.round(dynamicRate.cost)} ₴`}
+                {dynamicRate.estimatedDeliveryDate && ` (до ${dynamicRate.estimatedDeliveryDate})`}
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                Доставка 2-3 робочі дні, за тарифами перевізника
+              </span>
+            )}
           </div>
         </div>
       )}
 
       {/* City */}
       <div className="space-y-2">
-        <label htmlFor="city" className="text-sm font-medium">
+        <label className="text-sm font-medium">
           Місто <span className="text-destructive">*</span>
         </label>
-        <Input
-          id="city"
-          name="city"
+        <CityAutocomplete
           value={formData.city}
-          onChange={handleChange}
-          placeholder="Введіть назву міста"
-          className={errors.city ? 'border-destructive' : ''}
+          cityRef={formData.cityRef || ''}
+          onChange={handleCityChange}
           disabled={isLoading}
+          error={errors.city}
         />
         {errors.city && (
           <p className="text-sm text-destructive" role="alert">{errors.city}</p>
@@ -230,24 +326,20 @@ export function ShippingForm({
 
       {/* Nova Poshta Warehouse */}
       <div className="space-y-2">
-        <label htmlFor="warehouse" className="text-sm font-medium">
+        <label className="text-sm font-medium">
           Відділення / Поштомат <span className="text-destructive">*</span>
         </label>
-        <Input
-          id="warehouse"
-          name="warehouse"
+        <WarehouseSelect
+          cityRef={formData.cityRef || ''}
           value={formData.warehouse}
-          onChange={handleChange}
-          placeholder="Номер або адреса відділення"
-          className={errors.warehouse ? 'border-destructive' : ''}
+          warehouseRef={formData.warehouseRef || ''}
+          onChange={handleWarehouseChange}
           disabled={isLoading}
+          error={errors.warehouse}
         />
         {errors.warehouse && (
           <p className="text-sm text-destructive" role="alert">{errors.warehouse}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Наприклад: Відділення №5, вул. Шевченка, 10
-        </p>
       </div>
 
       {/* Actions */}

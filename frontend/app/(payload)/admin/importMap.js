@@ -29,6 +29,9 @@ import { default as default_c81e05de9047729fd3c28fbbffa7b1e3 } from '../../../co
 import { default as default_3f6afdc7021b79eaf72ff30cbdb2c6ff } from '../../../components/payload/views/products/ProductsListView'
 import { default as default_4270add170fbe6f5620be44fb9a3b5fa } from '../../../components/payload/views/customers/CustomerEditView'
 import { default as default_444dad1ce1aa758502d26222a46379bf } from '../../../components/payload/views/orders/OrderEditView'
+import { default as default_8ca8ba9048fde2baa7095ae18e506722 } from '../../../components/payload/loyalty/LoyaltySettingsGlobalView'
+import { default as default_d9a7b98f6ad122721db1ce6f803e75e3 } from '../../../components/payload/inventory/InventorySettingsView'
+import { default as default_b5505723f7dad8cd0d96d3480398785b } from '../../../components/payload/email/EmailSettingsView'
 import { default as default_6f64da3861999de587a3ed586829047d } from '../../../components/payload/Icon'
 import { default as default_c6fe5946efe4ec376b0411c30a8f0d79 } from '../../../components/payload/Logo'
 import { default as default_e52e6b4fb317d83f3750ef04532260f8 } from '../../../components/payload/AfterLogin'
@@ -72,6 +75,9 @@ export const importMap = {
   "/components/payload/views/products/ProductsListView#default": default_3f6afdc7021b79eaf72ff30cbdb2c6ff,
   "/components/payload/views/customers/CustomerEditView#default": default_4270add170fbe6f5620be44fb9a3b5fa,
   "/components/payload/views/orders/OrderEditView#default": default_444dad1ce1aa758502d26222a46379bf,
+  "/components/payload/loyalty/LoyaltySettingsGlobalView#default": default_8ca8ba9048fde2baa7095ae18e506722,
+  "/components/payload/inventory/InventorySettingsView#default": default_d9a7b98f6ad122721db1ce6f803e75e3,
+  "/components/payload/email/EmailSettingsView#default": default_b5505723f7dad8cd0d96d3480398785b,
   "/components/payload/Icon#default": default_6f64da3861999de587a3ed586829047d,
   "/components/payload/Logo#default": default_c6fe5946efe4ec376b0411c30a8f0d79,
   "/components/payload/AfterLogin#default": default_e52e6b4fb317d83f3750ef04532260f8,

@@ -5,6 +5,13 @@ export const InventorySettings: GlobalConfig = {
   label: 'Налаштування складу',
   admin: {
     group: 'Налаштування',
+    components: {
+      views: {
+        edit: {
+          root: { Component: '/components/payload/inventory/InventorySettingsView' },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

@@ -58,6 +58,8 @@ export const shippingSchema = z.object({
   city: z.string().min(1, "Обов'язкове поле").max(100, 'Максимум 100 символів'),
   warehouse: z.string().min(1, "Обов'язкове поле"),
   shippingMethodId: z.string().min(1, 'Оберіть спосіб доставки'),
+  cityRef: z.string().optional(),
+  warehouseRef: z.string().optional(),
 })
 
 export type ShippingInput = z.infer<typeof shippingSchema>

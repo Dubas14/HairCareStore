@@ -1687,6 +1687,17 @@ aside.nav .nav__link {
   gap: 10px !important;
 }
 
+/* ── afterNavLinks custom group labels — match Payload nav-group spacing ── */
+aside.nav .hl-nav-group-label {
+  color:          var(--color-base-400) !important;
+  font-size:      10px;
+  font-weight:    600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  padding:        10px 20px 6px;
+  margin:         0;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    DARK THEME — Tailwind utility overrides

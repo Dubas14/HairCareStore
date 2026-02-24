@@ -5,6 +5,13 @@ export const LoyaltySettings: GlobalConfig = {
   label: 'Налаштування лояльності',
   admin: {
     group: 'Лояльність',
+    components: {
+      views: {
+        edit: {
+          root: { Component: '/components/payload/loyalty/LoyaltySettingsGlobalView' },
+        },
+      },
+    },
   },
   access: {
     read: () => true,

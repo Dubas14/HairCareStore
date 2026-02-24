@@ -2,9 +2,20 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Package, Truck, CheckCircle, Clock, ArrowLeft } from 'lucide-react'
+import {
+  Search,
+  Package,
+  Truck,
+  CheckCircle,
+  Clock,
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  ArrowRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { trackOrder } from '@/lib/payload/shipping-actions'
+import { trackOrder, trackNovaPoshtaShipment } from '@/lib/payload/shipping-actions'
+import type { TrackingResult } from '@/lib/shipping/nova-poshta-types'
 
 interface OrderTrackingResult {
   displayId: number
@@ -32,7 +43,16 @@ const fulfillmentLabels: Record<string, string> = {
   delivered: 'Доставлено',
 }
 
-function getStatusStep(fulfillmentStatus: string): number {
+/** NP tracking progress steps */
+const npProgressSteps = [
+  { icon: Clock, label: 'Створено' },
+  { icon: Package, label: 'Прийнято' },
+  { icon: Truck, label: 'В дорозі' },
+  { icon: MapPin, label: 'На відділенні' },
+  { icon: CheckCircle, label: 'Отримано' },
+]
+
+function getBasicStep(fulfillmentStatus: string): number {
   switch (fulfillmentStatus) {
     case 'not_fulfilled': return 1
     case 'shipped': return 2
@@ -45,6 +65,7 @@ export default function TrackingPage() {
   const [orderNumber, setOrderNumber] = useState('')
   const [email, setEmail] = useState('')
   const [result, setResult] = useState<OrderTrackingResult | null>(null)
+  const [npTracking, setNpTracking] = useState<TrackingResult | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,6 +75,7 @@ export default function TrackingPage() {
     setError(null)
     setNotFound(false)
     setResult(null)
+    setNpTracking(null)
 
     const num = parseInt(orderNumber)
     if (!num || !email) {
@@ -66,6 +88,12 @@ export default function TrackingPage() {
       const data = await trackOrder(num, email)
       if (data.found && data.order) {
         setResult(data.order)
+
+        // Try NP real-time tracking if TTN exists
+        if (data.order.trackingNumber) {
+          const npData = await trackNovaPoshtaShipment(data.order.trackingNumber)
+          setNpTracking(npData)
+        }
       } else {
         setNotFound(true)
       }
@@ -76,8 +104,11 @@ export default function TrackingPage() {
     }
   }
 
-  const step = result ? getStatusStep(result.fulfillmentStatus) : 0
   const currencySymbol = result?.currency === 'EUR' ? '€' : result?.currency === 'PLN' ? 'zł' : '₴'
+
+  // Determine which progress to show
+  const hasNpTracking = npTracking && npTracking.step > 0
+  const progressStep = hasNpTracking ? npTracking.step : (result ? getBasicStep(result.fulfillmentStatus) : 0)
 
   return (
     <main className="min-h-screen bg-background">
@@ -173,35 +204,83 @@ export default function TrackingPage() {
             </div>
 
             {/* Progress Steps */}
-            <div className="flex items-center justify-between mb-8">
-              {[
-                { icon: Clock, label: 'В обробці' },
-                { icon: Truck, label: 'Відправлено' },
-                { icon: CheckCircle, label: 'Доставлено' },
-              ].map((s, i) => {
-                const active = step > i
-                const current = step === i + 1
-                return (
-                  <div key={i} className="flex flex-col items-center flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                      active || current ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                    }`}>
-                      <s.icon className="w-5 h-5" />
+            {hasNpTracking ? (
+              /* NP detailed progress (5 steps) */
+              <div className="mb-8">
+                <div className="flex items-center justify-between">
+                  {npProgressSteps.map((s, i) => {
+                    const active = progressStep > i
+                    const current = progressStep === i + 1
+                    return (
+                      <div key={i} className="flex flex-col items-center flex-1 relative">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                          active || current ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <s.icon className="w-5 h-5" />
+                        </div>
+                        <span className={`text-[10px] sm:text-xs text-center leading-tight ${
+                          active || current ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                        }`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* NP status label */}
+                <div className="mt-4 p-3 bg-primary/5 rounded-md text-center">
+                  <p className="text-sm font-medium text-primary">{npTracking.stepLabel}</p>
+                  {npTracking.status !== npTracking.stepLabel && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{npTracking.status}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Basic 3-step progress */
+              <div className="flex items-center justify-between mb-8">
+                {[
+                  { icon: Clock, label: 'В обробці' },
+                  { icon: Truck, label: 'Відправлено' },
+                  { icon: CheckCircle, label: 'Доставлено' },
+                ].map((s, i) => {
+                  const active = progressStep > i
+                  const current = progressStep === i + 1
+                  return (
+                    <div key={i} className="flex flex-col items-center flex-1">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                        active || current ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        <s.icon className="w-5 h-5" />
+                      </div>
+                      <span className={`text-xs text-center ${
+                        active || current ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                      }`}>
+                        {s.label}
+                      </span>
                     </div>
-                    <span className={`text-xs text-center ${
-                      active || current ? 'font-semibold text-foreground' : 'text-muted-foreground'
-                    }`}>
-                      {s.label}
-                    </span>
-                    {i < 2 && (
-                      <div className={`hidden sm:block absolute h-0.5 w-full ${
-                        active ? 'bg-primary' : 'bg-muted'
-                      }`} />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* NP Route info */}
+            {hasNpTracking && (npTracking.senderCity || npTracking.recipientCity) && (
+              <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
+                <span>{npTracking.senderCity}</span>
+                <ArrowRight className="w-4 h-4" />
+                <span>{npTracking.recipientCity}</span>
+              </div>
+            )}
+
+            {/* NP Delivery date */}
+            {hasNpTracking && npTracking.scheduledDeliveryDate && (
+              <div className="flex items-center justify-center gap-2 mb-4 text-sm">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>
+                  Очікувана доставка: <span className="font-medium">{npTracking.scheduledDeliveryDate}</span>
+                </span>
+              </div>
+            )}
 
             {/* Details */}
             <div className="space-y-3 text-sm border-t pt-4">
@@ -230,6 +309,12 @@ export default function TrackingPage() {
                   >
                     {result.trackingNumber}
                   </a>
+                </div>
+              )}
+              {hasNpTracking && npTracking.actualDeliveryDate && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Дата отримання</span>
+                  <span className="font-medium">{npTracking.actualDeliveryDate}</span>
                 </div>
               )}
             </div>

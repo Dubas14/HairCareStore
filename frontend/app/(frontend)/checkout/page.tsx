@@ -45,6 +45,8 @@ interface ShippingData {
   city: string
   warehouse: string
   shippingMethodId: string
+  cityRef?: string
+  warehouseRef?: string
 }
 
 interface PaymentData {
@@ -313,13 +315,16 @@ export default function CheckoutPage() {
     setIsProcessing(true)
 
     try {
-      // Update address with city and warehouse
+      // Update address with city and warehouse (store refs as metadata in address1)
+      const warehouseInfo = data.warehouseRef
+        ? `НП: ${data.warehouse} [ref:${data.warehouseRef}]`
+        : `НП: ${data.warehouse}`
       const addressData = {
         firstName: checkoutData.contact?.firstName || '',
         lastName: checkoutData.contact?.lastName || '',
         phone: checkoutData.contact?.phone,
         city: data.city,
-        address1: `НП: ${data.warehouse}`,
+        address1: warehouseInfo,
         countryCode: 'ua',
         postalCode: '00000',
       }
