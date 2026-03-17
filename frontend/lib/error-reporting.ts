@@ -18,18 +18,19 @@ interface ErrorContext {
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let sentryModule: any = null
+// eslint-disable-next-line @next/next/no-assign-module-variable
+let sentryModule: Record<string, unknown> | null = null
 let sentryChecked = false
 
-function getSentry(): any {
+function getSentry(): Record<string, unknown> | null {
   if (sentryChecked) return sentryModule
   sentryChecked = true
   if (!SENTRY_DSN) return null
   try {
     // Dynamic require — only resolves if @sentry/nextjs is installed
     sentryModule = require('@sentry/nextjs')
-    sentryModule.init({
+    const init = sentryModule?.init as ((config: Record<string, unknown>) => void) | undefined
+    init?.({
       dsn: SENTRY_DSN,
       environment: process.env.NODE_ENV,
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
@@ -39,7 +40,6 @@ function getSentry(): any {
   }
   return sentryModule
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Capture an error with optional context.
@@ -55,13 +55,15 @@ export function captureError(error: Error | string, context?: ErrorContext): voi
 
   // Try Sentry if DSN is configured
   const sentry = getSentry()
-  if (sentry?.captureException) {
-    sentry.withScope((scope: Record<string, (...args: unknown[]) => void>) => {
+  const captureException = sentry?.captureException as ((e: Error) => void) | undefined
+  const withScope = sentry?.withScope as ((cb: (scope: Record<string, (...args: unknown[]) => void>) => void) => void) | undefined
+  if (captureException && withScope) {
+    withScope((scope) => {
       if (context?.component) scope.setTag('component', context.component)
       if (context?.action) scope.setTag('action', context.action)
       if (context?.userId) scope.setUser({ id: String(context.userId) })
       if (context?.extra) scope.setExtras(context.extra)
-      sentry.captureException(err)
+      captureException(err)
     })
     return
   }
@@ -79,8 +81,9 @@ export function captureMessage(message: string, context?: ErrorContext): void {
   }
 
   const sentry = getSentry()
-  if (sentry?.captureMessage) {
-    sentry.captureMessage(message, { extra: context?.extra })
+  const sentryCaptureMessage = sentry?.captureMessage as ((msg: string, opts?: Record<string, unknown>) => void) | undefined
+  if (sentryCaptureMessage) {
+    sentryCaptureMessage(message, { extra: context?.extra })
     return
   }
 
