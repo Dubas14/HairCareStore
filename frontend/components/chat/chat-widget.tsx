@@ -20,7 +20,7 @@ function renderMessageContent(content: string): ReactNode[] {
     const line = lines[i]
 
     const numberedMatch = line.match(/^(\d+)[.)]\s+(.*)/)
-    const bulletMatch = line.match(/^[-•]\s+(.*)/) || line.match(/^\*\s+(?!\*)(.*)/)
+    const bulletMatch = line.match(/^[-•]\s+(.*)/)
 
     if (numberedMatch) {
       result.push(

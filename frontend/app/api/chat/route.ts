@@ -62,16 +62,16 @@ async function getProductContext(): Promise<ProductContext> {
           .filter(Boolean)
           .join(', ')
         const subtitle = p.subtitle ? ` — ${p.subtitle}` : ''
-        return `- ${p.title}${subtitle} | ${brandName} | ${price} грн | ${cats} | /products/${p.handle}`
+        return `- [${p.title}${subtitle}](/products/${p.handle}) | ${brandName} | ${price} грн | ${cats}`
       })
       .join('\n')
 
     const categories = (categoriesResult.docs as unknown as Category[])
-      .map((c) => `- ${c.name} (/categories/${c.slug})`)
+      .map((c) => `- [${c.name}](/categories/${c.slug})`)
       .join('\n')
 
     const brands = (brandsResult.docs as unknown as Brand[])
-      .map((b) => `- ${b.name} (/brands/${b.slug})`)
+      .map((b) => `- [${b.name}](/brands/${b.slug})`)
       .join('\n')
 
     cachedContext = { products, categories, brands, fetchedAt: Date.now() }
