@@ -46,7 +46,7 @@ function Slider({
   const maxPercent = ((localValue[1] - min) / (max - min)) * 100
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("slider-root space-y-4", className)}>
       {/* Values display */}
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{formatValue(localValue[0])}</span>
@@ -55,16 +55,16 @@ function Slider({
       </div>
 
       {/* Slider track */}
-      <div className="relative h-2">
+      <div className="relative h-5 px-1">
         {/* Background track */}
-        <div className="absolute inset-0 rounded-full bg-muted" />
+        <div className="absolute inset-x-1 top-1/2 h-2 -translate-y-1/2 rounded-full bg-muted" />
 
         {/* Active track */}
         <div
-          className="absolute h-full rounded-full bg-primary"
+          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary"
           style={{
-            left: `${minPercent}%`,
-            right: `${100 - maxPercent}%`,
+            left: `calc(${minPercent}% + 4px)`,
+            right: `calc(${100 - maxPercent}% + 4px)`,
           }}
         />
 
@@ -76,7 +76,7 @@ function Slider({
           step={step}
           value={localValue[0]}
           onChange={handleMinChange}
-          className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
+          className="slider-range absolute inset-y-0 left-1 right-1 w-[calc(100%-8px)] bg-transparent pointer-events-none"
         />
 
         {/* Max input */}
@@ -87,9 +87,55 @@ function Slider({
           step={step}
           value={localValue[1]}
           onChange={handleMaxChange}
-          className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
+          className="slider-range absolute inset-y-0 left-1 right-1 w-[calc(100%-8px)] bg-transparent pointer-events-none"
         />
       </div>
+
+      <style jsx>{`
+        .slider-root :global(.slider-range) {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+          outline: none;
+        }
+
+        .slider-root :global(.slider-range::-webkit-slider-runnable-track) {
+          height: 8px;
+          background: transparent;
+          border: 0;
+        }
+
+        .slider-root :global(.slider-range::-moz-range-track) {
+          height: 8px;
+          background: transparent;
+          border: 0;
+        }
+
+        .slider-root :global(.slider-range::-webkit-slider-thumb) {
+          -webkit-appearance: none;
+          appearance: none;
+          pointer-events: auto;
+          width: 20px;
+          height: 20px;
+          margin-top: -6px;
+          border-radius: 9999px;
+          border: 2px solid hsl(var(--background));
+          background: hsl(var(--primary));
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+        }
+
+        .slider-root :global(.slider-range::-moz-range-thumb) {
+          pointer-events: auto;
+          width: 20px;
+          height: 20px;
+          border-radius: 9999px;
+          border: 2px solid hsl(var(--background));
+          background: hsl(var(--primary));
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+        }
+      `}</style>
     </div>
   )
 }

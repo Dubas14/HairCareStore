@@ -113,8 +113,7 @@ export function CategoryPageClient({ initialCategory, slug }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Breadcrumb Navigation */}
+    <main className="min-h-screen bg-[linear-gradient(180deg,#fbf7f2_0%,#faf7f3_36%,#ffffff_100%)]">
       <div className="container mx-auto px-4 py-4">
         <Breadcrumb items={[
           { label: 'Каталог', href: '/shop' },
@@ -153,56 +152,52 @@ export function CategoryPageClient({ initialCategory, slug }: Props) {
       {/* All Products Section */}
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">
-            Всі товари
-          </h2>
+          <div className="mb-6 flex flex-col gap-4 rounded-[2rem] border border-black/8 bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,0.05)] md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/48">
+                Категорія
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground">
+                Всі товари
+              </h2>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              {isLoadingProducts ? (
+                'Підбираємо товари...'
+              ) : (
+                <>
+                  Знайдено{' '}
+                  <span className="font-medium text-foreground">{totalCount}</span>{' '}
+                  {totalCount === 1 ? 'товар' : totalCount < 5 ? 'товари' : 'товарів'}
+                </>
+              )}
+            </p>
+          </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar */}
             <FilterSidebar
               filters={filters}
               onFiltersChange={handleFiltersChange}
               maxPrice={5000}
-              className="w-full lg:w-64 flex-shrink-0"
+              className="w-full lg:w-[300px] flex-shrink-0"
               hideCategoryFilter
             />
 
-            {/* Main content */}
             <div className="flex-1">
-                {/* Toolbar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <p className="text-sm text-muted-foreground">
-                    {isLoadingProducts ? (
-                      'Завантаження...'
-                    ) : (
-                      <>
-                        Знайдено{' '}
-                        <span className="font-medium text-foreground">
-                          {totalCount}
-                        </span>{' '}
-                        {totalCount === 1
-                          ? 'товар'
-                          : totalCount < 5
-                          ? 'товари'
-                          : 'товарів'}
-                      </>
-                    )}
-                  </p>
+              <div className="mb-6 flex justify-end">
+                <SortSelect value={sortBy} onChange={handleSortChange} />
+              </div>
 
-                  <SortSelect value={sortBy} onChange={handleSortChange} />
-                </div>
+              <ProductGrid products={products} isLoading={isLoadingProducts} />
 
-                {/* Product Grid */}
-                <ProductGrid products={products} isLoading={isLoadingProducts} />
-
-                {/* Pagination */}
-                {!isLoadingProducts && totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                )}
+              {!isLoadingProducts && totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              )}
             </div>
           </div>
         </div>

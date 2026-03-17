@@ -27,29 +27,27 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   }
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+    setActiveIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))
   }
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+    setActiveIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))
   }
 
-  // If only one image, duplicate it for demo purposes
   const displayImages = images.length > 0 ? images : ['/placeholder.jpg']
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row gap-4">
-      {/* Thumbnails */}
-      <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:max-h-[500px] pb-2 lg:pb-0">
+    <div className="grid gap-4 lg:grid-cols-[110px_minmax(0,1fr)]">
+      <div className="order-2 flex gap-2 overflow-x-auto pb-2 lg:order-1 lg:flex-col lg:overflow-y-auto lg:pb-0">
         {displayImages.map((image, index) => (
           <button
             key={index}
             onClick={() => setActiveIndex(index)}
             className={cn(
-              "flex-shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-lg overflow-hidden border-2 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+              "flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-[1.3rem] border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               activeIndex === index
-                ? "border-primary"
-                : "border-transparent hover:border-muted-foreground/30"
+                ? "border-[#1A1A1A] bg-white shadow-[0_12px_24px_rgba(0,0,0,0.06)]"
+                : "border-black/8 bg-white hover:border-black/16"
             )}
             aria-label={`Перейти до зображення ${index + 1}`}
             aria-current={activeIndex === index}
@@ -57,36 +55,37 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             <Image
               src={image}
               alt={`${productName} - зображення ${index + 1}`}
-              width={100}
-              height={100}
+              width={88}
+              height={88}
               loading="lazy"
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
           </button>
         ))}
       </div>
 
-      {/* Main Image */}
-      <div className="relative flex-1">
+      <div className="order-1 lg:order-2">
         <div
           ref={imageRef}
           className={cn(
-            "relative aspect-[3/4] lg:aspect-square max-h-[60vh] lg:max-h-none rounded-card overflow-hidden bg-muted cursor-zoom-in",
-            isZoomed && "cursor-zoom-out"
+            "group relative aspect-[4/4.8] overflow-hidden rounded-[2rem] border border-black/8 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)]",
+            isZoomed && "cursor-zoom-out",
+            !isZoomed && "cursor-zoom-in"
           )}
           onMouseEnter={() => setIsZoomed(true)}
           onMouseLeave={() => setIsZoomed(false)}
           onMouseMove={handleMouseMove}
         >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(42,157,143,0.08),_transparent_32%),linear-gradient(180deg,#ffffff_0%,#fbf7f2_100%)]" />
           <Image
             src={displayImages[activeIndex]}
             alt={`${productName} - зображення ${activeIndex + 1}`}
-            width={600}
-            height={600}
+            width={900}
+            height={1100}
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority={activeIndex === 0}
             className={cn(
-              "w-full h-full object-cover transition-transform duration-200",
+              "relative h-full w-full object-cover transition-transform duration-200",
               isZoomed && "scale-150"
             )}
             style={
@@ -98,52 +97,32 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             }
           />
 
-          {/* Zoom indicator */}
           {!isZoomed && (
-            <div className="absolute bottom-4 right-4 bg-white/90 rounded-full p-2 shadow-soft">
-              <ZoomIn className="w-5 h-5 text-muted-foreground" />
+            <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-black/8 bg-white px-3 py-2 text-xs font-medium uppercase tracking-[0.16em] text-foreground/56 shadow-[0_10px_24px_rgba(0,0,0,0.05)]">
+              <ZoomIn className="h-4 w-4 text-[#2A9D8F]" />
+              Zoom
             </div>
           )}
-        </div>
 
-        {/* Navigation arrows */}
-        {displayImages.length > 1 && (
-          <>
-            <button
-              onClick={handlePrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-soft hover:bg-white transition-colors"
-              aria-label="Попереднє зображення"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full shadow-soft hover:bg-white transition-colors"
-              aria-label="Наступне зображення"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </>
-        )}
-
-        {/* Dots indicator */}
-        {displayImages.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {displayImages.map((_, index) => (
+          {displayImages.length > 1 && (
+            <>
               <button
-                key={index}
-                onClick={() => setActiveIndex(index)}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-all",
-                  activeIndex === index
-                    ? "bg-primary w-4"
-                    : "bg-white/70 hover:bg-white"
-                )}
-                aria-label={`Перейти до зображення ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
+                onClick={handlePrev}
+                className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-black/8 bg-white shadow-[0_10px_24px_rgba(0,0,0,0.06)] transition-transform hover:-translate-y-[52%]"
+                aria-label="Попереднє зображення"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-black/8 bg-white shadow-[0_10px_24px_rgba(0,0,0,0.06)] transition-transform hover:-translate-y-[52%]"
+                aria-label="Наступне зображення"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

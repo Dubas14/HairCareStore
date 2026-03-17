@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, Minus, Plus, Check, Truck, Shield, RotateCcw } from 'lucide-react'
+import { Check, Heart, Minus, Plus, RotateCcw, Shield, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { cn } from '@/lib/utils'
@@ -57,35 +57,28 @@ export function BuyBox({
 
   const discount = selectedVariant.oldPrice
     ? Math.round(
-        ((selectedVariant.oldPrice - selectedVariant.price) /
-          selectedVariant.oldPrice) *
-          100
+        ((selectedVariant.oldPrice - selectedVariant.price) / selectedVariant.oldPrice) * 100
       )
     : 0
 
   return (
-    <div className="space-y-6">
-      {/* Brand */}
-      <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+    <div className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.06)] md:p-7">
+      <div className="inline-flex rounded-full border border-black/8 bg-[#fcfaf7] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-foreground/56">
         {brand}
-      </p>
+      </div>
 
-      {/* Product name */}
-      <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
+      <h1 className="mt-5 text-3xl font-semibold leading-[1] tracking-[-0.05em] text-foreground lg:text-4xl">
         {productName}
       </h1>
 
-      {/* Rating */}
-      <div className="flex items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
           {[...Array(5)].map((_, i) => (
             <svg
               key={i}
               className={cn(
-                "w-5 h-5",
-                i < Math.floor(rating)
-                  ? "fill-sale text-sale"
-                  : "fill-muted text-muted"
+                "h-5 w-5",
+                i < Math.floor(rating) ? "fill-[#D4A373] text-[#D4A373]" : "fill-[#ece4dc] text-[#ece4dc]"
               )}
               viewBox="0 0 20 20"
             >
@@ -93,49 +86,72 @@ export function BuyBox({
             </svg>
           ))}
         </div>
-        <span className="text-sm font-medium">{rating.toFixed(1)}</span>
-        <span className="text-sm text-muted-foreground">
-          ({reviewCount} відгуків)
-        </span>
+        <span className="text-sm font-medium text-foreground">{rating.toFixed(1)}</span>
+        <span className="text-sm text-muted-foreground">({reviewCount} відгуків)</span>
       </div>
 
-      {/* Badges */}
       {badges.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           {badges.map((badge) => (
             <span
               key={badge}
-              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-success/10 text-success rounded-full"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#eef7f5] px-3 py-1.5 text-xs font-medium text-[#20645b]"
             >
-              <Check className="w-3 h-3" />
+              <Check className="h-3.5 w-3.5" />
               {badge}
             </span>
           ))}
         </div>
       )}
 
-      {/* Variants */}
+      <div className="mt-6 rounded-[1.6rem] bg-[#fbf6f0] p-5">
+        <div className="flex items-end gap-3">
+          <span className="text-4xl font-semibold tracking-[-0.05em] text-foreground">
+            {formatPrice(selectedVariant.price)}
+          </span>
+          {selectedVariant.oldPrice && (
+            <>
+              <span className="pb-1 text-lg text-muted-foreground line-through">
+                {formatPrice(selectedVariant.oldPrice)}
+              </span>
+              <span className="mb-1 rounded-full bg-[#1A1A1A] px-2.5 py-1 text-xs font-semibold text-white">
+                -{discount}%
+              </span>
+            </>
+          )}
+        </div>
+
+        <p className="mt-3 text-sm text-muted-foreground">
+          {selectedVariant.inStock ? 'Є в наявності та готовий до відправки' : 'Тимчасово немає в наявності'}
+        </p>
+      </div>
+
       {variants.length > 1 && (
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            Оберіть розмір
+        <div className="mt-6 space-y-3">
+          <label className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/54">
+            Оберіть варіант
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {variants.map((variant) => (
               <button
                 key={variant.id}
                 onClick={() => setSelectedVariant(variant)}
                 disabled={!variant.inStock}
                 className={cn(
-                  "px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all",
+                  "rounded-[1.2rem] border px-4 py-3 text-left transition-all",
                   selectedVariant.id === variant.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50",
-                  !variant.inStock && "opacity-50 cursor-not-allowed"
+                    ? "border-[#1A1A1A] bg-[#1A1A1A] text-white"
+                    : "border-black/8 bg-white hover:border-black/18",
+                  !variant.inStock && "cursor-not-allowed opacity-50"
                 )}
               >
-                <span className="block">{variant.name}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="block text-sm font-medium">{variant.name}</span>
+                <span
+                  className={cn(
+                    "mt-1 block text-xs",
+                    selectedVariant.id === variant.id ? "text-white/70" : "text-muted-foreground"
+                  )}
+                >
                   {formatPrice(variant.price)}
                 </span>
               </button>
@@ -144,56 +160,39 @@ export function BuyBox({
         </div>
       )}
 
-      {/* Price */}
-      <div className="flex items-baseline gap-3">
-        <span className="text-3xl font-bold text-foreground">
-          {formatPrice(selectedVariant.price)}
+      <div className="mt-6 flex items-center gap-4">
+        <span className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/54">
+          Кількість
         </span>
-        {selectedVariant.oldPrice && (
-          <>
-            <span className="text-lg text-muted-foreground line-through">
-              {formatPrice(selectedVariant.oldPrice)}
-            </span>
-            <span className="px-2 py-0.5 bg-sale text-sale-foreground text-sm font-semibold rounded">
-              -{discount}%
-            </span>
-          </>
-        )}
-      </div>
-
-      {/* Quantity */}
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium text-foreground">Кількість</label>
-        <div className="flex items-center border rounded-lg">
+        <div className="flex items-center rounded-full border border-black/8 bg-[#fcfaf7] p-1">
           <button
             onClick={() => handleQuantityChange(-1)}
             disabled={quantity <= 1}
-            className="p-2 hover:bg-muted transition-colors disabled:opacity-50"
+            className="rounded-full p-2 transition-colors hover:bg-black/5 disabled:opacity-50"
             aria-label="Зменшити кількість"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="h-4 w-4" />
           </button>
-          <span className="w-12 text-center font-medium">{quantity}</span>
+          <span className="w-10 text-center text-sm font-medium">{quantity}</span>
           <button
             onClick={() => handleQuantityChange(1)}
             disabled={quantity >= 10}
-            className="p-2 hover:bg-muted transition-colors disabled:opacity-50"
+            className="rounded-full p-2 transition-colors hover:bg-black/5 disabled:opacity-50"
             aria-label="Збільшити кількість"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3">
+      <div className="mt-6 flex gap-3">
         <AddToCartAnimation
           onAddToCart={handleAddToCart}
           productImage={productImage}
           disabled={!selectedVariant?.inStock}
           variant="teal"
           size="lg"
-          className="flex-1"
+          className="h-14 flex-1 rounded-full"
         >
           Додати в кошик
         </AddToCartAnimation>
@@ -202,39 +201,29 @@ export function BuyBox({
           variant="outline"
           size="icon"
           onClick={handleWishlistClick}
-          className="h-12 w-12"
+          className="h-14 w-14 rounded-full border-black/8"
           aria-label={isWishlisted ? "Видалити з обраного" : "Додати в обране"}
         >
           <Heart
             className={cn(
-              "w-5 h-5 transition-colors",
+              "h-5 w-5 transition-colors",
               isWishlisted && "fill-destructive text-destructive"
             )}
           />
         </Button>
       </div>
 
-      {/* Stock status */}
-      {selectedVariant.inStock ? (
-        <p className="text-sm text-success flex items-center gap-2">
-          <Check className="w-4 h-4" />В наявності
-        </p>
-      ) : (
-        <p className="text-sm text-destructive">Немає в наявності</p>
-      )}
-
-      {/* Benefits */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Truck className="w-4 h-4 flex-shrink-0" />
+      <div className="mt-7 grid gap-3 border-t border-black/6 pt-6 text-sm text-muted-foreground">
+        <div className="flex items-center gap-3">
+          <Truck className="h-4 w-4 text-[#2A9D8F]" />
           <span>Безкоштовна доставка від 1000 ₴</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Shield className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center gap-3">
+          <Shield className="h-4 w-4 text-[#2A9D8F]" />
           <span>Гарантія оригінальності</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <RotateCcw className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center gap-3">
+          <RotateCcw className="h-4 w-4 text-[#2A9D8F]" />
           <span>Повернення 14 днів</span>
         </div>
       </div>

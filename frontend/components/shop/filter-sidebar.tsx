@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, X, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Slider } from '@/components/ui/slider'
@@ -42,13 +42,15 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div className="border-b border-border pb-4">
+    <div className="border-b border-black/6 pb-4 last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        className="flex items-center justify-between w-full py-2 text-left"
+        className="flex w-full items-center justify-between py-2 text-left"
       >
-        <span className="font-semibold text-foreground">{title}</span>
+        <span className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground/72">
+          {title}
+        </span>
         <ChevronDown
           className={cn(
             "h-4 w-4 text-muted-foreground transition-transform",
@@ -56,12 +58,19 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
           )}
         />
       </button>
-      {isOpen && <div className="mt-3 space-y-2">{children}</div>}
+      {isOpen && <div className="mt-3 space-y-2.5">{children}</div>}
     </div>
   )
 }
 
-function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFilter, hideCategoryFilter, search }: FilterSidebarProps) {
+function FilterContent({
+  filters,
+  onFiltersChange,
+  maxPrice = 5000,
+  hideBrandFilter,
+  hideCategoryFilter,
+  search,
+}: FilterSidebarProps) {
   const [brandOptions, setBrandOptions] = useState<FilterOption[]>([])
   const [categoryOptions, setCategoryOptions] = useState<FilterOption[]>([])
   const [dynamicMaxPrice, setDynamicMaxPrice] = useState(maxPrice)
@@ -69,10 +78,14 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
   useEffect(() => {
     getFilterFacets({ search }).then((facets) => {
       if (!hideCategoryFilter) {
-        setCategoryOptions(facets.categories.map((c) => ({ id: c.id, label: c.name, count: c.count })))
+        setCategoryOptions(
+          facets.categories.map((c) => ({ id: c.id, label: c.name, count: c.count }))
+        )
       }
       if (!hideBrandFilter) {
-        setBrandOptions(facets.brands.map((b) => ({ id: b.slug, label: b.name, count: b.count })))
+        setBrandOptions(
+          facets.brands.map((b) => ({ id: b.slug, label: b.name, count: b.count }))
+        )
       }
       if (facets.priceRange.max > 0) {
         setDynamicMaxPrice(facets.priceRange.max)
@@ -99,10 +112,9 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
     onFiltersChange({ ...filters, priceRange: value })
   }
 
+  const hasPriceFilter = filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice
   const activeFiltersCount =
-    filters.brands.length +
-    (filters.categoryIds?.length || 0) +
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0)
+    filters.brands.length + (filters.categoryIds?.length || 0) + (hasPriceFilter ? 1 : 0)
 
   const clearAllFilters = () => {
     onFiltersChange({
@@ -113,23 +125,28 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
   }
 
   return (
-    <div className="space-y-4">
-      {activeFiltersCount > 0 && (
-        <div className="flex items-center justify-between pb-4 border-b border-border">
-          <span className="text-sm text-muted-foreground">
-            Активні фільтри: {activeFiltersCount}
+    <div className="space-y-5">
+      <div className="rounded-[1.4rem] bg-[#f6efe7] p-4">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/52">
+          Активні фільтри
+        </p>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <span className="text-2xl font-semibold tracking-[-0.04em] text-foreground">
+            {activeFiltersCount}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearAllFilters}
-            className="text-destructive hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Очистити
-          </Button>
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="rounded-full px-4 text-destructive hover:text-destructive"
+            >
+              <X className="mr-1 h-4 w-4" />
+              Очистити
+            </Button>
+          )}
         </div>
-      )}
+      </div>
 
       {!hideCategoryFilter && (
         <FilterSection title="Категорія">
@@ -181,21 +198,26 @@ function FilterContent({ filters, onFiltersChange, maxPrice = 5000, hideBrandFil
 
 export function FilterSidebar(props: FilterSidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const activeCount =
+    props.filters.brands.length +
+    (props.filters.categoryIds?.length || 0) +
+    (props.filters.priceRange[0] > 0 || props.filters.priceRange[1] < (props.maxPrice || 5000)
+      ? 1
+      : 0)
 
   return (
     <>
-      <div className="lg:hidden mb-4">
+      <div className="mb-4 lg:hidden">
         <Button
           variant="outline"
           onClick={() => setIsMobileOpen(true)}
-          className="w-full"
+          className="w-full rounded-full border-black/8 bg-white py-6"
         >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
+          <SlidersHorizontal className="mr-2 h-4 w-4" />
           Фільтри
-          {(props.filters.brands.length > 0 ||
-            (props.filters.categoryIds?.length || 0) > 0) && (
-            <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-              {props.filters.brands.length + (props.filters.categoryIds?.length || 0)}
+          {activeCount > 0 && (
+            <span className="ml-2 rounded-full bg-[#1A1A1A] px-2 py-0.5 text-xs text-white">
+              {activeCount}
             </span>
           )}
         </Button>
@@ -213,8 +235,20 @@ export function FilterSidebar(props: FilterSidebarProps) {
       </Sheet>
 
       <aside className={cn("hidden lg:block", props.className)}>
-        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
-          <h2 className="text-lg font-semibold mb-4">Фільтри</h2>
+        <div className="sticky top-28 rounded-[2rem] border border-black/8 bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,0.05)]">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f4ebe2]">
+              <SlidersHorizontal className="h-4 w-4 text-[#2A9D8F]" />
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-foreground/48">
+                Налаштування
+              </p>
+              <h2 className="text-lg font-semibold tracking-[-0.03em] text-foreground">
+                Фільтри
+              </h2>
+            </div>
+          </div>
           <FilterContent {...props} />
         </div>
       </aside>

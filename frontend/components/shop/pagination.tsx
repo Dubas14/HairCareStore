@@ -51,7 +51,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
 
   return (
     <nav
-      className="flex items-center justify-center gap-1 mt-12"
+      className="mt-12 flex items-center justify-center gap-2"
       aria-label="Пагінація"
     >
       <Button
@@ -60,34 +60,35 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Попередня сторінка"
+        className="h-11 w-11 rounded-full border-black/8 bg-white"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2 rounded-full border border-black/8 bg-white px-2 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
         {getPageNumbers().map((page, index) =>
           page === 'ellipsis' ? (
             <span
               key={`ellipsis-${index}`}
-              className="px-3 py-2 text-muted-foreground"
+              className="px-2 py-2 text-sm text-muted-foreground"
             >
               ...
             </span>
           ) : (
-            <Button
+            <button
               key={page}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="icon"
               onClick={() => handlePageChange(page)}
               aria-label={`Сторінка ${page}`}
               aria-current={currentPage === page ? 'page' : undefined}
               className={cn(
-                "w-10 h-10",
-                currentPage === page && "pointer-events-none"
+                "flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-medium transition-all",
+                currentPage === page
+                  ? "bg-[#1A1A1A] text-white"
+                  : "text-foreground/68 hover:bg-muted hover:text-foreground"
               )}
             >
               {page}
-            </Button>
+            </button>
           )
         )}
       </div>
@@ -98,6 +99,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Наступна сторінка"
+        className="h-11 w-11 rounded-full border-black/8 bg-white"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
