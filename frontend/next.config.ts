@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
     ]
   },
   images: {
-    unoptimized: process.env.SHARP_DISABLED === 'true',
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
