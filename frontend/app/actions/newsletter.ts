@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limiter'
+import crypto from 'crypto'
 
 const newsletterSchema = z.object({
   email: z.string().email('Будь ласка, введіть коректний email'),
@@ -12,6 +13,10 @@ const newsletterSchema = z.object({
     message: 'Ви повинні погодитися з умовами'
   })
 })
+
+function generateConfirmToken(): string {
+  return crypto.randomBytes(32).toString('hex')
+}
 
 export async function subscribeToNewsletter(formData: FormData) {
   const h = await headers()
@@ -50,30 +55,43 @@ export async function subscribeToNewsletter(formData: FormData) {
     if (existing.docs.length > 0) {
       const sub = existing.docs[0] as unknown as { id: string | number; status?: string }
       if (sub.status === 'unsubscribed') {
-        // Re-subscribe
+        // Re-subscribe with new confirmation
+        const token = generateConfirmToken()
         await payload.update({
           collection: 'subscribers',
           id: sub.id,
-          data: { status: 'active' },
+          data: { status: 'pending', confirmToken: token },
         })
-        return { success: true, message: 'Вашу підписку відновлено!' }
+        // Send confirmation email
+        const { sendNewsletterConfirmationEmail } = await import('@/lib/email/email-actions')
+        sendNewsletterConfirmationEmail(email, token).catch(() => {})
+        return { success: true, message: 'Перевірте вашу пошту для підтвердження підписки' }
+      }
+      if (sub.status === 'pending') {
+        return { success: true, message: 'Ми вже надіслали лист з підтвердженням. Перевірте вашу пошту.' }
       }
       return { success: true, message: 'Ви вже підписані на розсилку' }
     }
 
-    // Create new subscriber
+    // Create new subscriber with pending status
+    const token = generateConfirmToken()
     await payload.create({
       collection: 'subscribers',
       data: {
         email,
-        status: 'active',
+        status: 'pending',
         source: 'website',
+        confirmToken: token,
       },
     })
 
+    // Send confirmation email
+    const { sendNewsletterConfirmationEmail } = await import('@/lib/email/email-actions')
+    sendNewsletterConfirmationEmail(email, token).catch(() => {})
+
     return {
       success: true,
-      message: 'Дякуємо! Ви підписані на розсилку'
+      message: 'Перевірте вашу пошту для підтвердження підписки'
     }
   } catch (error) {
     console.error('Newsletter subscription error:', error)

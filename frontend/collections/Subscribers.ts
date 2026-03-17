@@ -29,11 +29,18 @@ export const Subscribers: CollectionConfig = {
     {
       name: 'status',
       type: 'select',
-      defaultValue: 'active',
+      defaultValue: 'pending',
       options: [
+        { label: 'Очікує підтвердження', value: 'pending' },
         { label: 'Активний', value: 'active' },
         { label: 'Відписаний', value: 'unsubscribed' },
       ],
+    },
+    {
+      name: 'confirmToken',
+      type: 'text',
+      admin: { hidden: true },
+      index: true,
     },
     {
       name: 'locale',

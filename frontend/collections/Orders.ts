@@ -285,6 +285,51 @@ export const Orders: CollectionConfig = {
             log.error('Email import failed', err instanceof Error ? err : String(err))
           }
         }
+
+        // Send review request when fulfillmentStatus changes to 'delivered'
+        if (
+          operation === 'update' &&
+          doc.fulfillmentStatus === 'delivered' &&
+          previousDoc?.fulfillmentStatus !== 'delivered' &&
+          doc.email &&
+          doc.items?.length
+        ) {
+          try {
+            const { sendReviewRequestEmail } = await import('@/lib/email/email-actions')
+            const shippingAddr = doc.shippingAddress || {}
+            const items = (doc.items as Array<{ productTitle?: string; productId?: number; thumbnail?: string }>).map((item) => ({
+              title: item.productTitle || 'Товар',
+              handle: '', // Will be resolved below
+              imageUrl: item.thumbnail || undefined,
+            }))
+
+            // Try to resolve handles from productIds
+            const { getPayload } = await import('payload')
+            const config = (await import('@payload-config')).default
+            const payload = await getPayload({ config })
+            for (const [idx, orderItem] of (doc.items as Array<{ productId?: number }>).entries()) {
+              if (orderItem.productId) {
+                try {
+                  const product = await payload.findByID({ collection: 'products', id: orderItem.productId, depth: 0 })
+                  if (product?.handle) items[idx].handle = product.handle as string
+                } catch { /* skip */ }
+              }
+            }
+
+            // Only include items with resolved handles
+            const validItems = items.filter((i) => i.handle)
+            if (validItems.length > 0) {
+              sendReviewRequestEmail({
+                email: doc.email,
+                customerName: shippingAddr.firstName || '',
+                orderNumber: doc.displayId,
+                items: validItems,
+              }).catch((err: unknown) => log.error('Review request failed', err instanceof Error ? err : String(err)))
+            }
+          } catch (err) {
+            log.error('Review request email failed', err instanceof Error ? err : String(err))
+          }
+        }
       },
     ],
   },

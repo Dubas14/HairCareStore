@@ -59,6 +59,62 @@ const priceDropNotificationHook: CollectionAfterChangeHook = async ({ doc, previ
   return doc
 }
 
+/**
+ * When a product comes back in stock, find customers who have it in their wishlist
+ * and send them a back-in-stock notification email.
+ */
+const backInStockNotificationHook: CollectionAfterChangeHook = async ({ doc, previousDoc, operation, req }) => {
+  if (operation !== 'update' || !previousDoc?.variants || !doc?.variants) return doc
+
+  // Check if any variant went from out-of-stock to in-stock
+  const wasAllOutOfStock = previousDoc.variants.every((v: Record<string, unknown>) => !v.inStock)
+  const hasInStockNow = doc.variants.some((v: Record<string, unknown>) => v.inStock)
+
+  if (!wasAllOutOfStock || !hasInStockNow) return doc
+
+  const imageUrl = typeof doc.thumbnail === 'object' && doc.thumbnail?.url
+    ? doc.thumbnail.url
+    : undefined
+
+  const firstPrice = doc.variants[0]?.price as number || 0
+
+  setImmediate(async () => {
+    try {
+      const result = await req.payload.find({
+        collection: 'customers',
+        where: { wishlist: { contains: doc.id } },
+        limit: 200,
+        depth: 0,
+      })
+
+      if (result.docs.length === 0) return
+
+      const { sendBackInStockEmail } = await import('@/lib/email/email-actions')
+
+      for (const customer of result.docs) {
+        const email = customer.email as string
+        const name = (customer.firstName as string) || ''
+        if (!email) continue
+
+        sendBackInStockEmail({
+          email,
+          customerName: name,
+          items: [{
+            title: doc.title as string,
+            handle: doc.handle as string,
+            imageUrl,
+            price: firstPrice,
+          }],
+        }).catch(() => {})
+      }
+    } catch {
+      // Don't fail the product update
+    }
+  })
+
+  return doc
+}
+
 const autoInventoryHook: CollectionAfterChangeHook = async ({ doc, previousDoc, req }) => {
   if (!doc?.variants || !Array.isArray(doc.variants)) return doc
 
@@ -103,7 +159,7 @@ export const Products: CollectionConfig = {
   slug: 'products',
   labels: { singular: 'Товар', plural: 'Товари' },
   hooks: {
-    afterChange: [autoInventoryHook, priceDropNotificationHook],
+    afterChange: [autoInventoryHook, priceDropNotificationHook, backInStockNotificationHook],
   },
   admin: {
     useAsTitle: 'title',

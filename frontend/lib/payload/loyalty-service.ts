@@ -132,8 +132,29 @@ export async function earnPointsFromOrder(customerId: number | string, orderId: 
   const newBalance = record.pointsBalance + points
   const newTotalEarned = record.totalEarned + points
   const newLevelInfo = calculateLevel(newTotalEarned, settings)
+  const oldLevel = levelInfo.level
   await payload.update({ collection: 'loyalty-points', id: record.id, data: { pointsBalance: newBalance, totalEarned: newTotalEarned, level: newLevelInfo.level } })
   await payload.create({ collection: 'loyalty-transactions', data: { customer: customerId, transactionType: 'earned', pointsAmount: points, orderId, description: `Бали за замовлення (x${levelInfo.multiplier})`, balanceAfter: newBalance } })
+
+  // Send level up email if level changed
+  if (newLevelInfo.level !== oldLevel && (newLevelInfo.level === 'silver' || newLevelInfo.level === 'gold')) {
+    try {
+      const customer = await payload.findByID({ collection: 'customers', id: customerId, depth: 0 })
+      if (customer?.email) {
+        const { sendLoyaltyLevelUpEmail } = await import('@/lib/email/email-actions')
+        sendLoyaltyLevelUpEmail({
+          email: customer.email as string,
+          customerName: (customer.firstName as string) || '',
+          newLevel: newLevelInfo.level,
+          pointsBalance: newBalance,
+          multiplier: newLevelInfo.multiplier,
+        }).catch(() => {})
+      }
+    } catch {
+      // Don't fail the points earning
+    }
+  }
+
   return points
 }
 
