@@ -241,7 +241,7 @@ export function Header() {
                   "object-contain transition-transform duration-500",
                   "group-hover:scale-110"
                 )}
-                style={{ width: "auto", height: "auto" }}
+                style={{ width: "40px", height: "40px" }}
               />
               {/* Logo glow on hover */}
               <div

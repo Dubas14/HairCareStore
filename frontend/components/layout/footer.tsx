@@ -53,7 +53,7 @@ export function Footer() {
                 width={44}
                 height={44}
                 className="object-contain flex-shrink-0"
-                style={{ width: "auto", height: "auto" }}
+                style={{ width: "44px", height: "44px" }}
               />
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-0">
