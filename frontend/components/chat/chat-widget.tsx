@@ -44,44 +44,62 @@ function renderMessageContent(content: string): ReactNode[] {
   return result
 }
 
+function renderLinks(text: string, lineIdx: number): ReactNode[] {
+  const parts: ReactNode[] = []
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  let lastIndex = 0
+  let match
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+    const linkText = match[1]
+    const href = match[2]
+    if (href.startsWith('/')) {
+      parts.push(
+        <Link
+          key={`link-${lineIdx}-${match.index}`}
+          href={href}
+          className="text-primary underline hover:no-underline"
+        >
+          {linkText}
+        </Link>
+      )
+    } else {
+      parts.push(linkText)
+    }
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+  return parts.length > 0 ? parts : [text]
+}
+
 function renderInline(text: string, lineIdx: number): ReactNode[] {
   const parts: ReactNode[] = []
-  const inlineRegex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g
+  const inlineRegex = /\*\*(.+?)\*\*|\*(.+?)\*/g
   let lastIndex = 0
   let match
 
   while ((match = inlineRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index))
+      parts.push(...renderLinks(text.slice(lastIndex, match.index), lineIdx))
     }
 
-    if (match[1] && match[2]) {
-      const linkText = match[1]
-      const href = match[2]
-      if (href.startsWith('/')) {
-        parts.push(
-          <Link
-            key={`link-${lineIdx}-${match.index}`}
-            href={href}
-            className="text-primary underline hover:no-underline"
-          >
-            {linkText}
-          </Link>
-        )
-      } else {
-        parts.push(linkText)
-      }
-    } else if (match[3]) {
-      parts.push(<strong key={`b-${lineIdx}-${match.index}`}>{match[3]}</strong>)
-    } else if (match[4]) {
-      parts.push(<em key={`i-${lineIdx}-${match.index}`}>{match[4]}</em>)
+    if (match[1]) {
+      parts.push(<strong key={`b-${lineIdx}-${match.index}`}>{renderLinks(match[1], lineIdx)}</strong>)
+    } else if (match[2]) {
+      parts.push(<em key={`i-${lineIdx}-${match.index}`}>{renderLinks(match[2], lineIdx)}</em>)
     }
 
     lastIndex = match.index + match[0].length
   }
 
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex))
+    parts.push(...renderLinks(text.slice(lastIndex), lineIdx))
   }
 
   return parts
