@@ -34,6 +34,10 @@ npm run dev                    # Development server (port 3200) — includes Pay
 npm run build                  # Production build
 npm run lint                   # ESLint (next/core-web-vitals)
 npm run type-check             # TypeScript checking
+npm run test                   # Vitest (watch mode)
+npm run test:run               # Vitest (single run)
+npx vitest run path/to/file    # Run a single test file
+npx playwright test            # E2E tests (Playwright)
 ```
 
 ## Frontend Architecture (Next.js 15 + Payload CMS v3)
@@ -71,6 +75,7 @@ app/
 - **Admin panel**: `http://localhost:3200/admin`
 - **Collections**: Media, Users, Banners, Pages, PromoBlocks, Brands, Categories, BlogPosts, Reviews, Products, Orders, Customers
 - **Collection definitions**: `frontend/collections/` directory
+- **Globals**: LoyaltySettings, ShippingConfig, SiteSettings, InventorySettings, EmailSettings (`frontend/globals/`)
 
 #### CMS Data Layer (3 files)
 
@@ -123,6 +128,13 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3200
 PAYLOAD_DATABASE_URL=postgres://postgres:postgres123@localhost:5450/payload
 PAYLOAD_SECRET=your-secret-key-at-least-32-chars
 ```
+
+## Integrations
+
+- **Stripe** — payments via `@payloadcms/plugin-stripe`, client-side `@stripe/react-stripe-js`
+- **Resend** — transactional emails (email templates in `lib/email/templates/`)
+- **Sentry** — error tracking (`@sentry/nextjs`)
+- **Zod** — schema validation (v4)
 
 ## Language
 
