@@ -1,8 +1,13 @@
 import type { CollectionConfig } from 'payload'
+import { invalidateChatCache } from '@/app/api/chat/route'
 
 export const Brands: CollectionConfig = {
   slug: 'brands',
   labels: { singular: 'Бренд', plural: 'Бренди' },
+  hooks: {
+    afterChange: [({ doc }) => { invalidateChatCache(); return doc }],
+    afterDelete: [({ doc }) => { invalidateChatCache(); return doc }],
+  },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'countryOfOrigin', 'isActive'],

@@ -21,6 +21,11 @@ interface ProductContext {
 let cachedContext: ProductContext | null = null
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+/** Invalidate product context cache (called from Payload hooks on product/category/brand changes) */
+export function invalidateChatCache() {
+  cachedContext = null
+}
+
 async function getProductContext(): Promise<ProductContext> {
   if (cachedContext && Date.now() - cachedContext.fetchedAt < CACHE_TTL) {
     return cachedContext

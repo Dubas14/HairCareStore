@@ -1,4 +1,5 @@
-import type { CollectionConfig, CollectionAfterChangeHook } from 'payload'
+import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
+import { invalidateChatCache } from '@/app/api/chat/route'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -155,11 +156,18 @@ const autoInventoryHook: CollectionAfterChangeHook = async ({ doc, previousDoc, 
   return doc
 }
 
+/** Invalidate AI chat cache when products change */
+const invalidateChatCacheHook: CollectionAfterChangeHook | CollectionAfterDeleteHook = ({ doc }) => {
+  invalidateChatCache()
+  return doc
+}
+
 export const Products: CollectionConfig = {
   slug: 'products',
   labels: { singular: 'Товар', plural: 'Товари' },
   hooks: {
-    afterChange: [autoInventoryHook, priceDropNotificationHook, backInStockNotificationHook],
+    afterChange: [autoInventoryHook, priceDropNotificationHook, backInStockNotificationHook, invalidateChatCacheHook],
+    afterDelete: [invalidateChatCacheHook],
   },
   admin: {
     useAsTitle: 'title',

@@ -1,8 +1,13 @@
 import type { CollectionConfig } from 'payload'
+import { invalidateChatCache } from '@/app/api/chat/route'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
   labels: { singular: 'Категорія', plural: 'Категорії' },
+  hooks: {
+    afterChange: [({ doc }) => { invalidateChatCache(); return doc }],
+    afterDelete: [({ doc }) => { invalidateChatCache(); return doc }],
+  },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'order', 'isActive'],
