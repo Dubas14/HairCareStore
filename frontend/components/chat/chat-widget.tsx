@@ -7,46 +7,81 @@ import { useTranslations } from 'next-intl'
 import { useChatStore } from '@/stores/chat-store'
 
 /**
- * Parse markdown-style links [text](url) into React elements.
+ * Parse markdown-style content into React elements.
+ * Supports: [text](url) links, **bold**, *italic*, numbered/bulleted lists.
  * Only allows relative paths starting with "/" to prevent XSS.
  */
 function renderMessageContent(content: string): ReactNode[] {
+  const lines = content.split('\n')
+  const result: ReactNode[] = []
+
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) result.push(<br key={`br-${i}`} />)
+    const line = lines[i]
+
+    const numberedMatch = line.match(/^(\d+)[.)]\s+(.*)/)
+    const bulletMatch = line.match(/^[-•]\s+(.*)/) || line.match(/^\*\s+(?!\*)(.*)/)
+
+    if (numberedMatch) {
+      result.push(
+        <span key={`li-${i}`} className="flex gap-1.5 ml-1">
+          <span className="text-muted-foreground flex-shrink-0">{numberedMatch[1]}.</span>
+          <span>{renderInline(numberedMatch[2], i)}</span>
+        </span>
+      )
+    } else if (bulletMatch) {
+      result.push(
+        <span key={`li-${i}`} className="flex gap-1.5 ml-1">
+          <span className="text-muted-foreground flex-shrink-0">•</span>
+          <span>{renderInline(bulletMatch[1], i)}</span>
+        </span>
+      )
+    } else {
+      result.push(<span key={`line-${i}`}>{renderInline(line, i)}</span>)
+    }
+  }
+
+  return result
+}
+
+function renderInline(text: string, lineIdx: number): ReactNode[] {
   const parts: ReactNode[] = []
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const inlineRegex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g
   let lastIndex = 0
   let match
 
-  while ((match = linkRegex.exec(content)) !== null) {
-    // Text before the link
+  while ((match = inlineRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(content.slice(lastIndex, match.index))
+      parts.push(text.slice(lastIndex, match.index))
     }
 
-    const linkText = match[1]
-    const href = match[2]
-
-    // Only allow relative links (starting with /) for safety
-    if (href.startsWith('/')) {
-      parts.push(
-        <Link
-          key={`link-${match.index}`}
-          href={href}
-          className="text-primary underline hover:no-underline"
-        >
-          {linkText}
-        </Link>
-      )
-    } else {
-      // Render non-relative links as plain text
-      parts.push(linkText)
+    if (match[1] && match[2]) {
+      const linkText = match[1]
+      const href = match[2]
+      if (href.startsWith('/')) {
+        parts.push(
+          <Link
+            key={`link-${lineIdx}-${match.index}`}
+            href={href}
+            className="text-primary underline hover:no-underline"
+          >
+            {linkText}
+          </Link>
+        )
+      } else {
+        parts.push(linkText)
+      }
+    } else if (match[3]) {
+      parts.push(<strong key={`b-${lineIdx}-${match.index}`}>{match[3]}</strong>)
+    } else if (match[4]) {
+      parts.push(<em key={`i-${lineIdx}-${match.index}`}>{match[4]}</em>)
     }
 
     lastIndex = match.index + match[0].length
   }
 
-  // Remaining text
-  if (lastIndex < content.length) {
-    parts.push(content.slice(lastIndex))
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
   }
 
   return parts
