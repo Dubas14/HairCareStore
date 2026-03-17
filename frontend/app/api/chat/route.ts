@@ -5,28 +5,20 @@ import config from '@payload-config'
 import { createLogger } from '@/lib/logger'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limiter'
 import { BRAND_KNOWLEDGE } from '@/lib/chat/knowledge-base'
+import {
+  getCachedProductContext,
+  setCachedProductContext,
+  type ProductContext,
+} from '@/lib/chat/product-context-cache'
 import type { PayloadProduct, Category, Brand } from '@/lib/payload/types'
 
 const log = createLogger('chat-api')
 
-// ─── Product context cache ──────────────────────────────────────
-
-interface ProductContext {
-  products: string
-  categories: string
-  brands: string
-  fetchedAt: number
-}
-
-let cachedContext: ProductContext | null = null
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-/** Invalidate product context cache (called from Payload hooks on product/category/brand changes) */
-export function invalidateChatCache() {
-  cachedContext = null
-}
-
 async function getProductContext(): Promise<ProductContext> {
+  const cachedContext = getCachedProductContext()
+
   if (cachedContext && Date.now() - cachedContext.fetchedAt < CACHE_TTL) {
     return cachedContext
   }
@@ -79,8 +71,7 @@ async function getProductContext(): Promise<ProductContext> {
       .map((b) => `- [${b.name}](/brands/${b.slug})`)
       .join('\n')
 
-    cachedContext = { products, categories, brands, fetchedAt: Date.now() }
-    return cachedContext
+    return setCachedProductContext({ products, categories, brands, fetchedAt: Date.now() })
   } catch (error) {
     log.error('Failed to fetch product context', error)
     return { products: '', categories: '', brands: '', fetchedAt: Date.now() }

@@ -13,6 +13,7 @@ import { CompareButton } from '@/components/compare/compare-button'
 import type { Product } from '@/lib/constants/home-data'
 import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics/events'
 import { formatPrice } from '@/lib/utils/format-price'
+import { cn } from '@/lib/utils'
 
 interface ProductCardProps {
   product: Product
@@ -91,13 +92,14 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group block bg-card rounded-card p-4 shadow-soft card-hover"
+      className="group block rounded-[1.75rem] border border-black/5 bg-[#fbf8f4] p-4 shadow-[0_16px_40px_rgba(20,20,20,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(20,20,20,0.1)]"
       data-testid="product-card"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <div className="relative aspect-square mb-4 overflow-hidden rounded-card bg-muted">
+      <div className="relative mb-4 aspect-square overflow-hidden rounded-[1.4rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,235,229,0.92))]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.85),_transparent_38%)]" />
         <Image
           src={product.imageUrl}
           alt={product.name}
@@ -105,12 +107,12 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
           height={600}
           loading="lazy"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
 
         {/* Discount Badge */}
         {product.discount && (
-          <div className="absolute top-3 left-3">
+          <div className="absolute left-3 top-3">
             <ShimmerBadge variant="sale" size="md">
               -{product.discount}%
             </ShimmerBadge>
@@ -119,7 +121,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
         {/* New/Bestseller Badge */}
         {product.badge && !product.discount && (
-          <div className="absolute top-3 left-3">
+          <div className="absolute left-3 top-3">
             <ShimmerBadge
               variant={product.badge.toLowerCase().includes('хіт') ? 'bestseller' : 'new'}
               size="md"
@@ -129,12 +131,16 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
           </div>
         )}
 
+        <div className="absolute bottom-3 left-3 rounded-full bg-white/85 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#6b6b6b] backdrop-blur-md">
+          {product.brand}
+        </div>
+
         {/* Action Buttons */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+        <div className="absolute right-3 top-3 flex flex-col gap-1.5">
           <button
             onClick={handleWishlistClick}
             disabled={toggleWishlist.isPending}
-            className="p-3 bg-white/90 hover:bg-white rounded-full transition-all duration-300 shadow-soft focus-ring disabled:opacity-50"
+            className="rounded-full bg-white/92 p-3 shadow-soft transition-all duration-300 hover:bg-white focus-ring disabled:opacity-50"
             data-testid="wishlist-button"
             aria-label={isWishlisted ? 'Видалити з обраного' : 'Додати в обране'}
           >
@@ -156,7 +162,7 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
         {/* Auth toast */}
         {showAuthToast && (
-          <div className="absolute top-14 right-3 bg-card text-foreground text-xs px-3 py-2 rounded-lg shadow-lg animate-fadeInUp z-10 whitespace-nowrap">
+          <div className="absolute right-3 top-14 z-10 whitespace-nowrap rounded-xl bg-card px-3 py-2 text-xs text-foreground shadow-lg animate-fadeInUp">
             <Link href="/account/login" className="text-[#2A9D8F] hover:underline">
               Увійдіть
             </Link>
@@ -166,51 +172,61 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
       </div>
 
       {/* Brand */}
-      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1 font-medium">
-        {product.brand}
-      </p>
-
       {/* Name */}
-      <h3 className="text-base font-semibold text-foreground mb-2 line-clamp-2 min-h-[3rem] leading-snug">
+      <h3 className="mb-3 min-h-[3.25rem] text-[1.05rem] font-semibold leading-snug text-foreground line-clamp-2">
         {product.name}
       </h3>
 
-      {/* Rating */}
-      <div className="flex items-center gap-1.5 mb-3">
-        <div className="flex">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`w-4 h-4 ${
-                i < Math.floor(product.rating)
-                  ? 'fill-sale text-sale'
-                  : 'fill-muted text-muted'
-              }`}
-            />
-          ))}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-2 shadow-soft">
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${
+                  i < Math.floor(product.rating)
+                    ? 'fill-sale text-sale'
+                    : 'fill-muted text-muted'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-sm font-medium text-foreground">{product.rating.toFixed(1)}</span>
         </div>
+
         <span className="text-sm text-muted-foreground">
-          ({product.reviewCount})
+          {product.reviewCount} відгуків
         </span>
       </div>
 
       {/* Price */}
-      <div className="flex items-baseline gap-2 mb-4">
-        <span className="text-xl font-bold text-foreground">
-          {formatPrice(product.price)}
-        </span>
-        {product.oldPrice && (
-          <span className="text-sm text-muted-foreground line-through">
-            {formatPrice(product.oldPrice)}
-          </span>
-        )}
+      <div className="mb-4 rounded-[1.2rem] bg-white px-4 py-3 shadow-soft">
+        <div className="flex items-end justify-between gap-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
+              {formatPrice(product.price)}
+            </span>
+            {product.oldPrice && (
+              <span className="text-sm text-muted-foreground line-through">
+                {formatPrice(product.oldPrice)}
+              </span>
+            )}
+          </div>
+
+          {product.discount ? (
+            <span className="rounded-full bg-[#2A9D8F]/10 px-3 py-1 text-xs font-medium text-[#1e7b70]">
+              вигідна ціна
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {/* Add to Cart Button */}
       <div
-        className={`transition-all duration-300 ${
-          isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-        }`}
+        className={cn(
+          'transition-all duration-300 opacity-100 translate-y-0',
+          isHovered ? 'sm:opacity-100 sm:translate-y-0' : 'sm:opacity-0 sm:translate-y-2'
+        )}
         onClick={(e) => e.preventDefault()}
       >
         <AddToCartAnimation

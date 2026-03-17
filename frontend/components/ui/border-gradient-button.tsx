@@ -31,7 +31,7 @@ const variantStyles = {
   white: {
     gradient: "from-white via-white/80 to-white",
     text: "text-white",
-    hoverText: "group-hover:text-[#1A1A1A]",
+    hoverText: "group-hover:text-white",
     bg: "bg-[#1A1A1A]",
   },
 }

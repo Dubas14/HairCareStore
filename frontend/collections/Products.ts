@@ -1,5 +1,5 @@
 import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-import { invalidateChatCache } from '@/app/api/chat/route'
+import { invalidateChatCache } from '@/lib/chat/product-context-cache'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -157,7 +157,12 @@ const autoInventoryHook: CollectionAfterChangeHook = async ({ doc, previousDoc, 
 }
 
 /** Invalidate AI chat cache when products change */
-const invalidateChatCacheHook: CollectionAfterChangeHook | CollectionAfterDeleteHook = ({ doc }) => {
+const invalidateChatCacheAfterChange: CollectionAfterChangeHook = ({ doc }) => {
+  invalidateChatCache()
+  return doc
+}
+
+const invalidateChatCacheAfterDelete: CollectionAfterDeleteHook = ({ doc }) => {
   invalidateChatCache()
   return doc
 }
@@ -166,8 +171,8 @@ export const Products: CollectionConfig = {
   slug: 'products',
   labels: { singular: 'Товар', plural: 'Товари' },
   hooks: {
-    afterChange: [autoInventoryHook, priceDropNotificationHook, backInStockNotificationHook, invalidateChatCacheHook],
-    afterDelete: [invalidateChatCacheHook],
+    afterChange: [autoInventoryHook, priceDropNotificationHook, backInStockNotificationHook, invalidateChatCacheAfterChange],
+    afterDelete: [invalidateChatCacheAfterDelete],
   },
   admin: {
     useAsTitle: 'title',

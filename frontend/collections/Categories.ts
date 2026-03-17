@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { invalidateChatCache } from '@/app/api/chat/route'
+import { invalidateChatCache } from '@/lib/chat/product-context-cache'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',

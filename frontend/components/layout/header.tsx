@@ -10,7 +10,6 @@ import { useCartContext } from "@/components/providers/cart-provider"
 import { useUIStore } from "@/stores/ui-store"
 import { cn } from "@/lib/utils"
 
-// Magnetic Icon Button Component
 function MagneticIconButton({
   children,
   onClick,
@@ -20,6 +19,7 @@ function MagneticIconButton({
   badge,
   dataCartIcon,
   testId,
+  inverse,
 }: {
   children: React.ReactNode
   onClick?: () => void
@@ -29,23 +29,26 @@ function MagneticIconButton({
   badge?: number
   dataCartIcon?: boolean
   testId?: string
+  inverse?: boolean
 }) {
   const ref = useRef<HTMLButtonElement | HTMLAnchorElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
-
   const lastMoveRef = useRef(0)
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const now = Date.now()
-    if (now - lastMoveRef.current < 16) return // ~60fps throttle
+    if (now - lastMoveRef.current < 16) return
     lastMoveRef.current = now
     if (!ref.current) return
+
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
+
     setPosition({
-      x: (e.clientX - centerX) * 0.3,
-      y: (e.clientY - centerY) * 0.3,
+      x: (e.clientX - centerX) * 0.22,
+      y: (e.clientY - centerY) * 0.22,
     })
   }, [])
 
@@ -57,21 +60,24 @@ function MagneticIconButton({
   const style = {
     transform: `translate(${position.x}px, ${position.y}px)`,
     transition: isHovered
-      ? "transform 0.15s cubic-bezier(0.33, 1, 0.68, 1)"
-      : "transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)",
+      ? "transform 0.14s cubic-bezier(0.33, 1, 0.68, 1)"
+      : "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
   }
 
   const innerStyle = {
-    transform: `translate(${position.x * 0.2}px, ${position.y * 0.2}px)`,
+    transform: `translate(${position.x * 0.18}px, ${position.y * 0.18}px)`,
     transition: isHovered
-      ? "transform 0.15s cubic-bezier(0.33, 1, 0.68, 1)"
-      : "transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)",
+      ? "transform 0.14s cubic-bezier(0.33, 1, 0.68, 1)"
+      : "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)",
   }
 
   const sharedProps = {
     className: cn(
-      "relative p-2.5 rounded-full transition-colors duration-300",
-      "hover:bg-gradient-to-br hover:from-[#2A9D8F]/10 hover:to-[#48CAE4]/10",
+      "relative flex h-11 w-11 items-center justify-center rounded-full border border-black/8",
+      inverse
+        ? "border-white/18 bg-white/[0.03] text-white shadow-[0_10px_24px_rgba(0,0,0,0.14)] backdrop-blur-xl hover:border-white/24 hover:bg-white/[0.08]"
+        : "bg-white text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:border-black/12 hover:bg-white hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)]",
+      "transition-[border-color,background-color,box-shadow] duration-300",
       "group",
       className
     ),
@@ -94,13 +100,9 @@ function MagneticIconButton({
           aria-live="polite"
           aria-label={`Кошик: ${badge} товарів`}
           className={cn(
-            "absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1",
-            "rounded-full text-xs font-semibold",
-            "flex items-center justify-center",
-            "bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4] text-white",
-            "shadow-[0_2px_8px_rgba(42,157,143,0.4)]",
-            "transition-transform duration-300",
-            "animate-pulse-subtle"
+            "absolute -right-1 -top-1 min-w-[20px] rounded-full px-1.5 py-0.5",
+            "flex items-center justify-center text-[10px] font-semibold text-white",
+            "bg-[#1A1A1A] shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
           )}
         >
           {badge}
@@ -132,30 +134,43 @@ function MagneticIconButton({
   )
 }
 
-// Animated Nav Link Component
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({
+  href,
+  children,
+  inverse,
+}: {
+  href: string
+  children: React.ReactNode
+  inverse?: boolean
+}) {
   const pathname = usePathname()
-  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href))
+  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href))
 
   return (
     <Link
       href={href}
       className={cn(
-        "relative text-sm font-medium",
-        "transition-colors duration-300 hover:text-foreground",
-        "group py-1",
-        isActive ? "text-foreground" : "text-muted-foreground"
+        "relative px-1 py-2 text-[13px] font-semibold tracking-[0.12em] uppercase",
+        "transition-colors duration-300",
+        inverse
+          ? isActive
+            ? "text-white"
+            : "text-white/82 hover:text-white"
+          : isActive
+            ? "text-foreground"
+            : "text-foreground/62 hover:text-foreground"
       )}
-      aria-current={isActive ? 'page' : undefined}
+      aria-current={isActive ? "page" : undefined}
     >
       {children}
-      {/* Gradient underline */}
       <span
         className={cn(
-          "absolute -bottom-0.5 left-0 h-[2px]",
-          "bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4]",
-          "transition-all duration-300 ease-out",
-          isActive ? "w-full" : "w-0 group-hover:w-full"
+          "absolute inset-x-1 -bottom-0.5 h-px origin-left rounded-full",
+          inverse
+            ? "bg-gradient-to-r from-[#f4d5b0] via-white to-[#88ded4]"
+            : "bg-gradient-to-r from-[#D4A373] via-[#2A9D8F] to-[#48CAE4]",
+          "transition-transform duration-300 ease-out",
+          isActive ? "scale-x-100" : "scale-x-0"
         )}
       />
     </Link>
@@ -163,33 +178,41 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 export function Header() {
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
   const { openCart, getItemCount } = useCartContext()
   const { openSearch } = useUIStore()
-  const t = useTranslations('nav')
-  const tCommon = useTranslations('common')
+  const t = useTranslations("nav")
+  const tCommon = useTranslations("common")
+  const isHome = pathname === "/"
+  const compactMode = scrollY > 20
 
   const navigation = [
-    { name: t('shop'), href: "/shop" },
-    { name: t('brands'), href: "/brands" },
-    { name: t('blog'), href: "/blog" },
-    { name: t('about'), href: "/pages/about" },
-    { name: t('delivery'), href: "/pages/delivery" },
-    { name: t('contacts'), href: "/pages/contacts" },
+    { name: t("shop"), href: "/shop" },
+    { name: t("brands"), href: "/brands" },
+    { name: t("blog"), href: "/blog" },
+    { name: t("about"), href: "/pages/about" },
+    { name: t("delivery"), href: "/pages/delivery" },
+    { name: t("contacts"), href: "/pages/contacts" },
   ]
 
   useEffect(() => {
     setMounted(true)
 
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
+      setScrollY(window.scrollY)
     }
 
-    window.addEventListener("scroll", handleScroll)
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   const itemCount = mounted ? getItemCount() : 0
 
@@ -197,201 +220,166 @@ export function Header() {
     <header
       data-testid="site-header"
       className={cn(
-        "sticky top-0 z-50 transition-all duration-500",
-        scrolled
-          ? "bg-background/80 backdrop-blur-xl shadow-sm"
-          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        "z-50 px-4 py-3 md:px-5",
+        isHome ? "fixed inset-x-0 top-0" : "sticky top-0"
       )}
     >
-      {/* Gradient border bottom */}
       <div
         className={cn(
-          "absolute bottom-0 left-0 right-0 h-[1px]",
-          "bg-gradient-to-r from-transparent via-border to-transparent",
-          "transition-opacity duration-500",
-          scrolled ? "opacity-100" : "opacity-50"
+          "relative mx-auto max-w-[1260px] overflow-hidden rounded-full border transition-all duration-500",
+          "border-black/8 bg-background shadow-[0_14px_36px_rgba(0,0,0,0.08)]"
         )}
-      />
-
-      {/* Accent gradient line */}
-      <div
-        className={cn(
-          "absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0",
-          "bg-gradient-to-r from-[#2A9D8F] to-[#48CAE4]",
-          "transition-all duration-700 ease-out",
-          scrolled && "w-32"
-        )}
-      />
-
-      <nav className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 group"
+      >
+        <nav className="px-5 md:px-6">
+          <div
+            className={cn(
+              "flex items-center justify-between gap-5 transition-[min-height] duration-300",
+              compactMode ? "min-h-[62px]" : "min-h-[66px]"
+            )}
           >
-            <div className="relative">
-              <Image
-                src="/logo.png"
-                alt="HAIRLAB"
-                width={40}
-                height={40}
-                priority
-                className={cn(
-                  "object-contain transition-transform duration-500",
-                  "group-hover:scale-110"
-                )}
-                style={{ width: "40px", height: "40px" }}
-              />
-              {/* Logo glow on hover */}
+            <Link href="/" className="relative z-10 flex items-center gap-3">
               <div
                 className={cn(
-                  "absolute inset-0 rounded-full opacity-0",
-                  "bg-gradient-to-br from-[#2A9D8F]/20 to-[#48CAE4]/20 blur-xl",
-                  "transition-opacity duration-500",
-                  "group-hover:opacity-100"
+                  "relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.08)]",
+                  "border border-black/8 bg-white"
                 )}
-              />
-            </div>
-            <div>
-              <div className="flex items-baseline">
-                <span className="text-xl font-black text-foreground tracking-wide transition-colors duration-300">
-                  HAIR
-                </span>
-                <span
-                  className="text-xl font-black tracking-wide relative"
-                  style={{
-                    background: "linear-gradient(135deg, #2A9D8F, #48CAE4)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
+              >
+                <Image
+                  src="/logo.png"
+                  alt="HAIRLAB"
+                  width={30}
+                  height={30}
+                  priority
+                  className="relative object-contain"
+                  style={{ width: "30px", height: "30px" }}
+                />
+              </div>
+
+              <div className="leading-none">
+                <div
+                  className={cn(
+                    "flex items-center gap-0.5 text-[0.98rem] font-black tracking-[0.16em]",
+                    "text-foreground"
+                  )}
                 >
-                  LAB
-                  {/* Shimmer effect on hover */}
+                  <span>HAIR</span>
                   <span
                     className={cn(
-                      "absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent",
-                      "translate-x-[-100%] skew-x-[-20deg]",
-                      "group-hover:animate-shine-sweep"
+                      "bg-clip-text text-transparent",
+                      "bg-gradient-to-r from-[#1A1A1A] via-[#2A9D8F] to-[#D4A373]"
                     )}
-                    style={{ WebkitBackgroundClip: "text" }}
-                  />
-                </span>
-              </div>
-              <div className="text-[8px] font-bold text-muted-foreground tracking-[0.15em] -mt-0.5">
-                PROFESSIONAL CARE
-              </div>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navigation.map((item) => (
-              <NavLink key={item.name} href={item.href}>
-                {item.name}
-              </NavLink>
-            ))}
-          </div>
-
-          {/* Right side icons */}
-          <div className="flex items-center gap-1">
-            <MagneticIconButton onClick={openSearch} ariaLabel={tCommon('search')} testId="search-button">
-              <Search className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
-            </MagneticIconButton>
-
-            <MagneticIconButton
-              href="/account"
-              ariaLabel={t('account')}
-              className="hidden sm:flex"
-            >
-              <User className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
-            </MagneticIconButton>
-
-            <MagneticIconButton
-              onClick={openCart}
-              ariaLabel={t('cart')}
-              badge={itemCount}
-              dataCartIcon
-              testId="cart-button"
-            >
-              <ShoppingBag className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
-            </MagneticIconButton>
-
-            {/* Mobile menu button */}
-            <button
-              className={cn(
-                "md:hidden p-2.5 rounded-full transition-all duration-300",
-                "hover:bg-gradient-to-br hover:from-[#2A9D8F]/10 hover:to-[#48CAE4]/10",
-                mobileMenuOpen && "bg-muted"
-              )}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
-              aria-expanded={mobileMenuOpen}
-            >
-              <div className="relative w-5 h-5">
-                <Menu
+                  >
+                    LAB
+                  </span>
+                </div>
+                <p
                   className={cn(
-                    "absolute inset-0 w-5 h-5 transition-all duration-300",
-                    mobileMenuOpen ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
+                    "mt-1 text-[8px] font-medium uppercase tracking-[0.26em]",
+                    "text-foreground/42"
                   )}
-                />
-                <X
-                  className={cn(
-                    "absolute inset-0 w-5 h-5 transition-all duration-300",
-                    mobileMenuOpen ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
-                  )}
-                />
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        <div
-          className={cn(
-            "md:hidden overflow-hidden transition-all duration-500 ease-out",
-            mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          )}
-        >
-          <div className="py-4 border-t border-border/50">
-            <div className="flex flex-col gap-1">
-              {navigation.map((item, index) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "px-4 py-3 rounded-xl text-sm font-medium",
-                    "transition-all duration-300",
-                    "hover:bg-gradient-to-r hover:from-[#2A9D8F]/5 hover:to-[#48CAE4]/5",
-                    "hover:translate-x-1"
-                  )}
-                  style={{
-                    transitionDelay: mobileMenuOpen ? `${index * 50}ms` : "0ms",
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  {item.name}
-                </Link>
-              ))}
-              <Link
-                href="/account"
-                className={cn(
-                  "px-4 py-3 rounded-xl text-sm font-medium sm:hidden",
-                  "transition-all duration-300",
-                  "hover:bg-gradient-to-r hover:from-[#2A9D8F]/5 hover:to-[#48CAE4]/5",
-                  "hover:translate-x-1"
-                )}
-                style={{
-                  transitionDelay: mobileMenuOpen ? `${navigation.length * 50}ms` : "0ms",
-                }}
-                onClick={() => setMobileMenuOpen(false)}
+                  professional care
+                </p>
+              </div>
+            </Link>
+
+            <div className="hidden flex-1 justify-center md:flex">
+              <div className="flex items-center gap-7">
+                {navigation.map((item) => (
+                  <NavLink key={item.name} href={item.href}>
+                    {item.name}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <MagneticIconButton
+                onClick={openSearch}
+                ariaLabel={tCommon("search")}
+                testId="search-button"
               >
-                {t('account')}
-              </Link>
+                <Search className="h-4.5 w-4.5 text-foreground/72 transition-colors group-hover:text-foreground" />
+              </MagneticIconButton>
+
+              <MagneticIconButton
+                href="/account"
+                ariaLabel={t("account")}
+                className="hidden sm:flex"
+              >
+                <User className="h-4.5 w-4.5 text-foreground/72 transition-colors group-hover:text-foreground" />
+              </MagneticIconButton>
+
+              <MagneticIconButton
+                onClick={openCart}
+                ariaLabel={t("cart")}
+                badge={itemCount}
+                dataCartIcon
+                testId="cart-button"
+              >
+                <ShoppingBag className="h-4.5 w-4.5 text-foreground/72 transition-colors group-hover:text-foreground" />
+              </MagneticIconButton>
+
+              <button
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-full border border-black/8",
+                  "bg-white text-foreground shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:border-black/12 hover:bg-white",
+                  "transition-all duration-300 md:hidden",
+                  mobileMenuOpen && "bg-[#f3ece5]"
+                )}
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                aria-label={mobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
+                aria-expanded={mobileMenuOpen}
+              >
+                <div className="relative h-5 w-5">
+                  <Menu
+                    className={cn(
+                      "absolute inset-0 h-5 w-5 transition-all duration-300",
+                      mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
+                    )}
+                  />
+                  <X
+                    className={cn(
+                      "absolute inset-0 h-5 w-5 transition-all duration-300",
+                      mobileMenuOpen ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"
+                    )}
+                  />
+                </div>
+              </button>
             </div>
           </div>
-        </div>
-      </nav>
+
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows,opacity,padding] duration-500 ease-out md:hidden",
+              mobileMenuOpen ? "grid-rows-[1fr] pb-4 opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}
+          >
+            <div className="overflow-hidden">
+              <div className="rounded-[1.5rem] border border-black/8 bg-[#fbf8f4]/95 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.08)]">
+                <div className="grid gap-1.5">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="rounded-[1.1rem] px-4 py-3 text-sm font-medium text-foreground/76 transition-all duration-300 hover:bg-white hover:text-foreground"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+
+                  <Link
+                    href="/account"
+                    className="rounded-[1.1rem] px-4 py-3 text-sm font-medium text-foreground/76 transition-all duration-300 hover:bg-white hover:text-foreground sm:hidden"
+                  >
+                    {t("account")}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
     </header>
   )
 }

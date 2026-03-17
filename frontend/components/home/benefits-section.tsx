@@ -1,10 +1,10 @@
 'use client'
 
-import { useInView } from 'react-intersection-observer'
+import { useEffect, useRef } from 'react'
+import { ensureGsapPlugins, prefersReducedMotion } from '@/lib/gsap'
 
-// SVG іконки в стилі бренду
 const BenefitIcon = ({ type }: { type: 'quiz' | 'original' | 'delivery' | 'bonus' }) => {
-  const iconClass = "w-8 h-8 text-[#2A9D8F]"
+  const iconClass = 'h-7 w-7 text-[#2A9D8F]'
 
   switch (type) {
     case 'quiz':
@@ -39,62 +39,89 @@ const benefits = [
     id: 1,
     icon: 'quiz' as const,
     title: 'Персональний підбір',
-    description: 'Допоможемо обрати ідеальні продукти'
+    description: 'Допоможемо обрати ідеальні продукти саме під тип волосся, стан і бажаний результат.',
   },
   {
     id: 2,
     icon: 'original' as const,
     title: '100% оригінал',
-    description: 'Офіційний дистриб\'ютор брендів'
+    description: 'Працюємо лише з офіційними брендами та постачальниками, без випадкових поставок.',
   },
   {
     id: 3,
     icon: 'delivery' as const,
     title: 'Швидка доставка',
-    description: 'Нова Пошта по всій Україні'
+    description: 'Надсилаємо замовлення по всій Україні, щоб ваш догляд приїхав без довгого очікування.',
   },
   {
     id: 4,
     icon: 'bonus' as const,
     title: 'Бонусна програма',
-    description: 'Накопичуйте бали та знижки'
-  }
+    description: 'Накопичуйте бали, повертайтесь за улюбленими засобами та отримуйте приємні знижки.',
+  },
 ]
 
 export function BenefitsSection() {
-  const { ref, inView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1
-  })
+  const sectionRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!sectionRef.current || prefersReducedMotion()) return
+
+    const { gsap } = ensureGsapPlugins()
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '[data-benefits-card]',
+        { opacity: 0, y: 48, rotateX: -6 },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          duration: 0.85,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+          },
+        }
+      )
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [])
 
   return (
-    <section className="py-10 bg-white border-y border-neutral-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          ref={ref}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-        >
-          {benefits.map((benefit, index) => (
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-white py-16 md:py-20"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(42,157,143,0.08),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(212,163,115,0.12),_transparent_26%)]" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {benefits.map((benefit) => (
             <div
               key={benefit.id}
-              className={`flex items-start gap-3 ${
-                inView ? 'animate-fadeInScale' : 'opacity-0'
-              }`}
-              style={{ animationDelay: `${index * 50}ms` }}
+              data-benefits-card
+              className="group relative min-h-[220px] overflow-hidden rounded-[1.75rem] border border-black/5 bg-[#fbf8f4] p-6 shadow-[0_14px_38px_rgba(20,20,20,0.06)] transition-transform duration-300 hover:-translate-y-1"
             >
-              {/* Icon */}
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#2A9D8F]/10 flex items-center justify-center">
-                <BenefitIcon type={benefit.icon} />
-              </div>
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.55),transparent_42%)]" />
 
-              {/* Text */}
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-900 mb-0.5">
-                  {benefit.title}
-                </h3>
-                <p className="text-xs text-neutral-500 leading-relaxed">
-                  {benefit.description}
-                </p>
+              <div className="relative flex h-full flex-col">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-white shadow-soft">
+                    <BenefitIcon type={benefit.icon} />
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-2xl font-semibold tracking-[-0.04em] text-neutral-900">
+                    {benefit.title}
+                  </h3>
+                  <p className="mt-4 text-sm leading-7 text-neutral-600 md:text-[15px]">
+                    {benefit.description}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
