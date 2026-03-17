@@ -129,10 +129,18 @@ ${ctx.categories || '—'}
 БРЕНДИ НА САЙТІ:
 ${ctx.brands || '—'}
 
-═══ ФОРМАТ ПОСИЛАНЬ ═══
-При рекомендації товарів, які є на сайті, форматуй посилання так: [Назва товару](/products/handle)
-Для категорій: [Назва категорії](/categories/slug)
-Для брендів: [Назва бренду](/brands/slug)
+═══ ФОРМАТ ПОСИЛАНЬ (КРИТИЧНО ВАЖЛИВО!) ═══
+ЗАВЖДИ використовуй ПОВНИЙ markdown-формат посилань. НІКОЛИ не пиши URL в дужках без назви.
+
+ПРАВИЛЬНО: [Шампунь MOOD Dream Curls](/products/shampun-mood-dream-curls-400-ml)
+ПРАВИЛЬНО: [Elgon](/brands/elgon)
+ПРАВИЛЬНО: [Догляд за волоссям](/categories/doglyad-za-volossynam)
+
+НЕПРАВИЛЬНО: (/products/shampun-mood-dream-curls-400-ml)
+НЕПРАВИЛЬНО: [/products/shampun-mood-dream-curls-400-ml]
+НЕПРАВИЛЬНО: ([/products/slug)
+
+Формат: [Назва товару](/products/handle) — назва ПЕРЕД URL, URL в круглих дужках.
 `
 }
 
