@@ -1,9 +1,11 @@
 export const revalidate = 600 // ISR: revalidate every 10 minutes
 
+import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
-import { getPageBySlug, getPages, getSiteSettings } from '@/lib/payload/client'
-import type { SiteSettingsData } from '@/lib/payload/client'
 import { Metadata } from 'next'
+import { getPageBySlug, getSiteSettings } from '@/lib/payload/client'
+import type { SiteSettingsData } from '@/lib/payload/client'
 import {
   PageHero,
   InfoCard,
@@ -14,7 +16,6 @@ import {
   ContactCard,
   SocialLink,
   ContactIcons,
-  CTASection,
   FeatureGrid,
   FeatureIcons,
   RichTextRenderer,
@@ -25,419 +26,67 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-// Generate metadata for SEO
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const page = await getPageBySlug(slug)
-  const config = pageConfig[slug]
-
-  const title = page?.metaTitle || page?.title || config?.fallbackTitle || slug
-
-  return {
-    title,
-    description: page?.metaDescription || config?.subtitle || '',
+const pageConfig: Record<
+  string,
+  {
+    icon: 'delivery' | 'payment' | 'contact' | 'about'
+    gradient: 'teal' | 'warm' | 'purple' | 'olive'
+    fallbackTitle: string
   }
-}
-
-// Page configuration for different slugs
-const pageConfig: Record<string, {
-  icon: 'delivery' | 'payment' | 'contact' | 'about'
-  gradient: 'teal' | 'warm' | 'purple' | 'olive'
-  subtitle?: string
-  fallbackTitle: string
-}> = {
-  'delivery': {
+> = {
+  delivery: {
     icon: 'delivery',
     gradient: 'teal',
-    subtitle: 'Швидка та надійна доставка по всій Україні',
     fallbackTitle: 'Доставка',
   },
-  'dostavka': {
+  dostavka: {
     icon: 'delivery',
     gradient: 'teal',
-    subtitle: 'Швидка та надійна доставка по всій Україні',
     fallbackTitle: 'Доставка',
   },
-  'payment': {
+  payment: {
     icon: 'payment',
     gradient: 'warm',
-    subtitle: 'Зручні способи оплати для вашого комфорту',
     fallbackTitle: 'Оплата',
   },
-  'oplata': {
+  oplata: {
     icon: 'payment',
     gradient: 'warm',
-    subtitle: 'Зручні способи оплати для вашого комфорту',
     fallbackTitle: 'Оплата',
   },
-  'contacts': {
+  contacts: {
     icon: 'contact',
     gradient: 'purple',
-    subtitle: 'Завжди на зв\'язку для вас',
     fallbackTitle: 'Контакти',
   },
-  'kontakty': {
+  kontakty: {
     icon: 'contact',
     gradient: 'purple',
-    subtitle: 'Завжди на зв\'язку для вас',
     fallbackTitle: 'Контакти',
   },
-  'about': {
+  about: {
     icon: 'about',
     gradient: 'olive',
-    subtitle: 'Професійний догляд за волоссям з любов\'ю до науки',
     fallbackTitle: 'Про нас',
   },
   'pro-nas': {
     icon: 'about',
     gradient: 'olive',
-    subtitle: 'Професійний догляд за волоссям з любов\'ю до науки',
     fallbackTitle: 'Про нас',
   },
 }
 
-// Icon map for delivery methods
 const deliveryIcons = [InfoIcons.truck, InfoIcons.mapPin, InfoIcons.clock, InfoIcons.gift]
 const paymentIcons = [InfoIcons.creditCard, InfoIcons.shield, InfoIcons.gift, InfoIcons.check]
+const featureIconList = [
+  FeatureIcons.quality,
+  FeatureIcons.science,
+  FeatureIcons.natural,
+  FeatureIcons.eco,
+  FeatureIcons.heart,
+  FeatureIcons.support,
+]
 
-// ─── Delivery page ──────────────────────────────────────────────
-
-function DeliveryContent({ settings }: { settings: SiteSettingsData | null }) {
-  const methods = settings?.delivery?.methods || [
-    { title: 'Нова Пошта', description: 'Доставка 1-3 дні по всій Україні. Безкоштовно від 1500 грн.', isHighlight: true },
-    { title: 'Укрпошта', description: 'Економна доставка 3-7 днів. Доступна для всіх населених пунктів.', isHighlight: false },
-    { title: "Кур'єрська доставка", description: 'Доставка день в день по Києву та області. Замовлення до 14:00.', isHighlight: false },
-  ]
-  const steps = settings?.delivery?.steps || [
-    { title: 'Оформлення', description: 'Залиште заявку на сайті або зателефонуйте нам' },
-    { title: 'Підтвердження', description: "Менеджер зв'яжеться для уточнення деталей" },
-    { title: 'Відправка', description: 'Товар буде надісланий в день замовлення' },
-    { title: 'Отримання', description: "Заберіть замовлення у відділенні або отримайте кур'єром" },
-  ]
-  const faq = settings?.delivery?.faq || [
-    { question: 'Яка вартість доставки?', answer: 'Доставка Новою Поштою безкоштовна при замовленні від 1500 грн. Для замовлень до 1500 грн вартість доставки розраховується за тарифами перевізника.' },
-    { question: 'Як швидко відправляється замовлення?', answer: 'Замовлення, оформлені до 14:00, відправляються того ж дня. Замовлення після 14:00 відправляються наступного робочого дня.' },
-    { question: 'Чи можна змінити адресу доставки?', answer: "Так, ви можете змінити адресу до моменту відправлення замовлення, зв'язавшись з нашим менеджером." },
-    { question: 'Як відстежити моє замовлення?', answer: 'Після відправлення ви отримаєте SMS з номером ТТН для відстеження посилки на сайті перевізника.' },
-  ]
-
-  return (
-    <>
-      <section className="mb-16">
-        <InfoCardGrid columns={3}>
-          {methods.map((method, i) => (
-            <InfoCard
-              key={i}
-              icon={deliveryIcons[i] || InfoIcons.truck}
-              title={method.title}
-              description={method.description}
-              variant={method.isHighlight ? 'highlight' : undefined}
-              delay={i * 100}
-            />
-          ))}
-        </InfoCardGrid>
-      </section>
-
-      <section className="mb-16">
-        <ProcessTimeline
-          title="Як працює доставка"
-          steps={steps.map((step, i) => ({
-            number: i + 1,
-            title: step.title,
-            description: step.description,
-          }))}
-        />
-      </section>
-
-      <section className="mb-16">
-        <FAQAccordion title="Часті запитання про доставку" items={faq} />
-      </section>
-
-      <CTASection
-        title="Є питання щодо доставки?"
-        description="Наші менеджери з радістю допоможуть"
-        buttonText="Зв'язатися з нами"
-        buttonLink="/pages/contacts"
-        variant="teal"
-      />
-    </>
-  )
-}
-
-// ─── Payment page ───────────────────────────────────────────────
-
-function PaymentContent({ settings }: { settings: SiteSettingsData | null }) {
-  const methods = settings?.payment?.methods || [
-    { title: 'Карткою онлайн', description: 'Visa, Mastercard, Apple Pay, Google Pay. Миттєве підтвердження платежу.', isHighlight: true },
-    { title: 'Накладений платіж', description: 'Оплата при отриманні на пошті. Комісія за тарифами перевізника.', isHighlight: false },
-    { title: 'Безготівковий розрахунок', description: 'Для юридичних осіб та ФОП. Виставлення рахунку протягом години.', isHighlight: false },
-    { title: 'Оплата частинами', description: 'Розстрочка від ПриватБанку та Monobank до 4 платежів без переплат.', isHighlight: false },
-  ]
-  const securityText = settings?.payment?.securityText ||
-    'Всі платежі захищені технологією 3D Secure. Ми не зберігаємо дані вашої картки — всі транзакції обробляються через сертифіковані платіжні системи з найвищим рівнем захисту PCI DSS.'
-  const faq = settings?.payment?.faq || [
-    { question: 'Чи безпечно платити карткою на сайті?', answer: 'Так, абсолютно безпечно. Ми використовуємо сертифіковану платіжну систему з захистом 3D Secure та шифруванням SSL.' },
-    { question: 'Коли списуються кошти при онлайн-оплаті?', answer: 'Кошти списуються одразу після підтвердження замовлення. У разі скасування — повернення протягом 1-3 банківських днів.' },
-    { question: 'Чи можна оплатити частинами?', answer: 'Так, доступна оплата частинами від ПриватБанку та Monobank для замовлень від 500 грн. Оберіть цей спосіб при оформленні.' },
-  ]
-
-  return (
-    <>
-      <section className="mb-16">
-        <ScrollReveal variant="fade-up">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">
-            <span className="inline-block w-8 h-1 bg-gradient-to-r from-[#D4A373] to-[#E9C46A] rounded-full mr-3 align-middle" />
-            Способи оплати
-          </h2>
-        </ScrollReveal>
-
-        <InfoCardGrid columns={2}>
-          {methods.map((method, i) => (
-            <InfoCard
-              key={i}
-              icon={paymentIcons[i] || InfoIcons.creditCard}
-              title={method.title}
-              description={method.description}
-              variant={method.isHighlight ? 'highlight' : undefined}
-              delay={i * 100}
-            />
-          ))}
-        </InfoCardGrid>
-      </section>
-
-      <section className="mb-16 bg-gradient-to-br from-[#2A9D8F]/5 to-[#48CAE4]/5 rounded-3xl p-8 md:p-12">
-        <ScrollReveal variant="fade-up">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-shrink-0">
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#2A9D8F] to-[#48CAE4] p-[2px]">
-                <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center">
-                  <svg className="w-12 h-12 text-[#2A9D8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">Безпечні платежі</h3>
-              <p className="text-neutral-600 leading-relaxed">{securityText}</p>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      <section className="mb-16">
-        <FAQAccordion title="Часті запитання про оплату" items={faq} />
-      </section>
-
-      <CTASection
-        title="Готові зробити замовлення?"
-        description="Оберіть зручний спосіб оплати та отримайте товар вже завтра"
-        buttonText="Перейти до каталогу"
-        buttonLink="/shop"
-        variant="warm"
-      />
-    </>
-  )
-}
-
-// ─── Contacts page ──────────────────────────────────────────────
-
-function ContactsContent({ settings }: { settings: SiteSettingsData | null }) {
-  const c = settings?.contacts
-  const s = settings?.social
-
-  return (
-    <>
-      <section className="mb-16">
-        <div className="grid md:grid-cols-2 gap-6">
-          <ContactCard
-            icon={ContactIcons.phone}
-            title="Телефон"
-            value={c?.phone || '+38 (067) 123-45-67'}
-            link={c?.phoneLink || 'tel:+380671234567'}
-            description={c?.phoneSchedule || 'Пн-Пт: 9:00 - 18:00'}
-            delay={0}
-          />
-          <ContactCard
-            icon={ContactIcons.mail}
-            title="Email"
-            value={c?.email || 'hello@hairlab.ua'}
-            link={`mailto:${c?.email || 'hello@hairlab.ua'}`}
-            description={c?.emailDescription || 'Відповідаємо протягом 2 годин'}
-            delay={100}
-          />
-          <ContactCard
-            icon={ContactIcons.location}
-            title="Адреса"
-            value={c?.address || 'м. Київ, вул. Хрещатик, 1'}
-            link={c?.addressLink || 'https://maps.google.com'}
-            description={c?.addressDescription || 'Шоурум працює з 10:00 до 20:00'}
-            delay={200}
-          />
-          <ContactCard
-            icon={ContactIcons.clock}
-            title="Графік роботи"
-            value={c?.schedule || 'Щодня з 9:00 до 21:00'}
-            description={c?.scheduleDescription || 'Онлайн-підтримка 24/7'}
-            delay={300}
-          />
-        </div>
-      </section>
-
-      <section className="mb-16">
-        <ScrollReveal variant="fade-up">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">
-            <span className="inline-block w-8 h-1 bg-gradient-to-r from-[#B8B8D1] to-[#9FA0C3] rounded-full mr-3 align-middle" />
-            Ми в соцмережах
-          </h2>
-        </ScrollReveal>
-
-        <div className="grid sm:grid-cols-3 gap-4">
-          <ScrollReveal variant="fade-up" delay={0}>
-            <SocialLink
-              icon={ContactIcons.instagram}
-              label="Instagram"
-              href={s?.instagram || 'https://instagram.com/hairlab.ua'}
-              color="#E4405F"
-            />
-          </ScrollReveal>
-          <ScrollReveal variant="fade-up" delay={100}>
-            <SocialLink
-              icon={ContactIcons.telegram}
-              label="Telegram"
-              href={s?.telegram || 'https://t.me/hairlab_ua'}
-              color="#0088cc"
-            />
-          </ScrollReveal>
-          <ScrollReveal variant="fade-up" delay={200}>
-            <SocialLink
-              icon={ContactIcons.facebook}
-              label="Facebook"
-              href={s?.facebook || 'https://facebook.com/hairlab.ua'}
-              color="#1877F2"
-            />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      <section className="mb-16">
-        <ScrollReveal variant="fade-up">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-100 to-neutral-50 h-80 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#2A9D8F] to-[#48CAE4] flex items-center justify-center text-white">
-                {ContactIcons.location}
-              </div>
-              <p className="text-neutral-600">{c?.address || 'м. Київ, вул. Хрещатик, 1'}</p>
-              <a
-                href={c?.addressLink || 'https://maps.google.com'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-4 text-[#2A9D8F] hover:text-[#48CAE4] font-medium transition-colors"
-              >
-                Відкрити в Google Maps
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      <CTASection
-        title="Маєте запитання?"
-        description="Напишіть нам — відповімо протягом години"
-        buttonText="Написати в Telegram"
-        buttonLink={s?.telegram || 'https://t.me/hairlab_ua'}
-        variant="dark"
-      />
-    </>
-  )
-}
-
-// ─── About page ─────────────────────────────────────────────────
-
-function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
-  const a = settings?.about
-
-  const intro = a?.intro || 'HAIR LAB — це більше ніж магазин косметики для волосся. Це лабораторія краси, де наука зустрічається з турботою про себе.'
-  const story = a?.story || 'Ми заснували HAIR LAB з простою місією: зробити професійний догляд за волоссям доступним кожному. Наша команда трихологів та стилістів ретельно відбирає кожен продукт, тестує його та перевіряє ефективність інгредієнтів.'
-  const features = a?.features || [
-    { title: 'Тільки оригінали', description: "Працюємо напряму з брендами та офіційними дистриб'юторами" },
-    { title: 'Науковий підхід', description: 'Кожен продукт перевірений трихологами та дерматологами' },
-    { title: 'Натуральні формули', description: 'Пріоритет інгредієнтам природного походження' },
-    { title: 'Eco-friendly', description: 'Підтримуємо бренди з етичним виробництвом' },
-    { title: 'Індивідуальний підбір', description: 'Безкоштовні консультації для підбору догляду' },
-    { title: 'Підтримка 24/7', description: "Завжди на зв'язку для відповіді на ваші запитання" },
-  ]
-  const stats = a?.stats || [
-    { value: '5+', label: 'років досвіду' },
-    { value: '50K+', label: 'задоволених клієнтів' },
-    { value: '200+', label: 'брендів' },
-    { value: '4.9', label: 'рейтинг на Google' },
-  ]
-
-  // Map CMS features to FeatureGrid format with icons
-  const featureIconList = [FeatureIcons.quality, FeatureIcons.science, FeatureIcons.natural, FeatureIcons.eco, FeatureIcons.heart, FeatureIcons.support]
-
-  return (
-    <>
-      <section className="mb-16">
-        <ScrollReveal variant="fade-up">
-          <div className="prose prose-lg max-w-none">
-            <p className="text-xl text-neutral-600 leading-relaxed mb-6">
-              <strong className="text-[#1A1A1A]">{intro}</strong>
-            </p>
-            <p className="text-neutral-600 leading-relaxed">
-              {story}
-            </p>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      <section className="mb-16">
-        <FeatureGrid
-          title="Чому обирають нас"
-          subtitle="Ми поєднуємо наукові дослідження з натуральними інгредієнтами"
-          features={features.map((f, i) => ({
-            icon: featureIconList[i] || FeatureIcons.quality,
-            title: f.title,
-            description: f.description,
-          }))}
-          columns={3}
-        />
-      </section>
-
-      <section className="mb-16">
-        <ScrollReveal variant="fade-up">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="text-center p-6 rounded-2xl bg-gradient-to-br from-[#606C38]/5 to-[#8A9A5B]/5"
-              >
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#606C38] to-[#8A9A5B] bg-clip-text text-transparent mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-neutral-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </ScrollReveal>
-      </section>
-
-      <CTASection
-        title="Готові до трансформації?"
-        description="Знайдіть ідеальний догляд для вашого типу волосся"
-        buttonText="Перейти до каталогу"
-        buttonLink="/shop"
-        variant="teal"
-      />
-    </>
-  )
-}
-
-// Get page type by slug
 function getPageType(slug: string): 'delivery' | 'payment' | 'contacts' | 'about' | 'generic' {
   if (slug === 'delivery' || slug === 'dostavka') return 'delivery'
   if (slug === 'payment' || slug === 'oplata') return 'payment'
@@ -446,11 +95,470 @@ function getPageType(slug: string): 'delivery' | 'payment' | 'contacts' | 'about
   return 'generic'
 }
 
+function buildMetadataDescription(
+  slug: string,
+  page: Awaited<ReturnType<typeof getPageBySlug>>,
+  settings: SiteSettingsData | null,
+): string {
+  if (page?.metaDescription) return page.metaDescription
+
+  const pageType = getPageType(slug)
+
+  switch (pageType) {
+    case 'delivery':
+      return settings?.delivery?.methods?.[0]?.description || ''
+    case 'payment':
+      return settings?.payment?.securityText || ''
+    case 'contacts':
+      return [settings?.contacts?.phone, settings?.contacts?.email].filter(Boolean).join(' • ')
+    case 'about':
+      return settings?.about?.intro || ''
+    default:
+      return ''
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const pageType = getPageType(slug)
+  const [page, settings] = await Promise.all([
+    getPageBySlug(slug),
+    pageType !== 'generic' ? getSiteSettings() : Promise.resolve(null),
+  ])
+  const config = pageConfig[slug]
+  const title = page?.metaTitle || page?.title || config?.fallbackTitle || slug
+
+  return {
+    title,
+    description: buildMetadataDescription(slug, page, settings),
+  }
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string
+  title: string
+  description?: string
+}) {
+  return (
+    <ScrollReveal variant="fade-up" className="mb-8">
+      {eyebrow ? (
+        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-foreground/42">
+          {eyebrow}
+        </p>
+      ) : null}
+      <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-foreground">
+        {title}
+      </h2>
+      {description ? (
+        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+          {description}
+        </p>
+      ) : null}
+    </ScrollReveal>
+  )
+}
+
+function UtilityLinks({
+  links,
+}: {
+  links: Array<{ href: string; label: string; external?: boolean }>
+}) {
+  const validLinks = links.filter((link) => Boolean(link.href))
+
+  if (validLinks.length === 0) return null
+
+  return (
+    <ScrollReveal variant="fade-up">
+      <div className="mt-10 flex flex-wrap gap-3">
+        {validLinks.map((link) => {
+          const external = link.external || link.href.startsWith('http')
+
+          return external ? (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-[0_10px_24px_rgba(16,24,40,0.05)] transition-transform hover:-translate-y-0.5"
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-[0_10px_24px_rgba(16,24,40,0.05)] transition-transform hover:-translate-y-0.5"
+            >
+              {link.label}
+            </Link>
+          )
+        })}
+      </div>
+    </ScrollReveal>
+  )
+}
+
+function DeliveryContent({ settings }: { settings: SiteSettingsData | null }) {
+  const methods = settings?.delivery?.methods ?? []
+  const steps = settings?.delivery?.steps ?? []
+  const faq = settings?.delivery?.faq ?? []
+
+  return (
+    <>
+      {methods.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Способи доставки"
+          />
+
+          <InfoCardGrid columns={methods.length >= 3 ? 3 : 2}>
+            {methods.map((method, i) => (
+              <InfoCard
+                key={method.title}
+                icon={deliveryIcons[i] || InfoIcons.truck}
+                title={method.title}
+                description={method.description}
+                variant={method.isHighlight ? 'highlight' : undefined}
+                delay={i * 80}
+              />
+            ))}
+          </InfoCardGrid>
+        </section>
+      )}
+
+      {steps.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Етапи доставки"
+          />
+
+          <ProcessTimeline
+            steps={steps.map((step, i) => ({
+              number: i + 1,
+              title: step.title,
+              description: step.description,
+            }))}
+          />
+        </section>
+      )}
+
+      {faq.length > 0 && (
+        <section className="mb-16">
+          <FAQAccordion title="Питання та відповіді" items={faq} />
+        </section>
+      )}
+
+      <UtilityLinks
+        links={[
+          { href: '/pages/contacts', label: 'Контакти' },
+          { href: '/tracking', label: 'Відстежити замовлення' },
+        ]}
+      />
+    </>
+  )
+}
+
+function PaymentContent({ settings }: { settings: SiteSettingsData | null }) {
+  const methods = settings?.payment?.methods ?? []
+  const securityText = settings?.payment?.securityText
+  const faq = settings?.payment?.faq ?? []
+
+  return (
+    <>
+      {methods.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Способи оплати"
+          />
+
+          <InfoCardGrid columns={methods.length >= 4 ? 2 : 2}>
+            {methods.map((method, i) => (
+              <InfoCard
+                key={method.title}
+                icon={paymentIcons[i] || InfoIcons.creditCard}
+                title={method.title}
+                description={method.description}
+                variant={method.isHighlight ? 'highlight' : undefined}
+                delay={i * 80}
+              />
+            ))}
+          </InfoCardGrid>
+        </section>
+      )}
+
+      {securityText ? (
+        <section className="mb-16">
+          <ScrollReveal variant="fade-up">
+            <div className="rounded-[2rem] border border-black/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(247,239,227,0.88))] p-6 shadow-[0_24px_70px_rgba(16,24,40,0.07)] md:p-8">
+              <div className="flex flex-col gap-5 md:flex-row md:items-start">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f1efe7] text-[#1f2a20]">
+                  {InfoIcons.shield}
+                </div>
+                <div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground">
+                    Безпека платежів
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">
+                    {securityText}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+        </section>
+      ) : null}
+
+      {faq.length > 0 && (
+        <section className="mb-16">
+          <FAQAccordion title="Питання та відповіді" items={faq} />
+        </section>
+      )}
+
+      <UtilityLinks
+        links={[
+          { href: '/checkout', label: 'Перейти до оформлення' },
+          { href: '/pages/contacts', label: 'Поставити запитання' },
+        ]}
+      />
+    </>
+  )
+}
+
+function ContactsContent({ settings }: { settings: SiteSettingsData | null }) {
+  const contacts = settings?.contacts
+  const social = settings?.social
+
+  const cards = [
+    contacts?.phone
+      ? {
+          title: 'Телефон',
+          value: contacts.phone,
+          link: contacts.phoneLink,
+          description: contacts.phoneSchedule,
+          icon: ContactIcons.phone,
+        }
+      : null,
+    contacts?.email
+      ? {
+          title: 'Email',
+          value: contacts.email,
+          link: `mailto:${contacts.email}`,
+          description: contacts.emailDescription,
+          icon: ContactIcons.mail,
+        }
+      : null,
+    contacts?.address
+      ? {
+          title: 'Адреса',
+          value: contacts.address,
+          link: contacts.addressLink,
+          description: contacts.addressDescription,
+          icon: ContactIcons.location,
+        }
+      : null,
+    contacts?.schedule
+      ? {
+          title: 'Графік роботи',
+          value: contacts.schedule,
+          link: undefined,
+          description: contacts.scheduleDescription,
+          icon: ContactIcons.clock,
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    title: string
+    value: string
+    link?: string
+    description?: string
+    icon: ReactNode
+  }>
+
+  const socialLinks = [
+    social?.instagram
+      ? { href: social.instagram, label: 'Instagram', icon: ContactIcons.instagram, color: '#E4405F' }
+      : null,
+    social?.telegram
+      ? { href: social.telegram, label: 'Telegram', icon: ContactIcons.telegram, color: '#0088cc' }
+      : null,
+    social?.facebook
+      ? { href: social.facebook, label: 'Facebook', icon: ContactIcons.facebook, color: '#1877F2' }
+      : null,
+  ].filter(Boolean) as Array<{
+    href: string
+    label: string
+    icon: ReactNode
+    color: string
+  }>
+
+  return (
+    <>
+      {cards.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Як з нами зв’язатися"
+          />
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {cards.map((card, index) => (
+              <ContactCard
+                key={card.title}
+                icon={card.icon}
+                title={card.title}
+                value={card.value}
+                link={card.link}
+                description={card.description}
+                delay={index * 80}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {socialLinks.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Соцмережі"
+          />
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {socialLinks.map((item) => (
+              <ScrollReveal key={item.label} variant="fade-up">
+                <SocialLink
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  color={item.color}
+                />
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {contacts?.address ? (
+        <section className="mb-16">
+          <ScrollReveal variant="fade-up">
+            <div className="rounded-[2rem] border border-black/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(247,239,227,0.88))] p-6 shadow-[0_24px_70px_rgba(16,24,40,0.07)] md:p-8">
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-foreground">
+                Адреса
+              </h2>
+              <p className="mt-3 text-base leading-7 text-muted-foreground">
+                {contacts.address}
+              </p>
+              {contacts.addressDescription ? (
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {contacts.addressDescription}
+                </p>
+              ) : null}
+              {contacts.addressLink ? (
+                <a
+                  href={contacts.addressLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-[0_10px_24px_rgba(16,24,40,0.05)] transition-transform hover:-translate-y-0.5"
+                >
+                  Відкрити на карті
+                </a>
+              ) : null}
+            </div>
+          </ScrollReveal>
+        </section>
+      ) : null}
+
+      <UtilityLinks
+        links={[
+          { href: contacts?.phoneLink || '', label: 'Подзвонити' },
+          { href: social?.telegram || '', label: 'Telegram', external: true },
+        ]}
+      />
+    </>
+  )
+}
+
+function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
+  const about = settings?.about
+  const intro = about?.intro
+  const story = about?.story
+  const features = about?.features ?? []
+  const stats = about?.stats ?? []
+
+  return (
+    <>
+      {(intro || story) && (
+        <section className="mb-16">
+          <ScrollReveal variant="fade-up">
+            <div className="rounded-[2rem] border border-black/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(247,239,227,0.88))] p-6 shadow-[0_24px_70px_rgba(16,24,40,0.07)] md:p-8">
+              {intro ? (
+                <p className="text-lg leading-8 text-foreground md:text-xl">
+                  {intro}
+                </p>
+              ) : null}
+              {story ? (
+                <p className="mt-5 max-w-3xl text-base leading-7 text-muted-foreground">
+                  {story}
+                </p>
+              ) : null}
+            </div>
+          </ScrollReveal>
+        </section>
+      )}
+
+      {features.length > 0 && (
+        <section className="mb-16">
+          <FeatureGrid
+            title="Що є основою HAIR LAB"
+            features={features.map((feature, index) => ({
+              icon: featureIconList[index] || FeatureIcons.quality,
+              title: feature.title,
+              description: feature.description,
+            }))}
+            columns={3}
+          />
+        </section>
+      )}
+
+      {stats.length > 0 && (
+        <section className="mb-16">
+          <SectionTitle
+            title="Факти та показники"
+          />
+
+          <ScrollReveal variant="fade-up">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {stats.map((stat) => (
+                <div
+                  key={`${stat.value}-${stat.label}`}
+                  className="rounded-[1.6rem] border border-black/8 bg-white/94 p-6 text-center shadow-[0_18px_50px_rgba(16,24,40,0.06)]"
+                >
+                  <p className="text-3xl font-semibold tracking-[-0.05em] text-foreground md:text-4xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
+        </section>
+      )}
+
+      <UtilityLinks
+        links={[
+          { href: '/shop', label: 'Каталог' },
+          { href: '/pages/contacts', label: 'Контакти' },
+        ]}
+      />
+    </>
+  )
+}
+
 export default async function StaticPage({ params }: PageProps) {
   const { slug } = await params
   const pageType = getPageType(slug)
 
-  // Fetch CMS data and site settings in parallel
   const [page, settings] = await Promise.all([
     getPageBySlug(slug),
     pageType !== 'generic' ? getSiteSettings() : Promise.resolve(null),
@@ -458,13 +566,11 @@ export default async function StaticPage({ params }: PageProps) {
 
   const config = pageConfig[slug]
 
-  // For generic pages, we need CMS content
   if (!page && pageType === 'generic') {
     notFound()
   }
 
   const title = page?.title || config?.fallbackTitle || slug
-
   const finalConfig = config || {
     icon: 'about' as const,
     gradient: 'teal' as const,
@@ -472,22 +578,23 @@ export default async function StaticPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f4eee6_0%,#fbf7f2_30%,#ffffff_100%)]">
       <PageHero
         title={title}
-        subtitle={finalConfig.subtitle}
         icon={finalConfig.icon}
         gradient={finalConfig.gradient}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-12 md:py-16">
+      <div className="mx-auto max-w-5xl px-4 py-12 md:py-16">
         {pageType === 'delivery' && <DeliveryContent settings={settings} />}
         {pageType === 'payment' && <PaymentContent settings={settings} />}
         {pageType === 'contacts' && <ContactsContent settings={settings} />}
         {pageType === 'about' && <AboutContent settings={settings} />}
 
         {pageType === 'generic' && page?.content && Array.isArray(page.content) && (
-          <RichTextRenderer content={page.content as Parameters<typeof RichTextRenderer>[0]['content']} />
+          <RichTextRenderer
+            content={page.content as Parameters<typeof RichTextRenderer>[0]['content']}
+          />
         )}
       </div>
     </main>

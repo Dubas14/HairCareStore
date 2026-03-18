@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Heart, Minus, Plus, RotateCcw, Shield, Truck } from 'lucide-react'
+import { Check, Heart, Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AddToCartAnimation } from '@/components/ui/add-to-cart-animation'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,14 @@ interface Variant {
   name: string
   price: number
   oldPrice?: number
+  sku?: string
+  articleCode?: string
   inStock: boolean
+}
+
+interface BuyBoxFact {
+  label: string
+  value: string
 }
 
 interface BuyBoxProps {
@@ -22,6 +29,7 @@ interface BuyBoxProps {
   reviewCount: number
   variants: Variant[]
   badges?: string[]
+  facts?: BuyBoxFact[]
   productImage?: string
   onAddToCart: (variantId: string, quantity: number) => void
   onAddToWishlist: () => void
@@ -34,6 +42,7 @@ export function BuyBox({
   reviewCount,
   variants,
   badges = [],
+  facts = [],
   productImage,
   onAddToCart,
   onAddToWishlist,
@@ -60,6 +69,15 @@ export function BuyBox({
         ((selectedVariant.oldPrice - selectedVariant.price) / selectedVariant.oldPrice) * 100
       )
     : 0
+  const detailRows = [
+    selectedVariant.articleCode
+      ? { label: 'Артикул', value: selectedVariant.articleCode }
+      : null,
+    selectedVariant.sku && selectedVariant.sku !== selectedVariant.articleCode
+      ? { label: 'SKU', value: selectedVariant.sku }
+      : null,
+    ...facts,
+  ].filter(Boolean) as BuyBoxFact[]
 
   return (
     <div className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.06)] md:p-7">
@@ -67,9 +85,9 @@ export function BuyBox({
         {brand}
       </div>
 
-      <h1 className="mt-5 text-3xl font-semibold leading-[1] tracking-[-0.05em] text-foreground lg:text-4xl">
+      <h2 className="mt-5 text-3xl font-semibold leading-[1] tracking-[-0.05em] text-foreground lg:text-4xl">
         {productName}
-      </h1>
+      </h2>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
@@ -135,6 +153,7 @@ export function BuyBox({
             {variants.map((variant) => (
               <button
                 key={variant.id}
+                type="button"
                 onClick={() => setSelectedVariant(variant)}
                 disabled={!variant.inStock}
                 className={cn(
@@ -166,6 +185,7 @@ export function BuyBox({
         </span>
         <div className="flex items-center rounded-full border border-black/8 bg-[#fcfaf7] p-1">
           <button
+            type="button"
             onClick={() => handleQuantityChange(-1)}
             disabled={quantity <= 1}
             className="rounded-full p-2 transition-colors hover:bg-black/5 disabled:opacity-50"
@@ -175,6 +195,7 @@ export function BuyBox({
           </button>
           <span className="w-10 text-center text-sm font-medium">{quantity}</span>
           <button
+            type="button"
             onClick={() => handleQuantityChange(1)}
             disabled={quantity >= 10}
             className="rounded-full p-2 transition-colors hover:bg-black/5 disabled:opacity-50"
@@ -213,20 +234,23 @@ export function BuyBox({
         </Button>
       </div>
 
-      <div className="mt-7 grid gap-3 border-t border-black/6 pt-6 text-sm text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <Truck className="h-4 w-4 text-[#2A9D8F]" />
-          <span>Безкоштовна доставка від 1000 ₴</span>
+      {detailRows.length > 0 && (
+        <div className="mt-7 border-t border-black/6 pt-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {detailRows.map((fact) => (
+              <div
+                key={`${fact.label}-${fact.value}`}
+                className="rounded-[1.2rem] border border-black/8 bg-[#fcfaf7] px-4 py-3"
+              >
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-foreground/42">
+                  {fact.label}
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">{fact.value}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Shield className="h-4 w-4 text-[#2A9D8F]" />
-          <span>Гарантія оригінальності</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <RotateCcw className="h-4 w-4 text-[#2A9D8F]" />
-          <span>Повернення 14 днів</span>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -521,3 +521,63 @@ export interface LexicalNode {
   value?: { url?: string; alt?: string }
   [key: string]: unknown
 }
+
+function extractLexicalText(node: LexicalNode | LexicalNode[] | Record<string, unknown> | string | null | undefined): string {
+  if (!node) return ''
+
+  if (typeof node === 'string') return node
+
+  if (Array.isArray(node)) {
+    return node.map((child) => extractLexicalText(child)).join(' ')
+  }
+
+  const lexicalNode = node as LexicalNode & { root?: LexicalNode }
+
+  if (lexicalNode.root) {
+    return extractLexicalText(lexicalNode.root)
+  }
+
+  if ((lexicalNode.type === 'text' || !lexicalNode.type) && typeof lexicalNode.text === 'string') {
+    return lexicalNode.text
+  }
+
+  if (lexicalNode.type === 'linebreak') {
+    return '\n'
+  }
+
+  const childrenText = Array.isArray(lexicalNode.children)
+    ? lexicalNode.children.map((child) => extractLexicalText(child)).join(' ')
+    : ''
+
+  switch (lexicalNode.type) {
+    case 'paragraph':
+    case 'heading':
+    case 'listitem':
+    case 'quote':
+      return `${childrenText}\n`
+    default:
+      return childrenText
+  }
+}
+
+export function richTextToPlainText(
+  content: Record<string, unknown> | string | null | undefined,
+  maxLength?: number,
+): string {
+  const plainText = extractLexicalText(content)
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!maxLength || plainText.length <= maxLength) {
+    return plainText
+  }
+
+  const truncated = plainText.slice(0, maxLength).trim()
+  const lastSpaceIndex = truncated.lastIndexOf(' ')
+
+  if (lastSpaceIndex > Math.floor(maxLength * 0.6)) {
+    return `${truncated.slice(0, lastSpaceIndex)}...`
+  }
+
+  return `${truncated}...`
+}

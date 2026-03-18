@@ -75,6 +75,7 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
   const shippingTotal = cart ? cart.shippingTotal : 0
   const cartTotal = cart ? cart.total : 0
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
+  const shippingProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
 
   // Loyalty points state
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0)
@@ -86,12 +87,45 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
   const total = cartTotal - loyaltyDiscount
 
   return (
-    <div className="bg-muted/50 rounded-card p-6">
-      <h2 className="text-lg font-semibold mb-4">Ваше замовлення</h2>
+    <div className="overflow-hidden rounded-[2rem] border border-black/8 bg-[linear-gradient(180deg,rgba(252,248,242,0.98),rgba(255,255,255,0.98))] p-6 shadow-[0_24px_60px_rgba(16,24,40,0.08)]">
+      <div className="mb-5 rounded-[1.5rem] border border-black/6 bg-white/90 p-4 shadow-[0_14px_30px_rgba(16,24,40,0.04)]">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-foreground/45">
+          Summary
+        </p>
+        <div className="mt-3 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">Ваше замовлення</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {items.length} {items.length === 1 ? 'позиція' : items.length < 5 ? 'позиції' : 'позицій'} у кошику
+            </p>
+          </div>
+          <div className="rounded-full bg-[#1f2a20] px-3 py-1 text-xs font-medium text-white">
+            {Math.round(total)} ₴
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-5 rounded-[1.5rem] border border-[#e9e1d4] bg-[#f7efe3] px-4 py-4">
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="font-medium text-foreground">Безкоштовна доставка</span>
+          <span className="text-muted-foreground">{Math.round(subtotal)} / {FREE_SHIPPING_THRESHOLD} ₴</span>
+        </div>
+        <div className="mt-3 h-2 rounded-full bg-white/80">
+          <div
+            className="h-2 rounded-full bg-[#1f2a20] transition-[width] duration-500"
+            style={{ width: `${shippingProgress}%` }}
+          />
+        </div>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          {isFreeShipping
+            ? 'Поріг безкоштовної доставки досягнуто.'
+            : `Додайте ще ${Math.round(FREE_SHIPPING_THRESHOLD - subtotal)} ₴, щоб доставка стала безкоштовною.`}
+        </p>
+      </div>
 
       {/* Items */}
       {showItems && items.length > 0 && (
-        <div className="divide-y divide-border mb-4 max-h-[300px] overflow-y-auto">
+        <div className="mb-5 max-h-[320px] divide-y divide-border overflow-y-auto rounded-[1.5rem] border border-black/6 bg-white/85 px-4">
           {items.map((item, index) => (
             <OrderItem key={item.id ?? index} item={item} />
           ))}
@@ -99,7 +133,7 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
       )}
 
       {/* Summary */}
-      <div className="space-y-2 border-t pt-4">
+      <div className="space-y-2 rounded-[1.5rem] border border-black/6 bg-white/85 p-5">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Підсумок</span>
           <span>{Math.round(subtotal)} ₴</span>
@@ -144,7 +178,7 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
             <span>-{Math.round(loyaltyDiscount)} ₴</span>
           </div>
         )}
-        <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+        <div className="flex justify-between border-t pt-3 text-lg font-semibold">
           <span>Разом</span>
           <span>{Math.round(total)} ₴</span>
         </div>
@@ -152,7 +186,7 @@ export function OrderSummary({ cart, showItems = true }: OrderSummaryProps) {
 
       {/* Loyalty points section */}
       {cart && subtotal > 0 && (
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4 rounded-[1.5rem] border border-dashed border-black/10 bg-white/65 p-4">
           <LoyaltyPointsSection
             orderTotal={subtotal}
             onPointsChange={handleLoyaltyPointsChange}

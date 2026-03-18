@@ -2,7 +2,7 @@ export const revalidate = 300 // ISR: revalidate every 5 minutes
 
 import type { Metadata } from 'next'
 import { getProductByHandle, getProductRating, getProducts, getReviewsByProduct } from '@/lib/payload/client'
-import { getImageUrl } from '@/lib/payload/types'
+import { getImageUrl, richTextToPlainText } from '@/lib/payload/types'
 import type { Review } from '@/lib/payload/types'
 import ProductPageContent from './ProductPageContent'
 
@@ -29,9 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     || (typeof product.brand === 'object' && product.brand ? product.brand.name : null)
     || 'HAIR LAB'
   const title = `${product.title} — ${brand} | HAIR LAB`
-  const description = typeof product.description === 'string'
-    ? product.description.slice(0, 160)
-    : `${product.title} від ${brand}. Професійна косметика для волосся в інтернет-магазині HAIR LAB.`
+  const description = richTextToPlainText(product.description, 160)
+    || `${product.title} від ${brand}. Професійна косметика для волосся в інтернет-магазині HAIR LAB.`
   const imageUrl = getImageUrl(product.thumbnail)
   const url = `${BASE_URL}/products/${handle}`
 
@@ -130,9 +129,7 @@ function buildProductJsonLd(
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
-    description: typeof product.description === 'string'
-      ? product.description.slice(0, 500)
-      : `${product.title} від ${brand}`,
+    description: richTextToPlainText(product.description, 500) || `${product.title} від ${brand}`,
     ...(imageUrl && { image: imageUrl }),
     brand: { '@type': 'Brand', name: brand },
     sku: firstVariant?.sku || product.handle,

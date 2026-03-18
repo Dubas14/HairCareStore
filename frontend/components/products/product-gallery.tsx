@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -13,11 +13,35 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isZoomed, setIsZoomed] = useState(false)
+  const [canHoverZoom, setCanHoverZoom] = useState(false)
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
   const imageRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const update = () => {
+      const enabled = mediaQuery.matches && window.innerWidth >= 1024
+      setCanHoverZoom(enabled)
+      if (!enabled) {
+        setIsZoomed(false)
+      }
+    }
+
+    update()
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', update)
+      return () => mediaQuery.removeEventListener('change', update)
+    }
+
+    mediaQuery.addListener(update)
+    return () => mediaQuery.removeListener(update)
+  }, [])
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current || !isZoomed) return
+    if (!imageRef.current || !isZoomed || !canHoverZoom) return
 
     const rect = imageRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
@@ -42,6 +66,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         {displayImages.map((image, index) => (
           <button
             key={index}
+            type="button"
             onClick={() => setActiveIndex(index)}
             className={cn(
               "flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-[1.3rem] border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -69,11 +94,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           ref={imageRef}
           className={cn(
             "group relative aspect-[4/4.8] overflow-hidden rounded-[2rem] border border-black/8 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)]",
-            isZoomed && "cursor-zoom-out",
-            !isZoomed && "cursor-zoom-in"
+            canHoverZoom && isZoomed && "cursor-zoom-out",
+            canHoverZoom && !isZoomed && "cursor-zoom-in"
           )}
-          onMouseEnter={() => setIsZoomed(true)}
-          onMouseLeave={() => setIsZoomed(false)}
+          onMouseEnter={() => {
+            if (canHoverZoom) setIsZoomed(true)
+          }}
+          onMouseLeave={() => {
+            if (canHoverZoom) setIsZoomed(false)
+          }}
           onMouseMove={handleMouseMove}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(42,157,143,0.08),_transparent_32%),linear-gradient(180deg,#ffffff_0%,#fbf7f2_100%)]" />
@@ -86,10 +115,10 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             priority={activeIndex === 0}
             className={cn(
               "relative h-full w-full object-cover transition-transform duration-200",
-              isZoomed && "scale-150"
+              canHoverZoom && isZoomed && "scale-150"
             )}
             style={
-              isZoomed
+              canHoverZoom && isZoomed
                 ? {
                     transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
                   }
@@ -97,16 +126,17 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             }
           />
 
-          {!isZoomed && (
+          {canHoverZoom && !isZoomed && (
             <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-black/8 bg-white px-3 py-2 text-xs font-medium uppercase tracking-[0.16em] text-foreground/56 shadow-[0_10px_24px_rgba(0,0,0,0.05)]">
               <ZoomIn className="h-4 w-4 text-[#2A9D8F]" />
-              Zoom
+              Збільшити
             </div>
           )}
 
           {displayImages.length > 1 && (
             <>
               <button
+                type="button"
                 onClick={handlePrev}
                 className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-black/8 bg-white shadow-[0_10px_24px_rgba(0,0,0,0.06)] transition-transform hover:-translate-y-[52%]"
                 aria-label="Попереднє зображення"
@@ -114,6 +144,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
+                type="button"
                 onClick={handleNext}
                 className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-black/8 bg-white shadow-[0_10px_24px_rgba(0,0,0,0.06)] transition-transform hover:-translate-y-[52%]"
                 aria-label="Наступне зображення"
