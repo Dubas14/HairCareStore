@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Slider } from '@/components/ui/slider'
 import { Sheet } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { getFilterFacets } from '@/lib/payload/actions'
@@ -108,10 +107,6 @@ function FilterContent({
     onFiltersChange({ ...filters, categoryIds: newCats })
   }
 
-  const handlePriceChange = (value: [number, number]) => {
-    onFiltersChange({ ...filters, priceRange: value })
-  }
-
   const hasPriceFilter = filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice
   const activeFiltersCount =
     filters.brands.length + (filters.categoryIds?.length || 0) + (hasPriceFilter ? 1 : 0)
@@ -183,14 +178,33 @@ function FilterContent({
       )}
 
       <FilterSection title="Ціна">
-        <Slider
-          min={0}
-          max={dynamicMaxPrice}
-          value={filters.priceRange}
-          onChange={handlePriceChange}
-          step={50}
-          formatValue={(v) => formatPrice(v)}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            max={filters.priceRange[1]}
+            value={filters.priceRange[0]}
+            onChange={(e) => {
+              const v = Math.max(0, Math.min(Number(e.target.value), filters.priceRange[1]))
+              onFiltersChange({ ...filters, priceRange: [v, filters.priceRange[1]] })
+            }}
+            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-primary"
+            placeholder="Від"
+          />
+          <span className="shrink-0 text-muted-foreground">—</span>
+          <input
+            type="number"
+            min={filters.priceRange[0]}
+            max={dynamicMaxPrice}
+            value={filters.priceRange[1]}
+            onChange={(e) => {
+              const v = Math.min(dynamicMaxPrice, Math.max(Number(e.target.value), filters.priceRange[0]))
+              onFiltersChange({ ...filters, priceRange: [filters.priceRange[0], v] })
+            }}
+            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-primary"
+            placeholder="До"
+          />
+        </div>
       </FilterSection>
     </div>
   )
@@ -235,8 +249,8 @@ export function FilterSidebar(props: FilterSidebarProps) {
       </Sheet>
 
       <aside className={cn("hidden lg:block", props.className)}>
-        <div className="sticky top-28 rounded-[2rem] border border-black/8 bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,0.05)]">
-          <div className="mb-5 flex items-center gap-3">
+        <div className="sticky top-28 flex max-h-[calc(100vh-8rem)] flex-col rounded-[2rem] border border-black/8 bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,0.05)]">
+          <div className="mb-5 flex shrink-0 items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f4ebe2]">
               <SlidersHorizontal className="h-4 w-4 text-[#2A9D8F]" />
             </div>
@@ -249,7 +263,9 @@ export function FilterSidebar(props: FilterSidebarProps) {
               </h2>
             </div>
           </div>
-          <FilterContent {...props} />
+          <div className="overflow-y-auto overscroll-contain pr-1">
+            <FilterContent {...props} />
+          </div>
         </div>
       </aside>
     </>

@@ -13,6 +13,14 @@ interface SliderProps {
   className?: string
 }
 
+function clamp(val: number, lo: number, hi: number) {
+  return Math.min(Math.max(val, lo), hi)
+}
+
+function snap(val: number, step: number, min: number) {
+  return Math.round((val - min) / step) * step + min
+}
+
 function Slider({
   min,
   max,
@@ -23,30 +31,77 @@ function Slider({
   className,
 }: SliderProps) {
   const [localValue, setLocalValue] = React.useState(value)
+  const trackRef = React.useRef<HTMLDivElement>(null)
+  const dragging = React.useRef<'min' | 'max' | null>(null)
 
   React.useEffect(() => {
     setLocalValue(value)
   }, [value])
 
-  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newMin = Math.min(Number(e.target.value), localValue[1] - step)
-    const newValue: [number, number] = [newMin, localValue[1]]
-    setLocalValue(newValue)
-    onChange(newValue)
-  }
+  const positionToValue = React.useCallback(
+    (clientX: number) => {
+      const track = trackRef.current
+      if (!track) return min
+      const rect = track.getBoundingClientRect()
+      const ratio = clamp((clientX - rect.left) / rect.width, 0, 1)
+      return snap(min + ratio * (max - min), step, min)
+    },
+    [min, max, step],
+  )
 
-  const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newMax = Math.max(Number(e.target.value), localValue[0] + step)
-    const newValue: [number, number] = [localValue[0], newMax]
-    setLocalValue(newValue)
-    onChange(newValue)
-  }
+  const handlePointerDown = React.useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault()
+      const val = positionToValue(e.clientX)
+      // Determine which thumb is closer
+      const distMin = Math.abs(val - localValue[0])
+      const distMax = Math.abs(val - localValue[1])
+      const target = distMin <= distMax ? 'min' : 'max'
+      dragging.current = target
+
+      const newValue: [number, number] =
+        target === 'min'
+          ? [clamp(val, min, localValue[1] - step), localValue[1]]
+          : [localValue[0], clamp(val, localValue[0] + step, max)]
+      setLocalValue(newValue)
+      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    },
+    [localValue, min, max, step, positionToValue],
+  )
+
+  const handlePointerMove = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragging.current) return
+      e.preventDefault()
+      const val = positionToValue(e.clientX)
+      setLocalValue((prev) => {
+        if (dragging.current === 'min') {
+          return [clamp(val, min, prev[1] - step), prev[1]]
+        }
+        return [prev[0], clamp(val, prev[0] + step, max)]
+      })
+    },
+    [min, max, step, positionToValue],
+  )
+
+  const handlePointerUp = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragging.current) return
+      dragging.current = null
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+      setLocalValue((current) => {
+        onChange(current)
+        return current
+      })
+    },
+    [onChange],
+  )
 
   const minPercent = ((localValue[0] - min) / (max - min)) * 100
   const maxPercent = ((localValue[1] - min) / (max - min)) * 100
 
   return (
-    <div className={cn("slider-root space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Values display */}
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{formatValue(localValue[0])}</span>
@@ -54,88 +109,40 @@ function Slider({
         <span className="font-medium">{formatValue(localValue[1])}</span>
       </div>
 
-      {/* Slider track */}
-      <div className="relative h-5 px-1">
-        {/* Background track */}
-        <div className="absolute inset-x-1 top-1/2 h-2 -translate-y-1/2 rounded-full bg-muted" />
-
-        {/* Active track */}
+      {/* Track area — outer has padding so thumbs don't clip */}
+      <div className="px-2.5">
         <div
-          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary"
-          style={{
-            left: `calc(${minPercent}% + 4px)`,
-            right: `calc(${100 - maxPercent}% + 4px)`,
-          }}
-        />
+          ref={trackRef}
+          className="relative h-6 cursor-pointer touch-none select-none"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
+          {/* Background track */}
+          <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-muted" />
 
-        {/* Min input */}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={localValue[0]}
-          onChange={handleMinChange}
-          className="slider-range absolute inset-y-0 left-1 right-1 w-[calc(100%-8px)] bg-transparent pointer-events-none"
-        />
+          {/* Active track */}
+          <div
+            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary"
+            style={{
+              left: `${minPercent}%`,
+              right: `${100 - maxPercent}%`,
+            }}
+          />
 
-        {/* Max input */}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={localValue[1]}
-          onChange={handleMaxChange}
-          className="slider-range absolute inset-y-0 left-1 right-1 w-[calc(100%-8px)] bg-transparent pointer-events-none"
-        />
+          {/* Min thumb */}
+          <div
+            className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+            style={{ left: `${minPercent}%` }}
+          />
+
+          {/* Max thumb */}
+          <div
+            className="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+            style={{ left: `${maxPercent}%` }}
+          />
+        </div>
       </div>
-
-      <style jsx>{`
-        .slider-root :global(.slider-range) {
-          -webkit-appearance: none;
-          appearance: none;
-          background: transparent;
-          outline: none;
-        }
-
-        .slider-root :global(.slider-range::-webkit-slider-runnable-track) {
-          height: 8px;
-          background: transparent;
-          border: 0;
-        }
-
-        .slider-root :global(.slider-range::-moz-range-track) {
-          height: 8px;
-          background: transparent;
-          border: 0;
-        }
-
-        .slider-root :global(.slider-range::-webkit-slider-thumb) {
-          -webkit-appearance: none;
-          appearance: none;
-          pointer-events: auto;
-          width: 20px;
-          height: 20px;
-          margin-top: -6px;
-          border-radius: 9999px;
-          border: 2px solid hsl(var(--background));
-          background: hsl(var(--primary));
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-          cursor: pointer;
-        }
-
-        .slider-root :global(.slider-range::-moz-range-thumb) {
-          pointer-events: auto;
-          width: 20px;
-          height: 20px;
-          border-radius: 9999px;
-          border: 2px solid hsl(var(--background));
-          background: hsl(var(--primary));
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   )
 }
