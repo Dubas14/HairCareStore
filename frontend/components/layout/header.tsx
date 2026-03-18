@@ -237,23 +237,15 @@ export function Header() {
               compactMode ? "min-h-[62px]" : "min-h-[66px]"
             )}
           >
-            <Link href="/" className="relative z-10 flex items-center gap-3">
-              <div
-                className={cn(
-                  "relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.08)]",
-                  "border border-black/8 bg-white"
-                )}
-              >
-                <Image
-                  src="/logo.png"
-                  alt="HAIRLAB"
-                  width={30}
-                  height={30}
-                  priority
-                  className="relative object-contain"
-                  style={{ width: "30px", height: "30px" }}
-                />
-              </div>
+            <Link href="/" className="relative z-10 flex items-center gap-0.5">
+              <Image
+                src="/logo.png"
+                alt="HAIRLAB"
+                width={36}
+                height={36}
+                priority
+                className="h-9 w-9 object-contain"
+              />
 
               <div className="leading-none">
                 <div

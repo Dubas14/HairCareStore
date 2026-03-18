@@ -54,6 +54,13 @@ export const metadata: Metadata = {
     description: 'Інтернет-магазин професійної косметики для волосся.',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3200'),
+  icons: {
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default async function FrontendLayout({

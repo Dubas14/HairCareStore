@@ -48,17 +48,14 @@ export function Footer() {
       <div className="relative mx-auto max-w-7xl px-4 pb-8 pt-14 sm:px-6 lg:px-8 lg:pt-16">
         <div className="grid gap-10 border-t border-white/10 pt-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="max-w-lg">
-            <Link href="/" className="inline-flex items-center gap-3">
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/8">
-                <Image
-                  src="/logo.png"
-                  alt="HAIRLAB"
-                  width={34}
-                  height={34}
-                  className="relative object-contain"
-                  style={{ width: "34px", height: "34px" }}
-                />
-              </div>
+            <Link href="/" className="inline-flex items-center gap-1.5">
+              <Image
+                src="/logo.png"
+                alt="HAIRLAB"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
 
               <div className="leading-none">
                 <div className="flex items-center gap-0.5 text-[1rem] font-black tracking-[0.2em] text-white">
