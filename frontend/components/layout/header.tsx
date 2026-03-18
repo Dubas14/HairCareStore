@@ -150,7 +150,7 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "relative px-1 py-2 text-[13px] font-semibold tracking-[0.12em] uppercase",
+        "group relative px-1 py-2 text-[13px] font-semibold tracking-[0.12em] uppercase",
         "transition-colors duration-300",
         inverse
           ? isActive
@@ -163,6 +163,7 @@ function NavLink({
       aria-current={isActive ? "page" : undefined}
     >
       {children}
+      {/* Underline */}
       <span
         className={cn(
           "absolute inset-x-1 -bottom-0.5 h-px origin-left rounded-full",
@@ -170,7 +171,18 @@ function NavLink({
             ? "bg-gradient-to-r from-[#f4d5b0] via-white to-[#88ded4]"
             : "bg-gradient-to-r from-[#D4A373] via-[#2A9D8F] to-[#48CAE4]",
           "transition-transform duration-300 ease-out",
-          isActive ? "scale-x-100" : "scale-x-0"
+          isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+        )}
+      />
+      {/* Dot */}
+      <span
+        className={cn(
+          "absolute -bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full",
+          inverse ? "bg-white" : "bg-[#2A9D8F]",
+          "transition-all duration-300 ease-out",
+          isActive
+            ? "scale-100 opacity-100"
+            : "scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100"
         )}
       />
     </Link>
@@ -244,7 +256,8 @@ export function Header() {
                 width={36}
                 height={36}
                 priority
-                className="h-9 w-9 object-contain"
+                className="h-9 w-9 object-contain transition-transform duration-700 ease-in-out hover:[transform:rotateY(360deg)]"
+                style={{ transformStyle: 'preserve-3d' }}
               />
 
               <div className="leading-none">
