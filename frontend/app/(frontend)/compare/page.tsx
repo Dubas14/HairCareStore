@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { X, GitCompareArrows, ShoppingBag, Star, ArrowLeft, Sparkles } from 'lucide-react'
 import { useCompareStore } from '@/stores/compare-store'
 import { useCartContext } from '@/components/providers/cart-provider'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import { ensureGsapPlugins, prefersReducedMotion } from '@/lib/gsap'
 
 export default function ComparePage() {
@@ -56,7 +57,7 @@ export default function ComparePage() {
       label: 'Ціна',
       getValue: (item) => (
         <div>
-          <span className="text-lg font-bold text-foreground">{item.price} грн</span>
+          <AnimatedNumber value={item.price} suffix=" грн" className="text-lg font-bold text-foreground" />
           {item.oldPrice && (
             <span className="ml-2 text-sm text-muted-foreground line-through">
               {item.oldPrice} грн

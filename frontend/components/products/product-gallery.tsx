@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ensureGsapPlugins, prefersReducedMotion } from '@/lib/gsap'
 
 interface ProductGalleryProps {
   images: string[]
@@ -60,6 +61,27 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
   const displayImages = images.length > 0 ? images : ['/placeholder.jpg']
 
+  // Parallax: main image moves slower than scroll
+  useEffect(() => {
+    if (!imageRef.current || prefersReducedMotion()) return
+
+    const { gsap } = ensureGsapPlugins()
+    const ctx = gsap.context(() => {
+      gsap.to('[data-gallery-image]', {
+        yPercent: 8,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: imageRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1,
+        },
+      })
+    }, imageRef)
+
+    return () => ctx.revert()
+  }, [activeIndex])
+
   return (
     <div className="grid gap-4 lg:grid-cols-[110px_minmax(0,1fr)]">
       <div className="order-2 flex gap-2 overflow-x-auto pb-2 lg:order-1 lg:flex-col lg:overflow-y-auto lg:pb-0">
@@ -107,6 +129,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(42,157,143,0.08),_transparent_32%),linear-gradient(180deg,#ffffff_0%,#fbf7f2_100%)]" />
           <Image
+            data-gallery-image
             src={displayImages[activeIndex]}
             alt={`${productName} - зображення ${activeIndex + 1}`}
             width={900}

@@ -1,10 +1,11 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { ProductCard } from '@/components/products/product-card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScrollReveal } from '@/components/ui/scroll-reveal'
 import type { Product } from '@/lib/constants/home-data'
 import { Search } from 'lucide-react'
+import { ensureGsapPlugins, prefersReducedMotion } from '@/lib/gsap'
 
 interface ProductGridProps {
   products: Product[]
@@ -59,18 +60,38 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
     )
   }
 
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!gridRef.current || prefersReducedMotion()) return
+
+    const { gsap } = ensureGsapPlugins()
+    const cards = gridRef.current.querySelectorAll('[data-product-card]')
+    if (cards.length === 0) return
+
+    gsap.set(cards, { opacity: 0, y: 32, rotateX: -4 })
+
+    const ctx = gsap.context(() => {
+      gsap.to(cards, {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 0.65,
+        stagger: 0.06,
+        ease: 'power3.out',
+        clearProps: 'all',
+      })
+    }, gridRef)
+
+    return () => ctx.revert()
+  }, [products])
+
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-      {products.map((product, index) => (
-        <ScrollReveal
-          key={product.id}
-          variant="fade-up"
-          delay={Math.min(index * 45, 220)}
-          duration={520}
-          threshold={0.05}
-        >
+    <div ref={gridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      {products.map((product) => (
+        <div key={product.id} data-product-card>
           <ProductCard product={product} />
-        </ScrollReveal>
+        </div>
       ))}
     </div>
   )

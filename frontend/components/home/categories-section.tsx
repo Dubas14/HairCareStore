@@ -229,6 +229,7 @@ export function CategoriesSection({ categories }: CategoriesSectionProps) {
                 key={category.id}
                 href={`/categories/${category.slug}`}
                 data-category-card
+                data-velocity-blur
                 className="group relative min-h-[340px] overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-[0_18px_50px_rgba(20,20,20,0.08)] md:min-h-[380px]"
               >
                 <div className="absolute inset-0 overflow-hidden">

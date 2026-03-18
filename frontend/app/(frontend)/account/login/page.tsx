@@ -14,7 +14,7 @@ export default function LoginPage() {
       title="Вітаємо знову"
       subtitle="Увійдіть до свого акаунту для доступу до замовлень та персональних рекомендацій"
     >
-      <Suspense>
+      <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
     </AuthLayout>

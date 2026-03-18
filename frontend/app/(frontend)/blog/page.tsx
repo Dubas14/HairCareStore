@@ -33,17 +33,17 @@ export default async function BlogPage() {
                 <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
                   <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Статей</p>
                   <p className="mt-2 text-2xl font-semibold text-foreground">{posts.length}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">підбірки, гіди, розбори інгредієнтів</p>
+                  <p className="mt-1 text-sm text-muted-foreground">підбірки, гіди та поради</p>
                 </div>
                 <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
-                  <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Формат</p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">Editorial</p>
-                  <p className="mt-1 text-sm text-muted-foreground">спокійна типографіка та виразні картки</p>
+                  <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Теми</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">Догляд</p>
+                  <p className="mt-1 text-sm text-muted-foreground">інгредієнти, формули, рутини</p>
                 </div>
                 <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
-                  <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Мобайл</p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">Smooth</p>
-                  <p className="mt-1 text-sm text-muted-foreground">комфортне читання на вузьких екранах</p>
+                  <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Від експертів</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">HAIR LAB</p>
+                  <p className="mt-1 text-sm text-muted-foreground">перевірені рекомендації</p>
                 </div>
               </div>
             </div>

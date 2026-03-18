@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { ArrowUpRight, BadgeCheck, Layers3, Package, ScanLine } from 'lucide-react'
+import { BadgeCheck, Layers3, Package, ScanLine } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { ProductGallery } from '@/components/products/product-gallery'
 import { BuyBox } from '@/components/products/buy-box'
@@ -301,66 +301,66 @@ export default function ProductPageContent() {
       </div>
 
       <section className="container relative mx-auto px-4 pb-8 pt-4 md:pb-12">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:gap-12">
-          <div className="space-y-6">
-            <div className="max-w-3xl space-y-5">
-              <div className="flex flex-wrap gap-2" data-product-hero-el>
-                <span className="inline-flex items-center rounded-full border border-black/8 bg-white/90 px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-foreground/58 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
-                  {brand}
-                </span>
-                {categories.slice(0, 2).map((category) => (
-                  <Link
-                    key={String(category.id)}
-                    href={`/categories/${category.slug}`}
-                    className="inline-flex items-center rounded-full border border-black/8 bg-[#fcfaf7] px-4 py-2 text-xs font-medium text-foreground/72 transition-colors hover:bg-white"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-
-              <div data-product-hero-el>
-                <h1 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] text-foreground md:text-5xl xl:text-6xl">
-                  {productName}
-                </h1>
-                {(productDescription || brandSummary) && (
-                  <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground md:text-lg">
-                    {productDescription || brandSummary}
-                  </p>
-                )}
-              </div>
-
-              {productStats.length > 0 && (
-                <div
-                  data-product-hero-el
-                  className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-                >
-                  {productStats.map((stat) => {
-                    const Icon = stat.icon
-
-                    return (
-                      <div
-                        key={`${stat.label}-${stat.value}`}
-                        className="rounded-[1.5rem] border border-black/8 bg-white/92 px-4 py-4 shadow-[0_18px_40px_rgba(16,24,40,0.06)]"
-                      >
-                        <div className="flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-foreground/42">
-                          <Icon className="h-3.5 w-3.5 text-[#2A9D8F]" />
-                          {stat.label}
-                        </div>
-                        <p className="mt-2 text-sm font-medium text-foreground">{stat.value}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div data-product-panel="gallery">
-              <ProductGallery images={images} productName={productName} />
-            </div>
+        {/* Hero info — full width */}
+        <div className="mb-8 max-w-3xl space-y-5">
+          <div className="flex flex-wrap gap-2" data-product-hero-el>
+            <span className="inline-flex items-center rounded-full border border-black/8 bg-white/90 px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-foreground/58 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+              {brand}
+            </span>
+            {categories.slice(0, 2).map((category) => (
+              <Link
+                key={String(category.id)}
+                href={`/categories/${category.slug}`}
+                className="inline-flex items-center rounded-full border border-black/8 bg-[#fcfaf7] px-4 py-2 text-xs font-medium text-foreground/72 transition-colors hover:bg-white"
+              >
+                {category.name}
+              </Link>
+            ))}
           </div>
 
-          <div data-product-panel="buybox" className="lg:sticky lg:top-24 lg:self-start">
+          <div data-product-hero-el>
+            <h1 className="text-4xl font-semibold leading-[0.94] tracking-[-0.06em] text-foreground md:text-5xl xl:text-6xl">
+              {productName}
+            </h1>
+            {(productDescription || brandSummary) && (
+              <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground md:text-lg">
+                {productDescription || brandSummary}
+              </p>
+            )}
+          </div>
+
+          {productStats.length > 0 && (
+            <div
+              data-product-hero-el
+              className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            >
+              {productStats.map((stat) => {
+                const Icon = stat.icon
+
+                return (
+                  <div
+                    key={`${stat.label}-${stat.value}`}
+                    className="rounded-[1.5rem] border border-black/8 bg-white/92 px-4 py-4 shadow-[0_18px_40px_rgba(16,24,40,0.06)]"
+                  >
+                    <div className="flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-foreground/42">
+                      <Icon className="h-3.5 w-3.5 text-[#2A9D8F]" />
+                      {stat.label}
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-foreground">{stat.value}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Gallery + BuyBox — side by side */}
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:gap-12">
+          <div data-product-panel="gallery">
+            <ProductGallery images={images} productName={productName} />
+          </div>
+
+          <div data-product-panel="buybox" className="lg:sticky lg:top-24">
             <BuyBox
               productName={productName}
               brand={brand}
@@ -439,17 +439,6 @@ export default function ProductPageContent() {
                 </div>
               ) : null}
 
-              {brandData?.website ? (
-                <a
-                  href={brandData.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-between rounded-[1.4rem] border border-black/8 bg-white/88 px-4 py-4 text-sm font-medium text-foreground transition-transform hover:-translate-y-0.5"
-                >
-                  Офіційний сайт бренду
-                  <ArrowUpRight className="h-4 w-4 text-[#2A9D8F]" />
-                </a>
-              ) : null}
             </div>
           </div>
         </section>
