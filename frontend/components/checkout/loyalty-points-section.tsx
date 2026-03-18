@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { Gift, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLoyalty, useCalculateLoyaltyPoints, getLevelDisplayName } from '@/lib/hooks/use-loyalty'
@@ -22,20 +22,29 @@ export function LoyaltyPointsSection({ orderTotal, onPointsChange }: LoyaltyPoin
   const [isExpanded, setIsExpanded] = useState(false)
   const initialCalcDone = useRef(false)
 
+  const doCalculate = useCallback(
+    (points: number) => {
+      if (summary && orderTotal > 0) {
+        calculatePoints.mutate({ orderTotal, pointsToSpend: points, currentBalance: summary.pointsBalance, level: summary.level })
+      }
+    },
+    [summary, orderTotal, calculatePoints],
+  )
+
   // Calculate on load and when order total changes
   useEffect(() => {
     if (summary && orderTotal > 0 && !initialCalcDone.current) {
-      calculatePoints.mutate({ orderTotal, pointsToSpend: 0, currentBalance: summary.pointsBalance, level: summary.level })
+      doCalculate(0)
       initialCalcDone.current = true
     }
-  }, [summary, orderTotal])
+  }, [summary, orderTotal, doCalculate])
 
   // Recalculate when points slider changes
   useEffect(() => {
     if (summary && orderTotal > 0 && initialCalcDone.current) {
-      calculatePoints.mutate({ orderTotal, pointsToSpend, currentBalance: summary.pointsBalance, level: summary.level })
+      doCalculate(pointsToSpend)
     }
-  }, [pointsToSpend])
+  }, [pointsToSpend, summary, orderTotal, doCalculate])
 
   // Reset when order total changes
   useEffect(() => {

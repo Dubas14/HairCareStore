@@ -1,7 +1,4 @@
 import Stripe from 'stripe'
-import { createLogger } from '@/lib/logger'
-
-const log = createLogger('stripe')
 
 function createStripeClient(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY

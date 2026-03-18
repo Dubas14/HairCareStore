@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -232,9 +233,11 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
                 return (
                   <div key={index} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                     <div className="w-20 h-20 rounded-xl bg-muted overflow-hidden flex-shrink-0">
-                      <img
+                      <Image
                         src={imageUrl}
                         alt={item.productTitle}
+                        width={80}
+                        height={80}
                         className="w-full h-full object-cover"
                       />
                     </div>

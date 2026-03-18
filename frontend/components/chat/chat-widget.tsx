@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Droplets, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -125,6 +126,7 @@ export function ChatWidget() {
     clearMessages,
   } = useChatStore()
 
+  const pathname = usePathname()
   const [input, setInput] = useState('')
   const [hasMounted, setHasMounted] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -165,6 +167,9 @@ export function ChatWidget() {
       return
     }
 
+    const isHomePage = pathname === '/'
+    const delay = isHomePage ? 1500 : AUTO_OPEN_DELAY_MS
+
     const timer = window.setTimeout(() => {
       openChat()
       try {
@@ -172,10 +177,10 @@ export function ChatWidget() {
       } catch {
         // ignore
       }
-    }, AUTO_OPEN_DELAY_MS)
+    }, delay)
 
     return () => window.clearTimeout(timer)
-  }, [hasMounted, isOpen, messages.length, openChat])
+  }, [hasMounted, isOpen, messages.length, openChat, pathname])
 
   const sendMessage = useCallback(async () => {
     const text = input.trim()

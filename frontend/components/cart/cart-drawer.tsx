@@ -65,7 +65,7 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onUpdateQuantity(index, item.quantity - 1)}
               disabled={isUpdating}
-              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Зменшити кількість"
             >
               <Minus className="w-3.5 h-3.5" />
@@ -74,7 +74,7 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onUpdateQuantity(index, item.quantity + 1)}
               disabled={isUpdating}
-              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50"
+              className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Збільшити кількість"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -88,7 +88,7 @@ function CartItemCard({ item, index, onUpdateQuantity, onRemove, isUpdating }: C
             <button
               onClick={() => onRemove(index)}
               disabled={isUpdating}
-              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
               aria-label="Видалити товар"
             >
               <Trash2 className="w-4 h-4" />
@@ -348,8 +348,9 @@ export function CartDrawer() {
               <button
                 onClick={closeCart}
                 className={cn(
-                  "w-full py-3 text-sm font-medium text-muted-foreground",
+                  "w-full py-3 text-sm font-medium text-muted-foreground rounded-lg",
                   "hover:text-foreground transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   "flex items-center justify-center gap-2"
                 )}
               >

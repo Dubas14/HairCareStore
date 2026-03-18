@@ -621,7 +621,7 @@ export default function MediaLibraryView() {
 
   useEffect(() => {
     fetchData()
-  }, [page, mimeFilter, sort, activeFolder])
+  }, [fetchData])
 
   // ── Folder navigation ───────────────────────────────────────────────────
 

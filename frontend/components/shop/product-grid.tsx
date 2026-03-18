@@ -32,6 +32,32 @@ function ProductCardSkeleton() {
 }
 
 export function ProductGrid({ products, isLoading }: ProductGridProps) {
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!gridRef.current || prefersReducedMotion()) return
+
+    const { gsap } = ensureGsapPlugins()
+    const cards = gridRef.current.querySelectorAll('[data-product-card]')
+    if (cards.length === 0) return
+
+    gsap.set(cards, { opacity: 0, y: 32, rotateX: -4 })
+
+    const ctx = gsap.context(() => {
+      gsap.to(cards, {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 0.65,
+        stagger: 0.06,
+        ease: 'power3.out',
+        clearProps: 'all',
+      })
+    }, gridRef)
+
+    return () => ctx.revert()
+  }, [products])
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -59,32 +85,6 @@ export function ProductGrid({ products, isLoading }: ProductGridProps) {
       </div>
     )
   }
-
-  const gridRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!gridRef.current || prefersReducedMotion()) return
-
-    const { gsap } = ensureGsapPlugins()
-    const cards = gridRef.current.querySelectorAll('[data-product-card]')
-    if (cards.length === 0) return
-
-    gsap.set(cards, { opacity: 0, y: 32, rotateX: -4 })
-
-    const ctx = gsap.context(() => {
-      gsap.to(cards, {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        duration: 0.65,
-        stagger: 0.06,
-        ease: 'power3.out',
-        clearProps: 'all',
-      })
-    }, gridRef)
-
-    return () => ctx.revert()
-  }, [products])
 
   return (
     <div ref={gridRef} className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">

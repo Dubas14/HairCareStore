@@ -1,9 +1,24 @@
 'use server'
 
 import { getPayload } from 'payload'
+import { headers } from 'next/headers'
 import config from '@payload-config'
 import { isNovaPoshtaConfigured, searchCities, getWarehouses } from '@/lib/shipping/nova-poshta'
 import type { CityOption, WarehouseOption } from '@/lib/shipping/nova-poshta-types'
+
+async function requireAdmin(): Promise<void> {
+  const payload = await getPayload({ config })
+  const headersList = await headers()
+  const cookieHeader = headersList.get('cookie') || ''
+  try {
+    const { user } = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
+    if (!user || (user as unknown as { collection?: string }).collection !== 'users') {
+      throw new Error('Unauthorized: admin access required')
+    }
+  } catch {
+    throw new Error('Unauthorized: admin access required')
+  }
+}
 
 export interface ShippingMethod {
   id?: string
@@ -41,6 +56,7 @@ export async function getShippingConfig(): Promise<{ config: ShippingConfigData;
 export async function updateShippingConfig(
   data: Partial<ShippingConfigData>
 ): Promise<{ config: ShippingConfigData; message: string }> {
+  await requireAdmin()
   const payload = await getPayload({ config })
   const updated = await payload.updateGlobal({
     slug: 'shipping-config',

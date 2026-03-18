@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronRight, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -36,9 +37,11 @@ export function OrderCard({ order }: OrderCardProps) {
         {/* Order image preview */}
         <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
           {firstItemImage ? (
-            <img
+            <Image
               src={firstItemImage}
               alt=""
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
             />
           ) : (

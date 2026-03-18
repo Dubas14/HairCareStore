@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { ShoppingBag, Check } from "lucide-react"
 
@@ -185,10 +186,13 @@ export function AddToCartAnimation({
           >
             {productImage ? (
               <div className="w-14 h-14 rounded-xl overflow-hidden shadow-2xl bg-white border-2 border-white">
-                <img
+                <Image
                   src={productImage}
                   alt=""
+                  width={56}
+                  height={56}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               </div>
             ) : (

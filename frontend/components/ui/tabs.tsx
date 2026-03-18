@@ -69,7 +69,7 @@ function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       aria-selected={isActive}
       onClick={() => setActiveTab(value)}
       className={cn(
-        "px-4 py-3 text-sm font-medium transition-colors relative",
+        "px-4 py-3 text-sm font-medium transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-t-md",
         isActive
           ? "text-foreground"
           : "text-muted-foreground hover:text-foreground",

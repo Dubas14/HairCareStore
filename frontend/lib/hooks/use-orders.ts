@@ -30,11 +30,11 @@ export function useOrders(page = 1) {
 }
 
 export function useOrder(orderId: string | null) {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, customer } = useAuthStore()
   const query = useQuery({
     queryKey: ['order', orderId],
-    queryFn: () => orderId ? getOrderById(orderId) : null,
-    enabled: isAuthenticated && !!orderId,
+    queryFn: () => orderId ? getOrderById(orderId, customer?.id) : null,
+    enabled: isAuthenticated && !!orderId && !!customer,
   })
   return { order: query.data || null, isLoading: query.isLoading, refetch: query.refetch }
 }

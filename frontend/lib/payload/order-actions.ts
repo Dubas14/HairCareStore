@@ -15,10 +15,18 @@ export async function getCustomerOrders(customerId: number | string, page: numbe
   }
 }
 
-export async function getOrderById(orderId: number | string): Promise<PayloadOrder | null> {
+export async function getOrderById(orderId: number | string, customerId?: number | string): Promise<PayloadOrder | null> {
   try {
     const payload = await getPayload({ config })
     const order = await payload.findByID({ collection: 'orders', id: orderId, depth: 1 })
+    if (customerId) {
+      const orderCustomerId = typeof order.customer === 'object' && order.customer !== null
+        ? (order.customer as { id: number | string }).id
+        : order.customer
+      if (String(orderCustomerId) !== String(customerId)) {
+        return null
+      }
+    }
     return order as unknown as PayloadOrder
   } catch (error) {
     console.error('Error fetching order:', error)

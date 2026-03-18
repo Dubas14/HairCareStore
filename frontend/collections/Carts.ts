@@ -20,9 +20,15 @@ export const Carts: CollectionConfig = {
     hidden: true,
   },
   access: {
-    read: () => true,
+    read: ({ req }) => {
+      if (req?.user && req.user.collection === 'users') return true
+      return false
+    },
     create: () => true,
-    update: () => true,
+    update: ({ req }) => {
+      if (req?.user && req.user.collection === 'users') return true
+      return false
+    },
     delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
   },
   fields: [

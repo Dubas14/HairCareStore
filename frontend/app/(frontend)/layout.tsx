@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -10,11 +11,12 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/cart'
 import { SearchDialog } from '@/components/search'
-import { CompareBar } from '@/components/compare/compare-bar'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import { FacebookPixel } from '@/components/analytics/facebook-pixel'
-import { CookieConsent } from '@/components/cookie-consent'
-import { ChatWidget } from '@/components/chat/chat-widget'
+
+const CompareBar = dynamic(() => import('@/components/compare/compare-bar').then(m => m.CompareBar))
+const CookieConsent = dynamic(() => import('@/components/cookie-consent').then(m => m.CookieConsent))
+const ChatWidget = dynamic(() => import('@/components/chat/chat-widget').then(m => m.ChatWidget))
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
