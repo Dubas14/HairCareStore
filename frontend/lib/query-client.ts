@@ -13,7 +13,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Refetch on window focus in production for fresh data
-      refetchOnWindowFocus: process.env.NODE_ENV === "production",
+      refetchOnWindowFocus: false,
       // Retry failed requests once
       retry: 1,
       // Default stale time: 5 minutes
