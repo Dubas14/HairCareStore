@@ -178,25 +178,30 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
       </h3>
 
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-2 shadow-soft">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-4 w-4 ${
-                  i < Math.floor(product.rating)
-                    ? 'fill-sale text-sale'
-                    : 'fill-muted text-muted'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-sm font-medium text-foreground">{product.rating.toFixed(1)}</span>
-        </div>
-
-        <span className="text-sm text-muted-foreground">
-          {product.reviewCount} відгуків
-        </span>
+        {product.reviewCount > 0 ? (
+          <>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-2 shadow-soft">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.floor(product.rating)
+                        ? 'fill-sale text-sale'
+                        : 'fill-muted text-muted'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium text-foreground">{product.rating.toFixed(1)}</span>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {product.reviewCount} відгуків
+            </span>
+          </>
+        ) : (
+          <span className="text-sm text-muted-foreground">Будьте першим — залиште відгук</span>
+        )}
       </div>
 
       {/* Price */}
