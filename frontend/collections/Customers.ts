@@ -94,18 +94,6 @@ export const Customers: CollectionConfig = {
       admin: { hidden: true },
     },
     {
-      name: 'passwordResetToken',
-      label: 'Токен скидання пароля',
-      type: 'text',
-      admin: { hidden: true },
-    },
-    {
-      name: 'passwordResetExpires',
-      label: 'Термін дії токена скидання',
-      type: 'date',
-      admin: { hidden: true },
-    },
-    {
       name: 'addresses',
       label: 'Адреси',
       type: 'array',

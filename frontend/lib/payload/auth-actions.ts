@@ -274,8 +274,8 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
     collection: 'customers',
     id: customer.id,
     data: {
-      passwordResetToken: resetToken,
-      passwordResetExpires: resetExpires.toISOString(),
+      resetPasswordToken: resetToken,
+      resetPasswordExpiration: resetExpires.toISOString(),
     },
   })
 
@@ -299,7 +299,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
   const customers = await payload.find({
     collection: 'customers',
-    where: { passwordResetToken: { equals: token } },
+    where: { resetPasswordToken: { equals: token } },
     limit: 1,
   })
 
@@ -309,11 +309,11 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
   const customer = customers.docs[0] as unknown as {
     id: number | string
-    passwordResetExpires?: string
+    resetPasswordExpiration?: string
   }
 
-  if (customer.passwordResetExpires) {
-    const expires = new Date(customer.passwordResetExpires)
+  if (customer.resetPasswordExpiration) {
+    const expires = new Date(customer.resetPasswordExpiration)
     if (expires < new Date()) {
       return { success: false, error: 'Термін дії посилання закінчився. Запросіть скидання пароля повторно.' }
     }
@@ -324,8 +324,8 @@ export async function resetPassword(token: string, newPassword: string): Promise
     id: customer.id,
     data: {
       password: newPassword,
-      passwordResetToken: '',
-      passwordResetExpires: '',
+      resetPasswordToken: '',
+      resetPasswordExpiration: '',
     },
   })
 
