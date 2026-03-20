@@ -59,17 +59,8 @@ export async function getShippingMethodsByCountry(
       }
     }
 
-    // Fallback to legacy methods
-    const legacyMethods = (shippingConfig as unknown as ShippingConfig).methods || []
-    return legacyMethods
-      .filter((m: PayloadShippingMethod) => m.isActive)
-      .map((m: PayloadShippingMethod) => ({
-        methodId: m.methodId,
-        name: m.name,
-        price: m.price,
-        currency: 'UAH',
-        freeAbove: m.freeAbove,
-      }))
+    // No zones matched — fallback
+    return [{ methodId: 'nova-poshta', name: 'Нова Пошта', price: 70, currency: 'UAH', freeAbove: 1000 }]
   } catch {
     return [{ methodId: 'nova-poshta', name: 'Нова Пошта', price: 70, currency: 'UAH', freeAbove: 1000 }]
   }

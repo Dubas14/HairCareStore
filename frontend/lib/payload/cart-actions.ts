@@ -140,9 +140,26 @@ export async function getShippingOptions(): Promise<Array<{ methodId: string; na
   try {
     const payload = await getPayload({ config })
     const shippingConfig = await payload.findGlobal({ slug: 'shipping-config' })
-    const shippingData = shippingConfig as unknown as { methods?: Array<{ methodId: string; name: string; price: number; freeAbove?: number; isActive: boolean }> }
-    const methods = shippingData.methods || []
-    return methods.filter((m) => m.isActive)
+    const zones = (shippingConfig as any).zones || []
+
+    // Find Ukraine zone
+    for (const zone of zones) {
+      if (!zone.isActive) continue
+      const countries: string[] = zone.countries || []
+      if (countries.includes('UA')) {
+        const methods = (zone.methods || [])
+          .filter((m: any) => m.isActive)
+          .map((m: any) => ({
+            methodId: m.methodId || m.carrier || m.name,
+            name: m.name,
+            price: m.price,
+            freeAbove: m.freeAbove,
+          }))
+        if (methods.length > 0) return methods
+      }
+    }
+
+    return [{ methodId: 'nova-poshta', name: 'Нова Пошта', price: 70, freeAbove: 1000 }]
   } catch {
     return [{ methodId: 'nova-poshta', name: 'Нова Пошта', price: 70, freeAbove: 1000 }]
   }

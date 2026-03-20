@@ -74,6 +74,7 @@ export const ShippingConfig: GlobalConfig = {
           type: 'array',
           labels: { singular: 'Метод', plural: 'Методи' },
           fields: [
+            { name: 'methodId', label: 'ID методу', type: 'text', admin: { description: 'Унікальний ідентифікатор (напр. nova-poshta-warehouse)' } },
             { name: 'carrier', label: 'Перевізник', type: 'text', required: true },
             { name: 'name', label: 'Назва', type: 'text', required: true },
             { name: 'price', label: 'Ціна', type: 'number', required: true, min: 0 },
@@ -94,19 +95,6 @@ export const ShippingConfig: GlobalConfig = {
             { name: 'isActive', label: 'Активний', type: 'checkbox', defaultValue: true },
           ],
         },
-      ],
-    },
-    {
-      name: 'methods',
-      label: 'Методи доставки (загальні)',
-      type: 'array',
-      admin: { description: 'Загальний список методів (для зворотної сумісності)' },
-      fields: [
-        { name: 'methodId', type: 'text', required: true },
-        { name: 'name', type: 'text', required: true },
-        { name: 'price', type: 'number', required: true, min: 0 },
-        { name: 'freeAbove', type: 'number', min: 0, admin: { description: 'Безкоштовна доставка від цієї суми' } },
-        { name: 'isActive', type: 'checkbox', defaultValue: true },
       ],
     },
   ],

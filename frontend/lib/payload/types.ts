@@ -468,7 +468,6 @@ export interface ShippingZone {
 
 export interface ShippingConfig {
   zones?: ShippingZone[]
-  methods?: ShippingMethod[]
 }
 
 // ─── Loyalty types ──────────────────────────────────────────────
