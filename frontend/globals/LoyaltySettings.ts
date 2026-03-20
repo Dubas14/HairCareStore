@@ -4,7 +4,7 @@ export const LoyaltySettings: GlobalConfig = {
   slug: 'loyalty-settings',
   label: 'Налаштування лояльності',
   admin: {
-    group: 'Лояльність',
+    group: 'Продажі',
     components: {
       views: {
         edit: {

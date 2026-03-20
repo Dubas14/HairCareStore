@@ -8,7 +8,7 @@ export const Users: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
-    group: 'Система',
+    group: 'Налаштування',
     components: {
       views: {
         list: {

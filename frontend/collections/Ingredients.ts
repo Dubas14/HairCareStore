@@ -6,7 +6,7 @@ export const Ingredients: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'benefit', 'icon', 'order'],
-    group: 'Магазин',
+    group: 'Каталог',
     components: {
       views: {
         list: {

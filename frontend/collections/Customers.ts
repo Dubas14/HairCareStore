@@ -13,7 +13,7 @@ export const Customers: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'firstName', 'lastName', 'createdAt'],
-    group: 'Магазин',
+    group: 'Продажі',
     components: {
       views: {
         list: {

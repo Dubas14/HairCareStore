@@ -4,7 +4,7 @@ export const Media: CollectionConfig = {
   slug: 'media',
   labels: { singular: 'Медіафайл', plural: 'Медіа' },
   admin: {
-    group: 'Система',
+    group: 'Налаштування',
     components: {
       views: {
         list: {

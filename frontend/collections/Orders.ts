@@ -9,7 +9,7 @@ export const Orders: CollectionConfig = {
   admin: {
     useAsTitle: 'displayId',
     defaultColumns: ['displayId', 'email', 'status', 'total', 'createdAt'],
-    group: 'Магазин',
+    group: 'Продажі',
     components: {
       views: {
         list: {

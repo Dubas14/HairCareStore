@@ -177,7 +177,7 @@ export const Products: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'handle', 'status', 'updatedAt'],
-    group: 'Магазин',
+    group: 'Каталог',
     components: {
       views: {
         list: {

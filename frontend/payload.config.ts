@@ -52,35 +52,42 @@ export default buildConfig({
   sharp,
 
   collections: [
-    Media,
-    Users,
-    Banners,
-    Pages,
-    PromoBlocks,
-    Brands,
-    Categories,
-    BlogPosts,
-    Reviews,
+    // Каталог
     Products,
+    Categories,
+    Brands,
+    Ingredients,
+    // Продажі
+    Orders,
     Customers,
     Carts,
-    Orders,
     LoyaltyPoints,
     LoyaltyTransactions,
+    // Маркетинг
     Promotions,
-    PromotionUsages,
-    Subscribers,
     AutomaticDiscounts,
     ProductBundles,
-    Ingredients,
+    Subscribers,
+    PromotionUsages,
+    // Контент
+    Banners,
+    PromoBlocks,
+    Pages,
+    BlogPosts,
+    Reviews,
+    // Налаштування
+    Media,
+    Users,
   ],
 
   globals: [
+    // Продажі
     LoyaltySettings,
-    ShippingConfig,
+    // Налаштування
     SiteSettings,
-    InventorySettings,
+    ShippingConfig,
     EmailSettings,
+    InventorySettings,
   ],
 
   admin: {

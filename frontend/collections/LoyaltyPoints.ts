@@ -6,7 +6,7 @@ export const LoyaltyPoints: CollectionConfig = {
   admin: {
     useAsTitle: 'customer',
     defaultColumns: ['customer', 'pointsBalance', 'level', 'isEnabled'],
-    group: 'Лояльність',
+    group: 'Продажі',
     hidden: true,
   },
   access: {
