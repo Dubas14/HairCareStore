@@ -6,6 +6,15 @@ export const ShippingConfig: GlobalConfig = {
   label: 'Доставка',
   admin: {
     group: 'Налаштування',
+    components: {
+      views: {
+        edit: {
+          root: {
+            Component: '/components/payload/shipping/ShippingConfigView',
+          },
+        },
+      },
+    },
   },
   access: {
     read: ({ req: { user } }) => {

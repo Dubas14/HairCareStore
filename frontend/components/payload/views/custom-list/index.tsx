@@ -29,6 +29,7 @@ const COLLECTION_LABELS: Record<string, { title: string; singular: string }> = {
   'automatic-discounts': { title: 'Автоматичні знижки', singular: 'знижку' },
   subscribers: { title: 'Підписники', singular: 'підписника' },
   ingredients: { title: 'Інгредієнти', singular: 'інгредієнт' },
+  'product-bundles': { title: 'Набори товарів', singular: 'набір' },
 }
 
 const SORT_OPTIONS = [
@@ -259,6 +260,14 @@ function getColumns(slug: string): Column[] {
         { key: 'order', label: 'Порядок', width: '100px' },
         dateCol,
       ]
+    case 'product-bundles':
+      return [
+        { key: 'title', label: 'Назва', render: (v: string) => <strong style={{ color: 'var(--color-base-700)' }}>{v}</strong> },
+        { key: 'discountType', label: 'Тип знижки', width: '140px', render: (v: string) => v === 'percentage' ? 'Відсоток' : v === 'fixed' ? 'Фіксована' : v || '—' },
+        { key: 'discountValue', label: 'Значення', width: '110px' },
+        { key: 'isActive', label: 'Статус', width: '130px', render: (val: boolean) => <StatusBadge status={val ? 'active' : 'inactive'} /> },
+        dateCol,
+      ]
     default:
       return [
         { key: 'title', label: 'Назва', render: (v: string, doc: any) => <strong style={{ color: 'var(--color-base-700)' }}>{v || doc.name || doc.email || `ID: ${doc.id}`}</strong> },
@@ -323,7 +332,7 @@ function getStatsAndFilters(
   }
 
   // Promotions & Automatic Discounts: isActive checkbox (Active/Inactive)
-  if (slug === 'promotions' || slug === 'automatic-discounts') {
+  if (slug === 'promotions' || slug === 'automatic-discounts' || slug === 'product-bundles') {
     return {
       statsItems: [
         { label: 'Всього', value: stats.total, color: 'sea', icon: <IconPackage /> },

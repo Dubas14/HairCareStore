@@ -37,6 +37,7 @@ const COLLECTION_LABELS: Record<string, string> = {
   'automatic-discounts': 'Автоматична знижка',
   subscribers: 'Підписник',
   ingredients: 'Інгредієнт',
+  'product-bundles': 'Набір товарів',
 }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
