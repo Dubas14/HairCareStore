@@ -1,171 +1,103 @@
-# Hair Lab Store — Deploy Guide
+# Hair Lab — Деплой
 
-## Prerequisites
+## Сервери
 
-On the server (Ubuntu 22.04+ recommended):
+### ПРОДАКШН — hairlab.com.ua
+- **IP:** 89.167.67.88
+- **SSH:** `ssh root@89.167.67.88`
+- **Пароль:** Ghbrjkmyj11981
+- **OS:** Ubuntu 24.04, Node.js 22
+- **CPU:** сучасний (sharp працює, білд на сервері працює)
+- **DNS:** Cloudflare (Full SSL mode)
+- **Реєстратор:** thehost.ua (login: mrdubas)
+- **Cloudflare NS:** kate.ns.cloudflare.com, olof.ns.cloudflare.com
 
-```bash
-# Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+### СТАРИЙ — hairlab.makeweb.top
+- **IP:** 136.243.150.97
+- **SSH:** `ssh -p 44204 root@136.243.150.97`
+- **Пароль:** 72LTJDdEZWTjETYYA
+- **OS:** Ubuntu, Node.js
+- **CPU:** старий (без SSE4.2/AVX — sharp НЕ працює, білд НЕ працює на сервері)
 
-# Docker & Docker Compose
-sudo apt install -y docker.io docker-compose-v2
-sudo usermod -aG docker $USER
+## Стек (обидва сервери)
 
-# PM2
-sudo npm install -g pm2
+| Сервіс    | Порт  | Деталі                                     |
+|-----------|-------|---------------------------------------------|
+| Next.js   | 3200  | PM2 (hair-lab), `next start -p 3200`       |
+| PostgreSQL| 5432  | Docker: beauty-postgres, user: payload_user |
+| Redis     | 6379  | Docker: beauty-redis                        |
+| nginx     | 80/443| proxy → localhost:3200                      |
 
-# Nginx
-sudo apt install -y nginx
+**Шлях на серверах:** `/var/www/HairCareStore`
 
-# Certbot (SSL)
-sudo apt install -y certbot python3-certbot-nginx
-```
-
-## Step 1: Clone Repository
-
-```bash
-cd /var/www
-git clone git@github.com:YOUR_USER/HairCareStore.git hair-lab
-cd hair-lab
-```
-
-## Step 2: Configure Environment
-
-```bash
-cp frontend/.env.production.example frontend/.env.local
-nano frontend/.env.local
-```
-
-Fill in:
-- `NEXT_PUBLIC_BASE_URL` — your domain (https://your-domain.com)
-- `PAYLOAD_DATABASE_URL` — PostgreSQL connection string
-- `PAYLOAD_SECRET` — generate with `openssl rand -hex 32`
-
-Create `.env` for Docker Compose:
-```bash
-cat > .env << 'EOF'
-DB_NAME=payload
-DB_USER=payload_user
-DB_PASSWORD=your_strong_db_password
-REDIS_PASSWORD=your_strong_redis_password
-EOF
-```
-
-## Step 3: Start Databases
+## Деплой на hairlab.com.ua (5 хвилин)
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
-```
+# 1. Пуш
+git push origin main
 
-Verify:
-```bash
-docker ps  # both postgres and redis should be running
-```
-
-## Step 4: Build Application
-
-```bash
-cd frontend
-npm ci
-npm run build
-```
-
-### Copy static + media for standalone
-
-The standalone build requires static files and media to be copied:
-
-```bash
-cp -r .next/static .next/standalone/.next/static
-cp -r public .next/standalone/public 2>/dev/null || true
-cp -r media .next/standalone/media 2>/dev/null || true
-```
-
-## Step 5: Restore Backup (if migrating)
-
-```bash
-cd /var/www/hair-lab
-bash scripts/restore.sh ./backup/hair-lab-YYYY-MM-DD_HH-MM
-```
-
-## Step 6: Start with PM2
-
-```bash
-cd /var/www/hair-lab
-pm2 start deploy/ecosystem.config.js
-pm2 save
-pm2 startup  # follow instructions to enable auto-start on boot
-```
-
-Verify:
-```bash
-pm2 status
-curl http://localhost:3000  # should return HTML
-```
-
-## Step 7: Configure Nginx
-
-```bash
-# Copy config
-sudo cp deploy/nginx.conf /etc/nginx/sites-available/hair-lab
-sudo ln -s /etc/nginx/sites-available/hair-lab /etc/nginx/sites-enabled/
-
-# Replace YOUR_DOMAIN with your actual domain
-sudo sed -i 's/YOUR_DOMAIN/your-domain.com/g' /etc/nginx/sites-available/hair-lab
-
-# Remove default site
-sudo rm /etc/nginx/sites-enabled/default
-
-# Test and reload
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-## Step 8: SSL Certificate
-
-```bash
-# Get certificate (Nginx must be running on port 80)
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-
-# Auto-renewal is configured automatically
-sudo certbot renew --dry-run  # test renewal
-```
-
-## Maintenance
-
-### Update application
-```bash
-cd /var/www/hair-lab
-git pull
-cd frontend && npm ci && npm run build
-cp -r .next/static .next/standalone/.next/static
-cp -r media .next/standalone/media 2>/dev/null || true
+# 2. На сервері
+ssh root@89.167.67.88
+cd /var/www/HairCareStore && git pull origin main
+cd frontend && npx next build
 pm2 restart hair-lab
 ```
 
-### View logs
+## Деплой на hairlab.makeweb.top (білд тільки локально!)
+
+```bash
+# 1. Локально
+cd frontend
+npm run build
+tar -czf next-build.tar.gz .next
+scp -P 44204 next-build.tar.gz root@136.243.150.97:/var/www/HairCareStore/frontend/
+
+# 2. На сервері
+ssh -p 44204 root@136.243.150.97
+cd /var/www/HairCareStore && git pull origin main
+cd frontend && rm -rf .next && tar -xzf next-build.tar.gz && rm next-build.tar.gz
+bash /tmp/fix-sharp.sh
+pm2 restart hair-lab
+```
+
+### Чому не можна білдити на makeweb.top?
+- webpack image-loader тригерить sharp через @payloadcms/ui PNG файли
+- `images: { unoptimized: true }` впливає тільки на `<Image>` компоненти, не на webpack
+- sharp не ставиться — старий CPU без SSE4.2
+
+## Оновити БД (дамп з локальної → сервер)
+
+```bash
+# Локально
+docker exec beauty-postgres pg_dump -U postgres -d payload --no-owner --no-privileges --encoding=UTF8 > ./scripts/full-dump.sql
+
+# Копія на сервер (приклад для com.ua)
+scp ./scripts/full-dump.sql root@89.167.67.88:/tmp/full-dump.sql
+
+# На сервері
+docker exec -i beauty-postgres psql -U payload_user -d postgres -c "DROP DATABASE payload;"
+docker exec -i beauty-postgres psql -U payload_user -d postgres -c "CREATE DATABASE payload;"
+docker exec -i beauty-postgres psql -U payload_user -d payload < /tmp/full-dump.sql
+```
+
+## Оновити медіа
+
+```bash
+# Приклад для com.ua
+scp -r frontend/media/* root@89.167.67.88:/var/www/HairCareStore/frontend/media/
+ssh root@89.167.67.88 "chmod -R 755 /var/www/HairCareStore/frontend/media/"
+```
+
+## Логи
+
 ```bash
 pm2 logs hair-lab
 pm2 logs hair-lab --lines 100
 ```
 
-### Backup
-```bash
-cd /var/www/hair-lab
-bash scripts/backup.sh
-```
+## Історія проблем
 
-### Database access
-```bash
-docker exec -it beauty-postgres psql -U payload_user -d payload
-```
-
-## Ports (internal)
-
-| Service    | Port  | Access      |
-|-----------|-------|-------------|
-| Next.js   | 3000  | localhost   |
-| PostgreSQL| 5432  | localhost   |
-| Redis     | 6379  | localhost   |
-| Nginx     | 80/443| public      |
+- **2026-03-17:** перший деплой на makeweb.top — 3+ год на sharp + standalone + symlinks
+- **2026-03-18:** білд на makeweb.top зламався — webpack почав обробляти Payload UI PNG через sharp. Рішення: білд тільки локально
+- **2026-03-19:** переїзд на Hetzner CPX22 (89.167.67.88) — все працює нативно
+- **2026-03-20:** SSH ключ злетів на makeweb.top — додали назад через пароль
