@@ -324,8 +324,8 @@ export async function resetPassword(token: string, newPassword: string): Promise
     id: customer.id,
     data: {
       password: newPassword,
-      resetPasswordToken: '',
-      resetPasswordExpiration: '',
+      resetPasswordToken: null,
+      resetPasswordExpiration: null,
     },
   })
 
