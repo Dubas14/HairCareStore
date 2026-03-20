@@ -5,7 +5,6 @@ export const ShippingConfig: GlobalConfig = {
   label: 'Доставка',
   admin: {
     group: 'Налаштування',
-    hidden: true,
   },
   access: {
     read: () => true,
