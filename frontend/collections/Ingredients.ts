@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Ingredients: CollectionConfig = {
   slug: 'ingredients',
@@ -6,7 +7,7 @@ export const Ingredients: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'benefit', 'icon', 'order'],
-    group: 'Магазин',
+    group: 'Каталог',
     components: {
       views: {
         list: {
@@ -21,10 +22,13 @@ export const Ingredients: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('ingredients', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('ingredients', 'create'),
+    update: collectionAccess('ingredients', 'update'),
+    delete: collectionAccess('ingredients', 'delete'),
   },
   fields: [
     {

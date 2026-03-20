@@ -6,10 +6,18 @@ import { deleteCollectionDoc, getCollectionFieldDefaults } from '@/app/actions/a
 import type { FieldSchema } from '@/app/actions/admin-views'
 import { StyledInput, StyledTextarea, StyledCheckbox, StyledSelect, StyledUpload, StyledDatetime, FieldGroup, FieldRow } from './CustomFields'
 import { SidebarMeta, QuickActions } from './SidebarMeta'
+import { InlinePermissionsEditor } from '@/components/payload/InlinePermissionsEditor'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SKIP_FIELDS = new Set(['id', 'createdAt', 'updatedAt', 'sizes', '_status'])
+const SKIP_FIELDS = new Set([
+  'id', 'createdAt', 'updatedAt', 'sizes', '_status',
+  // Auth internal fields
+  'hash', 'salt', 'resetPasswordToken', 'resetPasswordExpiration',
+  'loginAttempts', 'lockUntil', '_verified', 'sessions',
+  // Permissions rendered separately
+  'permissions',
+])
 const SIDEBAR_FIELDS = new Set(['status', 'slug', 'order', 'featured', 'publishedAt'])
 
 const COLLECTION_LABELS: Record<string, string> = {
@@ -29,6 +37,7 @@ const COLLECTION_LABELS: Record<string, string> = {
   'automatic-discounts': 'Автоматична знижка',
   subscribers: 'Підписник',
   ingredients: 'Інгредієнт',
+  'product-bundles': 'Набір товарів',
 }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -420,6 +429,12 @@ export default function CustomEditView() {
               return renderField(key, formData[key], handleChange, meta)
             })}
           </FieldGroup>
+          {slug === 'users' && formData.role === 'editor' && (
+            <InlinePermissionsEditor
+              value={formData.permissions || {}}
+              onChange={(v) => handleChange('permissions', v)}
+            />
+          )}
         </div>
 
         {/* Sidebar */}

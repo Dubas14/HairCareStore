@@ -23,10 +23,21 @@ async function requireAdmin(): Promise<void> {
 export interface ShippingMethod {
   id?: string
   methodId: string
+  carrier?: string
   name: string
   price: number
+  currency?: string
   freeAbove?: number | null
+  estimatedDays?: number | null
   isActive: boolean
+}
+
+export interface ShippingZone {
+  id?: string
+  name: string
+  isActive: boolean
+  countries: string[]
+  methods: ShippingMethod[]
 }
 
 export interface NovaPoshtaSender {
@@ -40,7 +51,9 @@ export interface NovaPoshtaSender {
 export interface ShippingConfigData {
   novaPoshtaSender?: NovaPoshtaSender
   defaultParcelWeight?: number
-  methods: ShippingMethod[]
+  zones?: ShippingZone[]
+  /** @deprecated use zones instead */
+  methods?: ShippingMethod[]
 }
 
 export async function getShippingConfig(): Promise<{ config: ShippingConfigData; npConfigured: boolean }> {

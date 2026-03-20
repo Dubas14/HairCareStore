@@ -1,8 +1,20 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Subscribers: CollectionConfig = {
   slug: 'subscribers',
   labels: { singular: 'Підписник', plural: 'Підписники' },
+  access: {
+    read: collectionAccess('subscribers', 'read'),
+    create: ({ req: { user } }) => {
+      // Public create (newsletter subscription)
+      if (!user) return true
+      if (user.collection !== 'users') return true
+      return collectionAccess('subscribers', 'create')({ req: { user } } as any)
+    },
+    update: collectionAccess('subscribers', 'update'),
+    delete: collectionAccess('subscribers', 'delete'),
+  },
   admin: {
     group: 'Маркетинг',
     useAsTitle: 'email',
@@ -47,10 +59,6 @@ export const Subscribers: CollectionConfig = {
       type: 'select',
       options: [
         { label: 'Українська', value: 'uk' },
-        { label: 'English', value: 'en' },
-        { label: 'Polski', value: 'pl' },
-        { label: 'Deutsch', value: 'de' },
-        { label: 'Русский', value: 'ru' },
       ],
       defaultValue: 'uk',
     },
@@ -59,7 +67,7 @@ export const Subscribers: CollectionConfig = {
       type: 'select',
       options: [
         { label: 'Форма на сайті', value: 'website' },
-        { label: 'Checkout', value: 'checkout' },
+        { label: 'Оформлення замовлення', value: 'checkout' },
         { label: 'Імпорт', value: 'import' },
       ],
       defaultValue: 'website',

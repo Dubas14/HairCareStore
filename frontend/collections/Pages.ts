@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -21,10 +22,13 @@ export const Pages: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('pages', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('pages', 'create'),
+    update: collectionAccess('pages', 'update'),
+    delete: collectionAccess('pages', 'delete'),
   },
   fields: [
     {

@@ -1,4 +1,5 @@
 import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 import { invalidateChatCache } from '@/lib/chat/product-context-cache'
 
 const LOW_STOCK_THRESHOLD = 5
@@ -177,7 +178,7 @@ export const Products: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'handle', 'status', 'updatedAt'],
-    group: 'Магазин',
+    group: 'Каталог',
     components: {
       views: {
         list: {
@@ -192,10 +193,13 @@ export const Products: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('products', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('products', 'create'),
+    update: collectionAccess('products', 'update'),
+    delete: collectionAccess('products', 'delete'),
   },
   fields: [
     { name: 'title', type: 'text', required: true, localized: true },
@@ -210,7 +214,7 @@ export const Products: CollectionConfig = {
         description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
       },
     },
-    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Brand name or short tagline' } },
+    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Назва бренду або короткий слоган' } },
     { name: 'description', type: 'richText', localized: true },
     { name: 'thumbnail', type: 'upload', relationTo: 'media' },
     {
@@ -226,9 +230,9 @@ export const Products: CollectionConfig = {
       fields: [
         { name: 'title', type: 'text', required: true, localized: true },
         { name: 'sku', type: 'text' },
-        { name: 'price', type: 'number', required: true, min: 0, admin: { description: 'Price in UAH (major units)' } },
+        { name: 'price', type: 'number', required: true, min: 0, admin: { description: 'Ціна в грн (основні одиниці)' } },
         { name: 'costPrice', type: 'number', min: 0, admin: { description: 'Ціна ходу/закупівлі (салонна ціна), грн' } },
-        { name: 'compareAtPrice', type: 'number', min: 0, admin: { description: 'Original price before discount' } },
+        { name: 'compareAtPrice', type: 'number', min: 0, admin: { description: 'Початкова ціна до знижки' } },
         { name: 'supplierCode', type: 'text', admin: { description: 'Код постачальника (напр. 000002145)' } },
         { name: 'articleCode', type: 'text', admin: { description: 'Артикул товару (напр. 510442)' } },
         { name: 'inStock', type: 'checkbox', defaultValue: true },

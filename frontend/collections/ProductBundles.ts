@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const ProductBundles: CollectionConfig = {
   slug: 'product-bundles',
@@ -7,12 +8,27 @@ export const ProductBundles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'discountType', 'discountValue', 'isActive'],
     group: 'Маркетинг',
+    components: {
+      views: {
+        list: {
+          Component: '/components/payload/views/custom-list',
+        },
+        edit: {
+          root: {
+            Component: '/components/payload/views/custom-edit',
+          },
+        },
+      },
+    },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('product-bundles', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('product-bundles', 'create'),
+    update: collectionAccess('product-bundles', 'update'),
+    delete: collectionAccess('product-bundles', 'delete'),
   },
   fields: [
     {

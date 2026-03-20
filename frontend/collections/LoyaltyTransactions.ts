@@ -5,7 +5,7 @@ export const LoyaltyTransactions: CollectionConfig = {
   labels: { singular: 'Транзакція', plural: 'Транзакції лояльності' },
   admin: {
     defaultColumns: ['customer', 'transactionType', 'pointsAmount', 'createdAt'],
-    group: 'Лояльність',
+    group: 'Продажі',
     hidden: true,
   },
   access: {

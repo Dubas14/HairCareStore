@@ -16,7 +16,7 @@ export const Carts: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'status', 'total', 'updatedAt'],
-    group: 'Магазин',
+    group: 'Продажі',
     hidden: true,
   },
   access: {

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const PromoBlocks: CollectionConfig = {
   slug: 'promo-blocks',
@@ -21,10 +22,13 @@ export const PromoBlocks: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('promo-blocks', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('promo-blocks', 'create'),
+    update: collectionAccess('promo-blocks', 'update'),
+    delete: collectionAccess('promo-blocks', 'delete'),
   },
   fields: [
     {
