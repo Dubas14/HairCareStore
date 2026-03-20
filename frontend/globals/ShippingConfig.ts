@@ -105,7 +105,7 @@ export const ShippingConfig: GlobalConfig = {
         { name: 'methodId', type: 'text', required: true },
         { name: 'name', type: 'text', required: true },
         { name: 'price', type: 'number', required: true, min: 0 },
-        { name: 'freeAbove', type: 'number', min: 0, admin: { description: 'Free shipping above this amount' } },
+        { name: 'freeAbove', type: 'number', min: 0, admin: { description: 'Безкоштовна доставка від цієї суми' } },
         { name: 'isActive', type: 'checkbox', defaultValue: true },
       ],
     },

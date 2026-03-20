@@ -60,7 +60,7 @@ export const Customers: CollectionConfig = {
       name: 'googleId',
       type: 'text',
       index: true,
-      admin: { position: 'sidebar', description: 'Google OAuth ID' },
+      admin: { position: 'sidebar', description: 'Google OAuth ID (ідентифікатор)' },
     },
     {
       name: 'authProvider',
@@ -97,7 +97,7 @@ export const Customers: CollectionConfig = {
         { name: 'lastName', type: 'text', required: true },
         { name: 'phone', type: 'text' },
         { name: 'city', type: 'text', required: true },
-        { name: 'address1', type: 'text', required: true, admin: { description: 'Nova Poshta warehouse' } },
+        { name: 'address1', type: 'text', required: true, admin: { description: 'Відділення Нової Пошти' } },
         { name: 'countryCode', type: 'text', defaultValue: 'ua' },
         { name: 'postalCode', type: 'text' },
         { name: 'isDefaultShipping', type: 'checkbox', defaultValue: false },

@@ -185,7 +185,7 @@ export const Orders: CollectionConfig = {
     // --- Stripe ---
     {
       name: 'stripePaymentIntentId',
-      label: 'Stripe Payment Intent',
+      label: 'Stripe Payment Intent (платіжний намір)',
       type: 'text',
       admin: {
         readOnly: true,

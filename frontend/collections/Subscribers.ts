@@ -67,7 +67,7 @@ export const Subscribers: CollectionConfig = {
       type: 'select',
       options: [
         { label: 'Форма на сайті', value: 'website' },
-        { label: 'Checkout', value: 'checkout' },
+        { label: 'Оформлення замовлення', value: 'checkout' },
         { label: 'Імпорт', value: 'import' },
       ],
       defaultValue: 'website',
