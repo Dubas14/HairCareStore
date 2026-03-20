@@ -47,10 +47,6 @@ export const Subscribers: CollectionConfig = {
       type: 'select',
       options: [
         { label: 'Українська', value: 'uk' },
-        { label: 'English', value: 'en' },
-        { label: 'Polski', value: 'pl' },
-        { label: 'Deutsch', value: 'de' },
-        { label: 'Русский', value: 'ru' },
       ],
       defaultValue: 'uk',
     },
