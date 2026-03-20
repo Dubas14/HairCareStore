@@ -241,6 +241,97 @@ export async function verifyEmail(token: string): Promise<{ success: boolean; er
   return { success: true }
 }
 
+export async function requestPasswordReset(email: string): Promise<{ success: boolean }> {
+  const ip = await getClientIP()
+  const rl = checkRateLimit(ip, 'login')
+  if (!rl.allowed) {
+    // Don't reveal rate limit — always return success for security
+    return { success: true }
+  }
+  recordAttempt(ip, 'login')
+
+  const payload = await getPayload({ config })
+
+  const customers = await payload.find({
+    collection: 'customers',
+    where: { email: { equals: email.toLowerCase() } },
+    limit: 1,
+  })
+
+  // Always return success to not reveal whether email exists
+  if (customers.docs.length === 0) {
+    return { success: true }
+  }
+
+  const customer = customers.docs[0] as unknown as {
+    id: number | string
+    firstName: string
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex')
+  const resetExpires = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+
+  await payload.update({
+    collection: 'customers',
+    id: customer.id,
+    data: {
+      passwordResetToken: resetToken,
+      passwordResetExpires: resetExpires.toISOString(),
+    },
+  })
+
+  import('@/lib/email/email-actions')
+    .then(({ sendPasswordResetEmail }) => sendPasswordResetEmail(email, customer.firstName, resetToken))
+    .catch((err) => log.error('Password reset email failed', err))
+
+  return { success: true }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+  if (!token || token.length < 32) {
+    return { success: false, error: 'Невірне посилання для скидання пароля' }
+  }
+  if (!newPassword || newPassword.length < 8) {
+    return { success: false, error: 'Пароль має містити мінімум 8 символів' }
+  }
+
+  const payload = await getPayload({ config })
+
+  const customers = await payload.find({
+    collection: 'customers',
+    where: { passwordResetToken: { equals: token } },
+    limit: 1,
+  })
+
+  if (customers.docs.length === 0) {
+    return { success: false, error: 'Посилання для скидання недійсне або вже використане' }
+  }
+
+  const customer = customers.docs[0] as unknown as {
+    id: number | string
+    passwordResetExpires?: string
+  }
+
+  if (customer.passwordResetExpires) {
+    const expires = new Date(customer.passwordResetExpires)
+    if (expires < new Date()) {
+      return { success: false, error: 'Термін дії посилання закінчився. Запросіть скидання пароля повторно.' }
+    }
+  }
+
+  await payload.update({
+    collection: 'customers',
+    id: customer.id,
+    data: {
+      password: newPassword,
+      passwordResetToken: '',
+      passwordResetExpires: '',
+    },
+  })
+
+  return { success: true }
+}
+
 export async function resendVerificationEmail(): Promise<{ success: boolean; error?: string }> {
   const cookieStore = await cookies()
   const token = cookieStore.get(CUSTOMER_TOKEN_COOKIE)?.value

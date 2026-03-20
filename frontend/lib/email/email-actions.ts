@@ -11,6 +11,7 @@ import { ReviewRequest } from './templates/review-request'
 import { BackInStock } from './templates/back-in-stock'
 import { LoyaltyLevelUp } from './templates/loyalty-level-up'
 import { NewsletterConfirmation } from './templates/newsletter-confirmation'
+import { PasswordReset } from './templates/password-reset'
 import { getImageUrl } from '@/lib/payload/types'
 import type { PayloadProduct, CartItem } from '@/lib/payload/types'
 
@@ -297,6 +298,20 @@ export async function sendLoyaltyLevelUpEmail(data: LoyaltyLevelUpEmailData) {
       multiplier: data.multiplier,
     }),
     tags: [{ name: 'type', value: 'loyalty-level-up' }],
+  })
+}
+
+// ─── Password Reset Email ─────────────────────────────────────
+
+export async function sendPasswordResetEmail(email: string, customerName: string, resetToken: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hairlab.store'
+  const resetUrl = `${baseUrl}/account/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`
+
+  return sendEmail({
+    to: email,
+    subject: 'Скидання пароля — HAIR LAB',
+    react: PasswordReset({ customerName, resetUrl }),
+    tags: [{ name: 'type', value: 'password-reset' }],
   })
 }
 
