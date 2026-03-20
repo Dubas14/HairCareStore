@@ -137,7 +137,7 @@ function ShopContent() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-foreground/58 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
               <Sparkles className="h-3.5 w-3.5 text-[#2A9D8F]" />
-              Hair care edit
+              Каталог
             </div>
 
             <h1 className="mt-6 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] text-foreground md:text-5xl lg:text-6xl">
@@ -146,7 +146,7 @@ function ShopContent() {
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
               {debouncedSearch
                 ? `Знайдено ${totalCount} варіантів догляду, які відповідають вашому запиту.`
-                : 'Професійний догляд, салонні формули й красивий вибір для кожного типу волосся.'}
+                : 'Професійний догляд для волосся. Шампуні, маски, стайлінг, засоби для фарбування та відновлення.'}
             </p>
           </div>
 

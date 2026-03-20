@@ -176,8 +176,7 @@ export function FeaturedProducts() {
             data-featured-header
             className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg"
           >
-            {t('bestSelection')} Тут зібрані продукти, які найчастіше стають улюбленцями
-            вже після першого замовлення.
+            {t('bestSelection')} Шампуні, маски, стайлінг та засоби для відновлення волосся.
           </p>
         </div>
 

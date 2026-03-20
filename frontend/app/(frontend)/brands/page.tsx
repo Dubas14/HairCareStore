@@ -36,13 +36,15 @@ export default async function BrandsPage() {
 
           <div className="mt-8 max-w-3xl">
             <div className="inline-flex rounded-full border border-black/8 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-foreground/58 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
-              Brand selection
+              Наші бренди
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[0.94] tracking-[-0.06em] text-foreground md:text-5xl lg:text-6xl">
-              Бренди, яким хочеться довірити своє волосся.
+              Офіційні бренди HAIR LAB
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              Офіційні партнери, салонні формули й бренди, які працюють не тільки красиво, а й по-справжньому.
+              {brands.length > 0
+                ? `${brands.map((b) => b.name).join(', ')} — професійна косметика для волосся.`
+                : 'Професійна косметика для волосся.'}
             </p>
           </div>
         </div>

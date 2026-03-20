@@ -144,7 +144,7 @@ function SectionTitle({
   description?: string
 }) {
   return (
-    <ScrollReveal variant="fade-up" className="mb-8">
+    <ScrollReveal variant="fade-up" className="mb-8 text-center">
       {eyebrow ? (
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-foreground/42">
           {eyebrow}
@@ -154,7 +154,7 @@ function SectionTitle({
         {title}
       </h2>
       {description ? (
-        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
           {description}
         </p>
       ) : null}
@@ -484,7 +484,6 @@ function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
   const intro = about?.intro
   const story = about?.story
   const features = about?.features ?? []
-  const stats = about?.stats ?? []
 
   return (
     <>
@@ -518,30 +517,6 @@ function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
             }))}
             columns={3}
           />
-        </section>
-      )}
-
-      {stats.length > 0 && (
-        <section className="mb-16">
-          <SectionTitle
-            title="Факти та показники"
-          />
-
-          <ScrollReveal variant="fade-up">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat) => (
-                <div
-                  key={`${stat.value}-${stat.label}`}
-                  className="rounded-[1.6rem] border border-black/8 bg-white/94 p-6 text-center shadow-[0_18px_50px_rgba(16,24,40,0.06)]"
-                >
-                  <p className="text-3xl font-semibold tracking-[-0.05em] text-foreground md:text-4xl">
-                    {stat.value}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
         </section>
       )}
 

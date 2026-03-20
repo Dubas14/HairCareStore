@@ -98,8 +98,8 @@ export function BrandsSection({ brands }: BrandsSectionProps) {
               data-brand-header
               className="text-4xl font-semibold tracking-[-0.05em] text-foreground md:text-5xl lg:text-6xl"
             >
-              Бренди, яким
-              <span className="block text-[#6f4d2c]">справді хочеться довіряти</span>
+              Бренди, з якими
+              <span className="block text-[#6f4d2c]">ми працюємо</span>
             </h2>
           </div>
 
@@ -107,8 +107,9 @@ export function BrandsSection({ brands }: BrandsSectionProps) {
             data-brand-header
             className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg"
           >
-            Офіційні партнери, професійні формули та лінійки, за якими повертаються
-            не один раз. Тут важлива не лише назва, а й відчуття якості.
+            {brands.length > 0
+              ? `${brands.map((b) => b.name).join(', ')} — професійна косметика для волосся. Офіційні поставки, салонна якість.`
+              : 'Професійна косметика для волосся. Офіційні поставки, салонна якість.'}
           </p>
         </div>
 

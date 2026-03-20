@@ -7,9 +7,9 @@ import { subscribeToNewsletter } from '@/app/actions/newsletter'
 import { ensureGsapPlugins, prefersReducedMotion } from '@/lib/gsap'
 
 const perks = [
-  'секретні пропозиції та нові бренди',
-  'знижки для своїх раніше за інших',
-  'корисні нагадування без спаму',
+  'нові надходження та акції',
+  'знижки для підписників',
+  'поради по догляду за волоссям',
 ]
 
 export function NewsletterSection() {
@@ -162,16 +162,15 @@ export function NewsletterSection() {
             data-newsletter-copy
             className="relative max-w-2xl text-4xl font-semibold tracking-[-0.05em] md:text-5xl"
           >
-            <span className="block">Листи, від яких хочеться</span>
-            <span className="block text-[#D4A373]">не відписуватись, а чекати</span>
+            <span className="block">Будьте в курсі</span>
+            <span className="block text-[#D4A373]">новинок та акцій</span>
           </h2>
 
           <p
             data-newsletter-copy
             className="relative mt-5 max-w-2xl text-base leading-7 text-white/72 md:text-lg"
           >
-            Підписка для тих, хто любить красиве волосся, нові запуски і відчуття, що
-            улюблений магазин знає, чим вас здивувати.
+            Раз на тиждень надсилаємо добірку нових засобів, діючі акції та рекомендації від наших експертів.
           </p>
 
           <div data-newsletter-copy className="relative mt-8 grid gap-3 md:grid-cols-3">
@@ -207,8 +206,7 @@ export function NewsletterSection() {
             Підписатися на розсилку
           </h3>
           <p className="relative mt-3 text-sm leading-6 text-neutral-600">
-            Лише красиві листи, ексклюзивні офери й жодного відчуття “навіщо я це
-            відкрила”.
+            Акції, нові надходження та підбірки засобів — надсилаємо раз на тиждень.
           </p>
 
           <form onSubmit={handleSubmit} className="relative mt-8 space-y-4">
@@ -242,7 +240,7 @@ export function NewsletterSection() {
               size="lg"
               className="w-full"
             >
-              {isPending ? 'Підписуємо...' : 'Хочу красиві листи'}
+              {isPending ? 'Підписуємо...' : 'Підписатися'}
             </BorderGradientButton>
 
             {message && (

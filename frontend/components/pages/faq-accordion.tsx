@@ -21,7 +21,7 @@ export function FAQAccordion({ title, items }: FAQAccordionProps) {
     <div className="py-12">
       {title && (
         <ScrollReveal variant="fade-up">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">{title}</h2>
         </ScrollReveal>
       )}
 

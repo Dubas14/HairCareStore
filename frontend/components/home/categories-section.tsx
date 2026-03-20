@@ -201,17 +201,16 @@ export function CategoriesSection({ categories }: CategoriesSectionProps) {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-[#1A1A1A] shadow-soft">
               <Sparkles className="h-4 w-4 text-[#2A9D8F]" />
-              pick your hair mood
+              Категорії догляду
             </div>
             <h2 className="mt-6 text-4xl font-semibold tracking-[-0.05em] text-foreground md:text-5xl lg:text-6xl">
-              Догляд, який хочеться
-              <span className="block text-[#8e5a2b]">додати в сторіс і в кошик</span>
+              Оберіть догляд
+              <span className="block text-[#8e5a2b]">за потребою волосся</span>
             </h2>
           </div>
 
           <p className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-            Ми перетворили каталог на moodboard для блиску, обʼєму, кольору й відновлення.
-            Обирайте категорію як вайб, а не як просто фільтр.
+            Зволоження, відновлення, обʼєм, захист кольору — знайдіть саме те, що потрібно вашому волоссю.
           </p>
         </div>
 
@@ -258,7 +257,7 @@ export function CategoriesSection({ categories }: CategoriesSectionProps) {
                     </h3>
                     <p className="mt-3 max-w-sm text-sm leading-6 text-white/82 md:text-base">
                       {category.shortDescription ||
-                        'Формули, текстури й ефекти, які роблять волосся головним аксесуаром образу.'}
+                        'Професійні засоби від італійських брендів для цього типу догляду.'}
                     </p>
 
                     <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white backdrop-blur-md transition-transform duration-300 group-hover:translate-x-1">

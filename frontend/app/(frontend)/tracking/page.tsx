@@ -155,34 +155,34 @@ export default function TrackingPage() {
             До каталогу
           </Link>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(250px,0.92fr)] lg:items-end">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(250px,0.92fr)] lg:items-start">
             <div>
               <p className="w-fit rounded-full border border-black/10 bg-white/75 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-foreground/48">
-                Tracking center
+                Відстеження
               </p>
               <h1 className="mt-4 text-4xl font-semibold leading-[0.92] tracking-[-0.06em] text-foreground md:text-5xl">
-                Відстеження замовлення в одному екрані, без зайвих дзвінків.
+                Де моє замовлення?
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-                Введіть номер замовлення та email, щоб побачити статус оформлення, доставку і, якщо є ТТН, маршрут Нової Пошти.
+                Введіть номер замовлення та email — покажемо статус, етап доставки та трекінг Нової Пошти.
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
               <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
-                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Формат</p>
-                <p className="mt-2 text-2xl font-semibold text-foreground">Live status</p>
-                <p className="mt-1 text-sm text-muted-foreground">етапи замовлення в читабельному вигляді</p>
+                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Статус</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">Поетапно</p>
+                <p className="mt-1 text-sm text-muted-foreground">від оформлення до отримання</p>
               </div>
               <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
-                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Мобайл</p>
-                <p className="mt-2 text-2xl font-semibold text-foreground">Responsive</p>
-                <p className="mt-1 text-sm text-muted-foreground">усі блоки складаються в акуратну стрічку</p>
+                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Доставка</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">Нова Пошта</p>
+                <p className="mt-1 text-sm text-muted-foreground">трекінг за номером ТТН</p>
               </div>
               <div className="rounded-[1.5rem] border border-black/8 bg-white/80 p-4">
-                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Дані</p>
-                <p className="mt-2 text-2xl font-semibold text-foreground">Nova Poshta</p>
-                <p className="mt-1 text-sm text-muted-foreground">авто-підтягування статусу за ТТН</p>
+                <p className="text-[0.68rem] uppercase tracking-[0.22em] text-foreground/45">Оплата</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">Накладений платіж</p>
+                <p className="mt-1 text-sm text-muted-foreground">оплата при отриманні на пошті</p>
               </div>
             </div>
           </div>

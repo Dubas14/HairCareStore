@@ -23,7 +23,7 @@ export function InfoCard({ icon, title, description, variant = "default", delay 
     <ScrollReveal variant="fade-up" delay={delay}>
       <div
         className={cn(
-          "relative p-6 rounded-2xl transition-all duration-300 group",
+          "relative h-full p-6 rounded-2xl transition-all duration-300 group",
           "hover:-translate-y-1",
           variantStyles[variant]
         )}

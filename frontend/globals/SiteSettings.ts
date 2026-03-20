@@ -61,7 +61,6 @@ export const SiteSettings: GlobalConfig = {
           defaultValue: [
             { title: 'Нова Пошта', description: 'Доставка 1-3 дні по всій Україні. Безкоштовно від 1500 грн.', isHighlight: true },
             { title: 'Укрпошта', description: 'Економна доставка 3-7 днів. Доступна для всіх населених пунктів.', isHighlight: false },
-            { title: 'Кур\'єрська доставка', description: 'Доставка день в день по Києву та області. Замовлення до 14:00.', isHighlight: false },
           ],
         },
         {
