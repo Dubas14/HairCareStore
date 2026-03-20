@@ -18,24 +18,24 @@ async function getClientIP(): Promise<string> {
 
 const CUSTOMER_TOKEN_COOKIE = 'hair-lab-customer-token'
 
-export async function loginCustomer(email: string, password: string) {
+export async function loginCustomer(email: string, password: string): Promise<{ success: boolean; user?: unknown; error?: string }> {
   // Server-side validation
   const parsed = loginSchema.safeParse({ email, password })
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message || 'Невірні дані')
+    return { success: false, error: parsed.error.issues[0]?.message || 'Невірні дані' }
   }
 
   const ip = await getClientIP()
   const rl = checkRateLimit(ip, 'login')
   if (!rl.allowed) {
-    throw new Error(`Забагато спроб. Спробуйте через ${Math.ceil((rl.blockTime || 1800) / 60)} хв.`)
+    return { success: false, error: `Забагато спроб. Спробуйте через ${Math.ceil((rl.blockTime || 1800) / 60)} хв.` }
   }
 
   // Also rate-limit per email to prevent credential stuffing on specific accounts
   const emailKey = `email:${email.toLowerCase()}`
   const emailRl = checkRateLimit(emailKey, 'login')
   if (!emailRl.allowed) {
-    throw new Error(`Забагато спроб для цього акаунту. Спробуйте через ${Math.ceil((emailRl.blockTime || 1800) / 60)} хв.`)
+    return { success: false, error: `Забагато спроб для цього акаунту. Спробуйте через ${Math.ceil((emailRl.blockTime || 1800) / 60)} хв.` }
   }
 
   const payload = await getPayload({ config })
@@ -49,7 +49,7 @@ export async function loginCustomer(email: string, password: string) {
     if (!result.user) {
       recordAttempt(ip, 'login')
       recordAttempt(emailKey, 'login')
-      throw new Error('Невірний email або пароль')
+      return { success: false, error: 'Невірний email або пароль' }
     }
 
     resetAttempts(ip, 'login')
@@ -63,12 +63,11 @@ export async function loginCustomer(email: string, password: string) {
       path: '/',
     })
 
-    return result.user
-  } catch (err: unknown) {
-    if (err instanceof Error && err.message.startsWith('Забагато')) throw err
+    return { success: true, user: result.user }
+  } catch {
     recordAttempt(ip, 'login')
     recordAttempt(emailKey, 'login')
-    throw new Error('Невірний email або пароль')
+    return { success: false, error: 'Невірний email або пароль' }
   }
 }
 
@@ -77,20 +76,20 @@ export async function registerCustomer(data: {
   password: string
   firstName: string
   lastName: string
-}) {
+}): Promise<{ success: boolean; user?: unknown; error?: string }> {
   // Server-side validation (reuse registerSchema without confirmPassword/acceptTerms)
   const parsed = loginSchema.safeParse({ email: data.email, password: data.password })
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message || 'Невірні дані')
+    return { success: false, error: parsed.error.issues[0]?.message || 'Невірні дані' }
   }
   if (!data.firstName?.trim() || !data.lastName?.trim()) {
-    throw new Error("Ім'я та прізвище обов'язкові")
+    return { success: false, error: "Ім'я та прізвище обов'язкові" }
   }
 
   const ip = await getClientIP()
   const rl = checkRateLimit(ip, 'register')
   if (!rl.allowed) {
-    throw new Error(`Забагато спроб реєстрації. Спробуйте через ${Math.ceil((rl.blockTime || 3600) / 60)} хв.`)
+    return { success: false, error: `Забагато спроб реєстрації. Спробуйте через ${Math.ceil((rl.blockTime || 3600) / 60)} хв.` }
   }
   recordAttempt(ip, 'register')
 
@@ -103,7 +102,7 @@ export async function registerCustomer(data: {
     limit: 1,
   })
   if (existing.docs.length > 0) {
-    throw new Error('Цей email вже зареєстрований. Увійдіть або відновіть пароль.')
+    return { success: false, error: 'Цей email вже зареєстрований. Увійдіть або відновіть пароль.' }
   }
 
   try {
@@ -146,10 +145,10 @@ export async function registerCustomer(data: {
         .catch((err) => log.error('Verification email failed', err))
     }
 
-    return loginResult.user
+    return { success: true, user: loginResult.user }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Помилка реєстрації'
-    throw new Error(message)
+    return { success: false, error: message }
   }
 }
 

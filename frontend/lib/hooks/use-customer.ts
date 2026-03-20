@@ -50,15 +50,18 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
-      return loginCustomer(data.email, data.password)
+      const result = await loginCustomer(data.email, data.password)
+      if (!result.success) throw new Error(result.error || 'Помилка входу')
+      return result.user
     },
     onSuccess: async (customer) => {
       setCustomer(customer as unknown as Customer | null)
       queryClient.invalidateQueries({ queryKey: ['customer'] })
       // Link the active cart to this customer
-      if (customer?.id) {
+      const c = customer as Record<string, unknown> | null
+      if (c?.id) {
         try {
-          await linkCartToCustomer(customer.id)
+          await linkCartToCustomer(c.id as string | number)
         } catch { /* ignore */ }
       }
     },
@@ -71,15 +74,17 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (data: { email: string; password: string; firstName: string; lastName: string }) => {
-      return registerCustomer(data)
+      const result = await registerCustomer(data)
+      if (!result.success) throw new Error(result.error || 'Помилка реєстрації')
+      return result.user
     },
     onSuccess: async (customer) => {
       setCustomer(customer as unknown as Customer | null)
       queryClient.invalidateQueries({ queryKey: ['customer'] })
-      // Link the active cart to this customer
-      if (customer?.id) {
+      const c = customer as Record<string, unknown> | null
+      if (c?.id) {
         try {
-          await linkCartToCustomer(customer.id)
+          await linkCartToCustomer(c.id as string | number)
         } catch { /* ignore */ }
       }
     },
