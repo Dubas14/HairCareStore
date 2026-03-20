@@ -3,8 +3,89 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteCollectionDoc, getCollectionFieldDefaults } from '@/app/actions/admin-views'
-import type { FieldSchema } from '@/app/actions/admin-views'
+import type { FieldSchema, TabSchema } from '@/app/actions/admin-views'
 import { StyledInput, StyledTextarea, StyledCheckbox, StyledSelect, StyledUpload, StyledDatetime, FieldGroup, FieldRow } from './CustomFields'
+
+// ─── Tabs Component ──────────────────────────────────────────────────────────
+
+function TabsContainer({ tabs, formData, onChange, renderFieldFn }: {
+  tabs: TabSchema[]
+  formData: Record<string, any>
+  onChange: (key: string, val: any) => void
+  renderFieldFn: (key: string, value: any, onChange: (key: string, val: any) => void, fieldMeta?: FieldSchema) => React.ReactNode
+}) {
+  const [activeTab, setActiveTab] = useState(0)
+  const activeFields = tabs[activeTab]?.fields || []
+
+  // Collect fields that are not __row__ markers
+  // For rows, we render them inline
+  const renderedNames = new Set<string>()
+
+  return (
+    <div className="hl-tabs">
+      <div className="hl-tabs__nav">
+        {tabs.map((tab, idx) => (
+          <button
+            key={idx}
+            type="button"
+            className={`hl-tabs__tab ${idx === activeTab ? 'hl-tabs__tab--active' : ''}`}
+            onClick={() => setActiveTab(idx)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="hl-tabs__content">
+        {activeFields.map((field, idx) => {
+          if (field.type === 'row' && field.fields) {
+            // Render row fields horizontally
+            return (
+              <FieldRow key={`row-${idx}`}>
+                {field.fields.map((rf) => {
+                  renderedNames.add(rf.name)
+                  return renderFieldFn(rf.name, formData[rf.name], onChange, rf)
+                })}
+              </FieldRow>
+            )
+          }
+          // Skip if already rendered in a row
+          if (renderedNames.has(field.name)) return null
+          if (field.name === '__row__') return null
+          return renderFieldFn(field.name, formData[field.name], onChange, field)
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Collapsible Array Component ─────────────────────────────────────────────
+
+function CollapsibleSection({ title, defaultOpen = true, children }: {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  return (
+    <div className={`hl-collapsible ${isOpen ? '' : 'hl-collapsible--collapsed'}`}>
+      <button
+        type="button"
+        className="hl-collapsible__toggle"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <svg
+          width={14} height={14} viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className="hl-collapsible__chevron"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <span className="hl-collapsible__label">{title}</span>
+      </button>
+      {isOpen && <div className="hl-collapsible__content">{children}</div>}
+    </div>
+  )
+}
 import { SidebarMeta, QuickActions } from './SidebarMeta'
 import { InlinePermissionsEditor } from '@/components/payload/InlinePermissionsEditor'
 
@@ -117,19 +198,19 @@ function renderField(
       case 'array': {
         const items = Array.isArray(value) ? value : []
         const arrayLabel = fieldMeta.labels?.plural || label
+        const initCollapsed = fieldMeta.initCollapsed ?? false
         if (items.length === 0) {
           return <StyledInput key={key} label={arrayLabel} value="— порожньо —" onChange={() => {}} disabled />
         }
         return (
-          <FieldGroup key={key} title={`${arrayLabel} (${items.length})`}>
+          <CollapsibleSection key={key} title={`${arrayLabel} (${items.length})`} defaultOpen={!initCollapsed}>
             {items.map((item: any, idx: number) => {
               const itemLabel = fieldMeta.labels?.singular || label
               const subFields = fieldMeta.fields || []
               const visibleSubFields = subFields.filter((sf) => !sf.hidden)
               if (visibleSubFields.length === 0) return null
-              // Show a compact summary of each array item
               return (
-                <FieldGroup key={idx} title={`${itemLabel} #${idx + 1}`}>
+                <CollapsibleSection key={idx} title={`${itemLabel} #${idx + 1}`} defaultOpen={!initCollapsed}>
                   {visibleSubFields.map((sf) => {
                     const sfVal = item[sf.name]
                     return renderField(sf.name, sfVal, (k, v) => {
@@ -138,10 +219,10 @@ function renderField(
                       onChange(key, updated)
                     }, { ...sf, readOnly: ro || sf.readOnly })
                   })}
-                </FieldGroup>
+                </CollapsibleSection>
               )
             })}
-          </FieldGroup>
+          </CollapsibleSection>
         )
       }
       case 'group':
@@ -423,12 +504,41 @@ export default function CustomEditView() {
       <div className="hl-edit-layout">
         {/* Main content */}
         <div>
-          <FieldGroup title={isCreate ? 'Заповніть поля' : 'Основні поля'}>
-            {mainKeys.map((key) => {
-              const meta = fieldSchema.find((f) => f.name === key)
-              return renderField(key, formData[key], handleChange, meta)
-            })}
-          </FieldGroup>
+          {/* Regular fields */}
+          {(() => {
+            const tabsSchema = fieldSchema.find((f) => f.type === 'tabs' && f.tabs)
+            // Collect field names that live inside tabs to exclude from main
+            const tabFieldNames = new Set<string>()
+            if (tabsSchema?.tabs) {
+              for (const tab of tabsSchema.tabs) {
+                for (const tf of tab.fields) {
+                  if (tf.name && tf.name !== '__row__') tabFieldNames.add(tf.name)
+                }
+              }
+            }
+            const topKeys = mainKeys.filter((k) => !tabFieldNames.has(k))
+
+            return (
+              <>
+                {topKeys.length > 0 && (
+                  <FieldGroup title={isCreate ? 'Заповніть поля' : 'Основні поля'}>
+                    {topKeys.map((key) => {
+                      const meta = fieldSchema.find((f) => f.name === key)
+                      return renderField(key, formData[key], handleChange, meta)
+                    })}
+                  </FieldGroup>
+                )}
+                {tabsSchema?.tabs && (
+                  <TabsContainer
+                    tabs={tabsSchema.tabs}
+                    formData={formData}
+                    onChange={handleChange}
+                    renderFieldFn={renderField}
+                  />
+                )}
+              </>
+            )
+          })()}
           {slug === 'users' && formData.role === 'editor' && (
             <InlinePermissionsEditor
               value={formData.permissions || {}}

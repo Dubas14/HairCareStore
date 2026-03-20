@@ -33,12 +33,14 @@ export const BlogPosts: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Заголовок',
       type: 'text',
       required: true,
       localized: true,
     },
     {
       name: 'slug',
+      label: 'URL (slug)',
       type: 'text',
       required: true,
       unique: true,
@@ -47,48 +49,8 @@ export const BlogPosts: CollectionConfig = {
       },
     },
     {
-      name: 'content',
-      type: 'richText',
-      localized: true,
-    },
-    {
-      name: 'excerpt',
-      type: 'textarea',
-      maxLength: 300,
-      localized: true,
-    },
-    {
-      name: 'featuredImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'author',
-      type: 'text',
-    },
-    {
-      name: 'tags',
-      type: 'array',
-      fields: [
-        {
-          name: 'tag',
-          type: 'text',
-          required: true,
-        },
-      ],
-    },
-    {
-      name: 'publishedAt',
-      type: 'date',
-      admin: {
-        position: 'sidebar',
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
-      },
-    },
-    {
       name: 'status',
+      label: 'Статус',
       type: 'select',
       defaultValue: 'draft',
       options: [
@@ -98,6 +60,77 @@ export const BlogPosts: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+    },
+    {
+      name: 'publishedAt',
+      label: 'Дата публікації',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Контент',
+          fields: [
+            {
+              name: 'content',
+              label: 'Контент',
+              type: 'richText',
+              localized: true,
+            },
+            {
+              name: 'excerpt',
+              label: 'Короткий опис',
+              type: 'textarea',
+              maxLength: 300,
+              localized: true,
+            },
+          ],
+        },
+        {
+          label: 'Медіа та автор',
+          fields: [
+            {
+              name: 'featuredImage',
+              label: 'Головне зображення',
+              type: 'upload',
+              relationTo: 'media',
+            },
+            {
+              name: 'author',
+              label: 'Автор',
+              type: 'text',
+            },
+          ],
+        },
+        {
+          label: 'Теги',
+          fields: [
+            {
+              name: 'tags',
+              label: 'Теги',
+              type: 'array',
+              admin: {
+                initCollapsed: true,
+              },
+              fields: [
+                {
+                  name: 'tag',
+                  label: 'Тег',
+                  type: 'text',
+                  required: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   ],
 }

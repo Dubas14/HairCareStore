@@ -29,6 +29,7 @@ export const Subscribers: CollectionConfig = {
   fields: [
     {
       name: 'email',
+      label: 'Email',
       type: 'email',
       required: true,
       unique: true,
@@ -36,10 +37,12 @@ export const Subscribers: CollectionConfig = {
     },
     {
       name: 'firstName',
+      label: "Ім'я",
       type: 'text',
     },
     {
       name: 'status',
+      label: 'Статус',
       type: 'select',
       defaultValue: 'pending',
       options: [
@@ -50,12 +53,14 @@ export const Subscribers: CollectionConfig = {
     },
     {
       name: 'confirmToken',
+      label: 'Токен підтвердження',
       type: 'text',
       admin: { hidden: true },
       index: true,
     },
     {
       name: 'locale',
+      label: 'Мова',
       type: 'select',
       options: [
         { label: 'Українська', value: 'uk' },
@@ -64,6 +69,7 @@ export const Subscribers: CollectionConfig = {
     },
     {
       name: 'source',
+      label: 'Джерело',
       type: 'select',
       options: [
         { label: 'Форма на сайті', value: 'website' },
@@ -74,6 +80,7 @@ export const Subscribers: CollectionConfig = {
     },
     {
       name: 'customer',
+      label: 'Клієнт',
       type: 'relationship',
       relationTo: 'customers',
       hasMany: false,

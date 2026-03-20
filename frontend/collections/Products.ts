@@ -202,96 +202,110 @@ export const Products: CollectionConfig = {
     delete: collectionAccess('products', 'delete'),
   },
   fields: [
-    { name: 'title', type: 'text', required: true, localized: true },
-    { name: 'handle', type: 'text', required: true, unique: true, admin: { position: 'sidebar' } },
+    // ── Основна інформація (завжди видима) ──
+    { name: 'title', label: 'Назва', type: 'text', required: true, localized: true },
+    { name: 'handle', label: 'URL (slug)', type: 'text', required: true, unique: true, admin: { position: 'sidebar', description: 'Унікальний ідентифікатор для URL товару' } },
+    { name: 'subtitle', label: 'Підзаголовок', type: 'text', localized: true, admin: { description: 'Назва бренду або короткий слоган' } },
+    { name: 'status', label: 'Статус', type: 'select', defaultValue: 'draft', options: [{ label: 'Чернетка', value: 'draft' }, { label: 'Активний', value: 'active' }, { label: 'В архіві', value: 'archived' }], admin: { position: 'sidebar' } },
+    { name: 'barcode', label: 'Штрих-код', type: 'text', unique: true, index: true, admin: { position: 'sidebar', description: 'EAN-13/EAN-8' } },
+    { name: 'categories', label: 'Категорії', type: 'relationship', relationTo: 'categories', hasMany: true },
+    { name: 'brand', label: 'Бренд', type: 'relationship', relationTo: 'brands' },
+    // ── Sidebar stats ──
+    { name: 'averageRating', label: 'Середній рейтинг', type: 'number', defaultValue: 0, min: 0, max: 5, admin: { position: 'sidebar', readOnly: true } },
+    { name: 'reviewCount', label: 'Кількість відгуків', type: 'number', defaultValue: 0, min: 0, admin: { position: 'sidebar', readOnly: true } },
+    { name: 'salesCount', label: 'Кількість продажів', type: 'number', defaultValue: 0, min: 0, admin: { position: 'sidebar', readOnly: true } },
+    // ── Tabs для решти контенту ──
     {
-      name: 'barcode',
-      type: 'text',
-      unique: true,
-      index: true,
-      admin: {
-        position: 'sidebar',
-        description: 'Штрих-код (EAN-13/EAN-8). Унікальний ідентифікатор товару',
-      },
-    },
-    { name: 'subtitle', type: 'text', localized: true, admin: { description: 'Назва бренду або короткий слоган' } },
-    { name: 'description', type: 'richText', localized: true },
-    { name: 'thumbnail', type: 'upload', relationTo: 'media' },
-    {
-      name: 'images',
-      type: 'array',
-      fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
-    },
-    {
-      name: 'variants',
-      type: 'array',
-      required: true,
-      minRows: 1,
-      fields: [
-        { name: 'title', type: 'text', required: true, localized: true },
-        { name: 'sku', type: 'text' },
-        { name: 'price', type: 'number', required: true, min: 0, admin: { description: 'Ціна в грн (основні одиниці)' } },
-        { name: 'costPrice', type: 'number', min: 0, admin: { description: 'Ціна ходу/закупівлі (салонна ціна), грн' } },
-        { name: 'compareAtPrice', type: 'number', min: 0, admin: { description: 'Початкова ціна до знижки' } },
-        { name: 'supplierCode', type: 'text', admin: { description: 'Код постачальника (напр. 000002145)' } },
-        { name: 'articleCode', type: 'text', admin: { description: 'Артикул товару (напр. 510442)' } },
-        { name: 'inStock', type: 'checkbox', defaultValue: true },
-        { name: 'inventory', type: 'number', defaultValue: 0, min: 0 },
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Опис',
+          fields: [
+            { name: 'description', label: 'Повний опис', type: 'richText', localized: true },
+          ],
+        },
+        {
+          label: 'Медіа',
+          fields: [
+            { name: 'thumbnail', label: 'Мініатюра', type: 'upload', relationTo: 'media', admin: { description: 'Головне зображення товару' } },
+            {
+              name: 'images',
+              label: 'Галерея зображень',
+              type: 'array',
+              admin: { initCollapsed: true },
+              fields: [{ name: 'image', label: 'Зображення', type: 'upload', relationTo: 'media', required: true }],
+            },
+          ],
+        },
+        {
+          label: 'Варіанти та ціни',
+          fields: [
+            {
+              name: 'variants',
+              label: 'Варіанти товару',
+              type: 'array',
+              required: true,
+              minRows: 1,
+              admin: { initCollapsed: false, description: 'Мінімум один варіант обовʼязковий' },
+              fields: [
+                { name: 'title', label: 'Назва варіанту', type: 'text', required: true, localized: true },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'price', label: 'Ціна', type: 'number', required: true, min: 0 },
+                    { name: 'compareAtPrice', label: 'Стара ціна', type: 'number', min: 0 },
+                    { name: 'costPrice', label: 'Собівартість', type: 'number', min: 0 },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'sku', label: 'Артикул (SKU)', type: 'text' },
+                    { name: 'supplierCode', label: 'Код постачальника', type: 'text' },
+                    { name: 'articleCode', label: 'Артикул', type: 'text' },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'inStock', label: 'В наявності', type: 'checkbox', defaultValue: true },
+                    { name: 'inventory', label: 'Залишок на складі', type: 'number', defaultValue: 0, min: 0 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Опції та теги',
+          fields: [
+            {
+              name: 'options',
+              label: 'Опції товару',
+              type: 'array',
+              admin: { initCollapsed: true, description: 'Наприклад: обʼєм, колір' },
+              fields: [
+                { name: 'title', label: 'Назва опції', type: 'text', required: true },
+                { name: 'values', label: 'Значення', type: 'array', fields: [{ name: 'value', label: 'Значення', type: 'text', required: true }] },
+              ],
+            },
+            {
+              name: 'tags',
+              label: 'Теги',
+              type: 'array',
+              admin: { initCollapsed: true },
+              fields: [{ name: 'tag', label: 'Тег', type: 'text', required: true }],
+            },
+            {
+              name: 'ingredients',
+              label: 'Інгредієнти',
+              type: 'relationship',
+              relationTo: 'ingredients',
+              hasMany: true,
+            },
+          ],
+        },
       ],
-    },
-    {
-      name: 'options',
-      type: 'array',
-      fields: [
-        { name: 'title', type: 'text', required: true },
-        { name: 'values', type: 'array', fields: [{ name: 'value', type: 'text', required: true }] },
-      ],
-    },
-    { name: 'categories', type: 'relationship', relationTo: 'categories', hasMany: true },
-    { name: 'brand', type: 'relationship', relationTo: 'brands' },
-    {
-      name: 'tags',
-      type: 'array',
-      fields: [{ name: 'tag', type: 'text', required: true }],
-    },
-    {
-      name: 'ingredients',
-      type: 'relationship',
-      relationTo: 'ingredients',
-      hasMany: true,
-    },
-    {
-      name: 'averageRating',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
-      max: 5,
-      admin: { position: 'sidebar', readOnly: true, description: 'Середній рейтинг (оновлюється автоматично)' },
-    },
-    {
-      name: 'reviewCount',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
-      admin: { position: 'sidebar', readOnly: true, description: 'Кількість відгуків' },
-    },
-    {
-      name: 'salesCount',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
-      admin: { position: 'sidebar', readOnly: true, description: 'Кількість продажів' },
-    },
-    {
-      name: 'status',
-      type: 'select',
-      defaultValue: 'draft',
-      options: [
-        { label: 'Чернетка', value: 'draft' },
-        { label: 'Активний', value: 'active' },
-        { label: 'В архіві', value: 'archived' },
-      ],
-      admin: { position: 'sidebar' },
     },
   ],
 }

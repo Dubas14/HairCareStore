@@ -55,10 +55,12 @@ export const Media: CollectionConfig = {
   fields: [
     {
       name: 'alt',
+      label: 'Альтернативний текст',
       type: 'text',
     },
     {
       name: 'folder',
+      label: 'Папка',
       type: 'select',
       options: [
         { label: 'Товари', value: 'products' },

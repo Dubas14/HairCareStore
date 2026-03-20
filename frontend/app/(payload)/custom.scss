@@ -1411,28 +1411,59 @@ input[type='checkbox']:checked {
   border-radius: var(--hl-radius-lg) !important;
   margin-top:    8px !important;
   overflow:      hidden;
-  box-shadow:    0 2px 12px rgba(0, 0, 0, 0.04);
-  transition:    box-shadow var(--hl-transition);
+  box-shadow:    0 1px 4px rgba(0, 0, 0, 0.03);
+  transition:    all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(91, 196, 196, 0.06);
+    box-shadow: 0 4px 16px rgba(91, 196, 196, 0.08);
+    border-color: rgba(91, 196, 196, 0.2) !important;
   }
 
   .group-field__header {
     background:    var(--color-base-50);
-    padding:       12px 16px !important;
+    padding:       14px 18px !important;
     border-bottom: 1px solid var(--color-base-200);
+    cursor:        pointer;
+    transition:    background 0.2s ease;
+    display:       flex;
+    align-items:   center;
+    gap:           10px;
 
-    h3 {
+    &:hover {
+      background: rgba(91, 196, 196, 0.04);
+    }
+
+    h3, .group-field__title {
       font-size:   14px;
       font-weight: 600;
       margin:      0;
       color:       var(--color-base-700);
+      flex:        1;
+    }
+
+    /* Chevron icon rotation */
+    svg, .icon {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color:      var(--color-base-400);
+      flex-shrink: 0;
+    }
+  }
+
+  /* Collapsed state */
+  &--collapsed {
+    .group-field__header {
+      border-bottom-color: transparent;
+    }
+
+    .group-field__header svg,
+    .group-field__header .icon {
+      transform: rotate(-90deg);
     }
   }
 
   .group-field__wrap {
-    padding: 16px !important;
+    padding:    20px !important;
+    animation:  fadeIn 0.3s ease-out;
   }
 }
 
@@ -1733,6 +1764,282 @@ aside.nav .hl-nav-group-label {
 
   /* Skeleton pulse */
   .animate-pulse { background-color: var(--color-base-200) !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   COLLAPSIBLE SECTIONS — Enhanced animations
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Collapsible toggle — for collapsible-field Payload component */
+.collapsible {
+  border: 1px solid var(--color-base-200) !important;
+  border-radius: var(--hl-radius-lg) !important;
+  margin-bottom: 12px !important;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: rgba(91, 196, 196, 0.25) !important;
+  }
+
+  .collapsible__toggle {
+    padding: 14px 18px !important;
+    background: var(--color-base-50) !important;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    &:hover {
+      background: rgba(91, 196, 196, 0.04) !important;
+    }
+
+    .collapsible__label {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      color: var(--color-base-700) !important;
+    }
+
+    /* Chevron rotation animation */
+    .collapsible__indicator svg {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+  }
+
+  &--collapsed .collapsible__toggle .collapsible__indicator svg {
+    transform: rotate(-90deg) !important;
+  }
+
+  .collapsible__content {
+    padding: 18px !important;
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ARRAY FIELDS — Expandable rows with animation
+   ═══════════════════════════════════════════════════════════════ */
+
+.array-field {
+  .array-field__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    .array-field__add-row {
+      transition: all 0.2s ease !important;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .array-field__row {
+    border: 1px solid var(--color-base-200) !important;
+    border-radius: var(--hl-radius-md) !important;
+    margin-bottom: 8px !important;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    animation: scaleIn 0.25s ease-out;
+
+    &:hover {
+      border-color: rgba(91, 196, 196, 0.25) !important;
+      box-shadow: 0 2px 8px rgba(91, 196, 196, 0.06);
+    }
+
+    .array-field__row-header {
+      background: var(--color-base-50) !important;
+      padding: 10px 14px !important;
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: rgba(91, 196, 196, 0.04) !important;
+      }
+    }
+
+    .array-field__row-content {
+      padding: 16px !important;
+      animation: fadeIn 0.25s ease-out;
+    }
+  }
+
+  /* Row drag handle */
+  .array-field__drag-handle {
+    cursor: grab;
+    color: var(--color-base-300);
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--color-sea-500);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MICRO-INTERACTIONS & FOCUS ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Smooth field label animations */
+.field-type > label,
+.field-type > .field-label,
+.field-label {
+  transition: color 0.15s ease !important;
+}
+
+.field-type:focus-within > label,
+.field-type:focus-within > .field-label {
+  color: var(--color-sea-600) !important;
+}
+
+/* Input/textarea subtle grow on focus */
+.field-type input:not([type='checkbox']):not([type='radio']):focus,
+.field-type textarea:focus {
+  transform: scale(1.001);
+}
+
+/* Buttons: ripple-like active state */
+.btn:active:not([disabled]) {
+  transform: scale(0.97) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* Save button pulse when form is dirty */
+.form-submit .btn--style-primary {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+    pointer-events: none;
+  }
+}
+
+/* Smooth page transitions */
+.template-default__content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Row action buttons appear smoothly */
+.collection-list .table tbody tr {
+  .row-actions,
+  td:last-child .btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    .row-actions,
+    td:last-child .btn {
+      opacity: 1;
+    }
+  }
+}
+
+/* Banner/notification slide-in */
+.banner {
+  animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Popup/dropdown animation */
+.popup__content,
+.popup-content {
+  animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transform-origin: top center;
+}
+
+/* Modal overlay animation */
+.drawer__content,
+.modal__content {
+  animation: fadeIn 0.25s ease-out !important;
+}
+
+.drawer__overlay,
+.modal__overlay {
+  animation: fadeIn 0.2s ease !important;
+}
+
+/* Tooltip animation */
+.tooltip__content {
+  animation: scaleIn 0.15s ease-out !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED NAVIGATION TRANSITIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+aside.nav .nav__link {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  /* Active indicator slide-in animation */
+  &::before {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    width: 3px;
+    height: 0;
+  }
+
+  &.active::before {
+    opacity: 1;
+    height: 18px;
+  }
+}
+
+/* Nav group collapse/expand animation */
+.nav-group__content {
+  transition: max-height 0.3s ease, opacity 0.25s ease !important;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING STATES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Button loading spinner */
+.btn--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: hl-spin 0.6s linear infinite;
+  }
+}
+
+/* Skeleton loading improved */
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    var(--color-base-100) 0%,
+    var(--color-base-200) 40%,
+    var(--color-base-200) 60%,
+    var(--color-base-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--hl-radius-sm);
 }
 
 

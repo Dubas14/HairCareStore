@@ -33,44 +33,53 @@ export const PromoBlocks: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Заголовок',
       type: 'text',
       required: true,
       localized: true,
     },
     {
       name: 'description',
+      label: 'Опис',
       type: 'richText',
       localized: true,
     },
     {
       name: 'image',
+      label: 'Зображення',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'buttonText',
+      label: 'Текст кнопки',
       type: 'text',
       localized: true,
     },
     {
       name: 'buttonLink',
+      label: 'Посилання кнопки',
       type: 'text',
     },
     {
       name: 'backgroundColor',
+      label: 'Колір фону',
       type: 'text',
       defaultValue: '#1a1a1a',
+      admin: { position: 'sidebar', description: 'HEX колір, наприклад #1a1a1a' },
     },
     {
       name: 'expiresAt',
       label: 'Закінчення акції',
       type: 'date',
-      admin: { date: { pickerAppearance: 'dayAndTime' } },
+      admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
     },
     {
       name: 'isActive',
+      label: 'Активний',
       type: 'checkbox',
       defaultValue: true,
+      admin: { position: 'sidebar' },
     },
   ],
 }

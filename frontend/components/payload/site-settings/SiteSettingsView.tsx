@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { getSitePageSettings, updateSitePageSettings } from '@/app/actions/site-pages'
 import type { SiteSettingsData } from '@/lib/payload/client'
-import '../site-pages/site-pages.scss'
+import './site-settings.scss'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

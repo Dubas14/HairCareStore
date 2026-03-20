@@ -33,12 +33,14 @@ export const Pages: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Заголовок',
       type: 'text',
       required: true,
       localized: true,
     },
     {
       name: 'slug',
+      label: 'URL (slug)',
       type: 'text',
       required: true,
       unique: true,
@@ -47,36 +49,50 @@ export const Pages: CollectionConfig = {
       },
     },
     {
-      name: 'content',
-      type: 'richText',
-      localized: true,
-    },
-    {
-      name: 'featuredImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'metaTitle',
-      type: 'text',
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'metaDescription',
-      type: 'textarea',
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    {
       name: 'isPublished',
+      label: 'Опублікована',
       type: 'checkbox',
       defaultValue: false,
       admin: {
         position: 'sidebar',
       },
+    },
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Контент',
+          fields: [
+            {
+              name: 'content',
+              label: 'Контент',
+              type: 'richText',
+              localized: true,
+            },
+            {
+              name: 'featuredImage',
+              label: 'Головне зображення',
+              type: 'upload',
+              relationTo: 'media',
+            },
+          ],
+        },
+        {
+          label: 'SEO',
+          fields: [
+            {
+              name: 'metaTitle',
+              label: 'SEO заголовок',
+              type: 'text',
+            },
+            {
+              name: 'metaDescription',
+              label: 'SEO опис',
+              type: 'textarea',
+            },
+          ],
+        },
+      ],
     },
   ],
 }

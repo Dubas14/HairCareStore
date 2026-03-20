@@ -22,9 +22,9 @@ export const LoyaltySettings: GlobalConfig = {
     update: globalAccess('loyalty-settings', 'update'),
   },
   fields: [
-    { name: 'pointsPerUah', type: 'number', defaultValue: 0.1, admin: { description: 'Бали за кожну 1 грн витрат' } },
-    { name: 'pointValue', type: 'number', defaultValue: 1, admin: { description: '1 бал = X грн знижки' } },
-    { name: 'maxSpendPercentage', type: 'number', defaultValue: 0.3, admin: { description: 'Макс. % замовлення, який можна оплатити балами (0.3 = 30%)' } },
+    { name: 'pointsPerUah', label: 'Балів за 1 грн', type: 'number', defaultValue: 0.1, admin: { description: 'Бали за кожну 1 грн витрат' } },
+    { name: 'pointValue', label: 'Вартість 1 бала (грн)', type: 'number', defaultValue: 1, admin: { description: '1 бал = X грн знижки' } },
+    { name: 'maxSpendPercentage', label: 'Макс. % оплати балами', type: 'number', defaultValue: 0.3, admin: { description: 'Макс. % замовлення, який можна оплатити балами (0.3 = 30%)' } },
     { name: 'welcomeBonus', type: 'number', defaultValue: 100, label: 'Вітальний бонус' },
     { name: 'referralBonus', type: 'number', defaultValue: 200, label: 'Бонус за реферала' },
     { name: 'bronzeMin', type: 'number', defaultValue: 0, label: 'Бронза — мін. балів' },

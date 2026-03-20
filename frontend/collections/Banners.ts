@@ -33,21 +33,26 @@ export const Banners: CollectionConfig = {
   fields: [
     {
       name: 'title',
+      label: 'Заголовок',
       type: 'text',
       required: true,
       localized: true,
     },
     {
       name: 'image',
+      label: 'Зображення',
       type: 'upload',
       relationTo: 'media',
     },
     {
       name: 'link',
+      label: 'Посилання',
       type: 'text',
+      admin: { description: 'URL куди веде банер при кліку' },
     },
     {
       name: 'position',
+      label: 'Позиція',
       type: 'select',
       required: true,
       defaultValue: 'home',
@@ -56,25 +61,32 @@ export const Banners: CollectionConfig = {
         { label: 'Категорія', value: 'category' },
         { label: 'Промо', value: 'promo' },
       ],
+      admin: { position: 'sidebar' },
     },
     {
       name: 'order',
+      label: 'Порядок',
       type: 'number',
       defaultValue: 0,
+      admin: { position: 'sidebar' },
     },
     {
       name: 'isActive',
+      label: 'Активний',
       type: 'checkbox',
       defaultValue: true,
+      admin: { position: 'sidebar' },
     },
     {
       name: 'mediaType',
+      label: 'Тип медіа',
       type: 'select',
       options: [
         { label: 'Зображення', value: 'image' },
         { label: 'Відео', value: 'video' },
       ],
       defaultValue: 'image',
+      admin: { position: 'sidebar' },
     },
   ],
 }

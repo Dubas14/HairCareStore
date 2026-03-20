@@ -52,104 +52,124 @@ export const AutomaticDiscounts: CollectionConfig = {
       admin: { description: 'Відсоток (наприклад 10) або сума у валюті' },
     },
     {
-      name: 'conditions',
-      label: 'Умови застосування',
-      type: 'group',
-      fields: [
-        {
-          name: 'minItems',
-          label: 'Мінімальна кількість товарів',
-          type: 'number',
-          min: 0,
-        },
-        {
-          name: 'minOrderAmount',
-          label: 'Мінімальна сума замовлення',
-          type: 'number',
-          min: 0,
-        },
-        {
-          name: 'requiredProducts',
-          label: 'Необхідні товари',
-          type: 'relationship',
-          relationTo: 'products',
-          hasMany: true,
-        },
-        {
-          name: 'requiredCategories',
-          label: 'Необхідні категорії',
-          type: 'relationship',
-          relationTo: 'categories',
-          hasMany: true,
-        },
-        {
-          name: 'buyQuantity',
-          label: 'Купи (кількість)',
-          type: 'number',
-          min: 1,
-          admin: {
-            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
-            description: 'Скільки товарів потрібно купити',
-          },
-        },
-        {
-          name: 'getQuantity',
-          label: 'Отримай (кількість)',
-          type: 'number',
-          min: 1,
-          admin: {
-            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
-            description: 'Скільки товарів отримає клієнт зі знижкою',
-          },
-        },
-        {
-          name: 'getDiscountPercent',
-          label: 'Знижка на Y товар (%)',
-          type: 'number',
-          min: 0,
-          max: 100,
-          defaultValue: 100,
-          admin: {
-            condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
-            description: '100 = безкоштовно, 50 = половина ціни',
-          },
-        },
-      ],
-    },
-    {
-      name: 'priority',
-      label: 'Пріоритет',
-      type: 'number',
-      defaultValue: 0,
-      admin: { description: 'Вищий пріоритет — застосовується першим' },
-    },
-    {
-      name: 'stackable',
-      label: 'Можна поєднувати',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: { description: 'Чи можна поєднувати з іншими знижками' },
-    },
-    {
-      name: 'startsAt',
-      label: 'Початок дії',
-      type: 'date',
-      required: true,
-      admin: { date: { pickerAppearance: 'dayAndTime' } },
-    },
-    {
-      name: 'expiresAt',
-      label: 'Закінчення дії',
-      type: 'date',
-      required: true,
-      admin: { date: { pickerAppearance: 'dayAndTime' } },
-    },
-    {
       name: 'isActive',
       label: 'Активна',
       type: 'checkbox',
       defaultValue: true,
       admin: { position: 'sidebar' },
+    },
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Умови',
+          fields: [
+            {
+              name: 'conditions',
+              label: 'Умови застосування',
+              type: 'group',
+              fields: [
+                {
+                  name: 'minItems',
+                  label: 'Мінімальна кількість товарів',
+                  type: 'number',
+                  min: 0,
+                },
+                {
+                  name: 'minOrderAmount',
+                  label: 'Мінімальна сума замовлення',
+                  type: 'number',
+                  min: 0,
+                },
+                {
+                  name: 'requiredProducts',
+                  label: 'Необхідні товари',
+                  type: 'relationship',
+                  relationTo: 'products',
+                  hasMany: true,
+                },
+                {
+                  name: 'requiredCategories',
+                  label: 'Необхідні категорії',
+                  type: 'relationship',
+                  relationTo: 'categories',
+                  hasMany: true,
+                },
+                {
+                  name: 'buyQuantity',
+                  label: 'Купи (кількість)',
+                  type: 'number',
+                  min: 1,
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+                    description: 'Скільки товарів потрібно купити',
+                  },
+                },
+                {
+                  name: 'getQuantity',
+                  label: 'Отримай (кількість)',
+                  type: 'number',
+                  min: 1,
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+                    description: 'Скільки товарів отримає клієнт зі знижкою',
+                  },
+                },
+                {
+                  name: 'getDiscountPercent',
+                  label: 'Знижка на Y товар (%)',
+                  type: 'number',
+                  min: 0,
+                  max: 100,
+                  defaultValue: 100,
+                  admin: {
+                    condition: (_, siblingData) => siblingData?.type === 'buyXgetY',
+                    description: '100 = безкоштовно, 50 = половина ціни',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Налаштування',
+          fields: [
+            {
+              name: 'priority',
+              label: 'Пріоритет',
+              type: 'number',
+              defaultValue: 0,
+              admin: { description: 'Вищий пріоритет — застосовується першим' },
+            },
+            {
+              name: 'stackable',
+              label: 'Можна поєднувати',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: { description: 'Чи можна поєднувати з іншими знижками' },
+            },
+          ],
+        },
+        {
+          label: 'Період дії',
+          fields: [
+            {
+              name: 'startsAt',
+              label: 'Початок дії',
+              type: 'date',
+              required: true,
+              admin: { date: { pickerAppearance: 'dayAndTime' } },
+            },
+            {
+              name: 'expiresAt',
+              label: 'Закінчення дії',
+              type: 'date',
+              required: true,
+              admin: { date: { pickerAppearance: 'dayAndTime' } },
+            },
+          ],
+        },
+      ],
     },
   ],
 }

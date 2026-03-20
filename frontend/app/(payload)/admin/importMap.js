@@ -1,7 +1,3 @@
-import { default as default_f491a1fe36f01146fdb170fc73132f5f } from '../../../components/payload/views/custom-edit'
-import { default as default_50a141d7a2ac07d4734d8b906902723e } from '../../../components/payload/views/media/MediaLibraryView'
-import { default as default_a967c59667a836036c3c2542b30a1710 } from '../../../components/payload/views/custom-list'
-import { default as default_1a6eb09a8aaa800cac3ee35dbbb237aa } from '../../../components/payload/views/banners/BannersListView'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -27,16 +23,22 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_c81e05de9047729fd3c28fbbffa7b1e3 } from '../../../components/payload/views/products/ProductEditView'
 import { default as default_3f6afdc7021b79eaf72ff30cbdb2c6ff } from '../../../components/payload/views/products/ProductsListView'
-import { default as default_4270add170fbe6f5620be44fb9a3b5fa } from '../../../components/payload/views/customers/CustomerEditView'
+import { default as default_f491a1fe36f01146fdb170fc73132f5f } from '../../../components/payload/views/custom-edit'
+import { default as default_a967c59667a836036c3c2542b30a1710 } from '../../../components/payload/views/custom-list'
 import { default as default_444dad1ce1aa758502d26222a46379bf } from '../../../components/payload/views/orders/OrderEditView'
+import { default as default_4270add170fbe6f5620be44fb9a3b5fa } from '../../../components/payload/views/customers/CustomerEditView'
+import { default as default_1a6eb09a8aaa800cac3ee35dbbb237aa } from '../../../components/payload/views/banners/BannersListView'
+import { default as default_50a141d7a2ac07d4734d8b906902723e } from '../../../components/payload/views/media/MediaLibraryView'
+import { default as default_2c9f70f4e2072cc7539e51fd4b9f1b52 } from '../../../components/payload/PermissionsEditor'
 import { default as default_8ca8ba9048fde2baa7095ae18e506722 } from '../../../components/payload/loyalty/LoyaltySettingsGlobalView'
-import { default as default_d9a7b98f6ad122721db1ce6f803e75e3 } from '../../../components/payload/inventory/InventorySettingsView'
+import { default as default_25567fb8fae972a7420e9d7ce74528c4 } from '../../../components/payload/site-settings/SiteSettingsView'
+import { default as default_b34b06da39fdd655c5239bf727b2e251 } from '../../../components/payload/shipping/ShippingConfigView'
 import { default as default_b5505723f7dad8cd0d96d3480398785b } from '../../../components/payload/email/EmailSettingsView'
+import { default as default_d9a7b98f6ad122721db1ce6f803e75e3 } from '../../../components/payload/inventory/InventorySettingsView'
 import { default as default_6f64da3861999de587a3ed586829047d } from '../../../components/payload/Icon'
 import { default as default_c6fe5946efe4ec376b0411c30a8f0d79 } from '../../../components/payload/Logo'
 import { default as default_e52e6b4fb317d83f3750ef04532260f8 } from '../../../components/payload/AfterLogin'
 import { default as default_3e17da0469b41e5593432ff346c4a18b } from '../../../components/payload/LoyaltyNavLink'
-import { default as default_c5270462812161255fd01327b2ad4d74 } from '../../../components/payload/SitePagesNavLink'
 import { default as default_06e21d97bfe9822a99aa3abc50225d6f } from '../../../components/payload/ShippingNavLink'
 import { default as default_bfe3dda99be101306e18d134ca8bfe68 } from '../../../components/payload/Dashboard'
 import { default as default_b1d996ed647a83e541c82d414f320b6a } from '../../../components/payload/BeforeLogin'
@@ -44,10 +46,6 @@ import { default as default_9a317fe93eb57e9c5ee1719cbdb13109 } from '../../../co
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
-  "/components/payload/views/custom-edit#default": default_f491a1fe36f01146fdb170fc73132f5f,
-  "/components/payload/views/media/MediaLibraryView#default": default_50a141d7a2ac07d4734d8b906902723e,
-  "/components/payload/views/custom-list#default": default_a967c59667a836036c3c2542b30a1710,
-  "/components/payload/views/banners/BannersListView#default": default_1a6eb09a8aaa800cac3ee35dbbb237aa,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -73,16 +71,22 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/payload/views/products/ProductEditView#default": default_c81e05de9047729fd3c28fbbffa7b1e3,
   "/components/payload/views/products/ProductsListView#default": default_3f6afdc7021b79eaf72ff30cbdb2c6ff,
-  "/components/payload/views/customers/CustomerEditView#default": default_4270add170fbe6f5620be44fb9a3b5fa,
+  "/components/payload/views/custom-edit#default": default_f491a1fe36f01146fdb170fc73132f5f,
+  "/components/payload/views/custom-list#default": default_a967c59667a836036c3c2542b30a1710,
   "/components/payload/views/orders/OrderEditView#default": default_444dad1ce1aa758502d26222a46379bf,
+  "/components/payload/views/customers/CustomerEditView#default": default_4270add170fbe6f5620be44fb9a3b5fa,
+  "/components/payload/views/banners/BannersListView#default": default_1a6eb09a8aaa800cac3ee35dbbb237aa,
+  "/components/payload/views/media/MediaLibraryView#default": default_50a141d7a2ac07d4734d8b906902723e,
+  "/components/payload/PermissionsEditor#default": default_2c9f70f4e2072cc7539e51fd4b9f1b52,
   "/components/payload/loyalty/LoyaltySettingsGlobalView#default": default_8ca8ba9048fde2baa7095ae18e506722,
-  "/components/payload/inventory/InventorySettingsView#default": default_d9a7b98f6ad122721db1ce6f803e75e3,
+  "/components/payload/site-settings/SiteSettingsView#default": default_25567fb8fae972a7420e9d7ce74528c4,
+  "/components/payload/shipping/ShippingConfigView#default": default_b34b06da39fdd655c5239bf727b2e251,
   "/components/payload/email/EmailSettingsView#default": default_b5505723f7dad8cd0d96d3480398785b,
+  "/components/payload/inventory/InventorySettingsView#default": default_d9a7b98f6ad122721db1ce6f803e75e3,
   "/components/payload/Icon#default": default_6f64da3861999de587a3ed586829047d,
   "/components/payload/Logo#default": default_c6fe5946efe4ec376b0411c30a8f0d79,
   "/components/payload/AfterLogin#default": default_e52e6b4fb317d83f3750ef04532260f8,
   "/components/payload/LoyaltyNavLink#default": default_3e17da0469b41e5593432ff346c4a18b,
-  "/components/payload/SitePagesNavLink#default": default_c5270462812161255fd01327b2ad4d74,
   "/components/payload/ShippingNavLink#default": default_06e21d97bfe9822a99aa3abc50225d6f,
   "/components/payload/Dashboard#default": default_bfe3dda99be101306e18d134ca8bfe68,
   "/components/payload/BeforeLogin#default": default_b1d996ed647a83e541c82d414f320b6a,

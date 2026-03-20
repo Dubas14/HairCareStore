@@ -17,9 +17,10 @@ export const LoyaltyTransactions: CollectionConfig = {
     create: ({ req }) => req?.user?.collection === 'users',
   },
   fields: [
-    { name: 'customer', type: 'relationship', relationTo: 'customers', required: true, index: true },
+    { name: 'customer', label: 'Клієнт', type: 'relationship', relationTo: 'customers', required: true, index: true },
     {
       name: 'transactionType',
+      label: 'Тип транзакції',
       type: 'select',
       required: true,
       options: [
@@ -31,9 +32,9 @@ export const LoyaltyTransactions: CollectionConfig = {
         { label: 'Коригування', value: 'adjustment' },
       ],
     },
-    { name: 'pointsAmount', type: 'number', required: true },
-    { name: 'orderId', type: 'text' },
-    { name: 'description', type: 'text' },
-    { name: 'balanceAfter', type: 'number', required: true },
+    { name: 'pointsAmount', label: 'Кількість балів', type: 'number', required: true },
+    { name: 'orderId', label: 'ID замовлення', type: 'text' },
+    { name: 'description', label: 'Опис', type: 'text' },
+    { name: 'balanceAfter', label: 'Баланс після', type: 'number', required: true },
   ],
 }

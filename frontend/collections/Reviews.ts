@@ -74,11 +74,13 @@ export const Reviews: CollectionConfig = {
   fields: [
     {
       name: 'customerName',
+      label: "Ім'я клієнта",
       type: 'text',
       required: true,
     },
     {
       name: 'rating',
+      label: 'Рейтинг',
       type: 'number',
       required: true,
       min: 1,
@@ -86,11 +88,13 @@ export const Reviews: CollectionConfig = {
     },
     {
       name: 'text',
+      label: 'Текст відгуку',
       type: 'textarea',
       required: true,
     },
     {
       name: 'product',
+      label: 'Товар',
       type: 'relationship',
       relationTo: 'products',
     },
@@ -100,6 +104,7 @@ export const Reviews: CollectionConfig = {
       type: 'array',
       maxRows: 5,
       labels: { singular: 'Фото', plural: 'Фото' },
+      admin: { initCollapsed: true },
       fields: [
         { name: 'image', type: 'upload', relationTo: 'media', required: true },
       ],
@@ -117,6 +122,7 @@ export const Reviews: CollectionConfig = {
     },
     {
       name: 'isApproved',
+      label: 'Схвалений',
       type: 'checkbox',
       defaultValue: false,
       admin: {
@@ -125,6 +131,7 @@ export const Reviews: CollectionConfig = {
     },
     {
       name: 'publishedAt',
+      label: 'Дата публікації',
       type: 'date',
       admin: {
         position: 'sidebar',

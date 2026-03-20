@@ -766,6 +766,11 @@ export async function getCollectionListData(
 /**
  * Field metadata returned to the client for proper rendering.
  */
+export interface TabSchema {
+  label: string
+  fields: FieldSchema[]
+}
+
 export interface FieldSchema {
   name: string
   label?: string
@@ -778,7 +783,9 @@ export interface FieldSchema {
   relationTo?: string
   hasMany?: boolean
   labels?: { singular?: string; plural?: string }
-  fields?: FieldSchema[] // for group/array sub-fields
+  fields?: FieldSchema[] // for group/array/row sub-fields
+  tabs?: TabSchema[] // for tabs type
+  initCollapsed?: boolean
 }
 
 export interface CollectionFieldData {
@@ -883,6 +890,7 @@ export async function getCollectionFieldDefaults(
         break
       case 'array':
         defaults[fieldName] = []
+        meta.initCollapsed = Boolean(admin?.initCollapsed)
         if (field.fields) {
           meta.fields = (field.fields as Record<string, unknown>[])
             .map((sf: Record<string, unknown>) => processSubField(sf))
@@ -947,6 +955,53 @@ export async function getCollectionFieldDefaults(
   }
 
   for (const field of (collection.fields as Record<string, unknown>[] | undefined) || []) {
+    const fieldType = field.type as string | undefined
+
+    // Handle tabs: flatten tab fields into schema with tabs metadata
+    if (fieldType === 'tabs' && Array.isArray(field.tabs)) {
+      const tabsMeta: TabSchema[] = []
+      for (const tab of field.tabs as Record<string, unknown>[]) {
+        const tabLabel = typeof tab.label === 'string' ? tab.label : 'Вкладка'
+        const tabFields: FieldSchema[] = []
+        for (const tf of (tab.fields as Record<string, unknown>[]) || []) {
+          const tfType = tf.type as string | undefined
+          // Handle row inside tab
+          if (tfType === 'row' && Array.isArray(tf.fields)) {
+            const rowFields: FieldSchema[] = []
+            for (const rf of tf.fields as Record<string, unknown>[]) {
+              const rm = processField(rf)
+              if (rm) {
+                tabFields.push(rm)
+                rowFields.push(rm)
+              }
+            }
+            // Add a row marker
+            tabFields.push({ name: '__row__', type: 'row', fields: rowFields })
+          } else {
+            const tfMeta = processField(tf)
+            if (tfMeta) tabFields.push(tfMeta)
+          }
+        }
+        tabsMeta.push({ label: tabLabel, fields: tabFields })
+      }
+      schema.push({ name: '__tabs__', type: 'tabs', tabs: tabsMeta })
+      continue
+    }
+
+    // Handle row at top level
+    if (fieldType === 'row' && Array.isArray(field.fields)) {
+      const rowFields: FieldSchema[] = []
+      for (const rf of field.fields as Record<string, unknown>[]) {
+        const rm = processField(rf)
+        if (rm) {
+          schema.push(rm) // also add to flat schema for data access
+          rowFields.push(rm)
+        }
+      }
+      schema.push({ name: '__row__', type: 'row', fields: rowFields })
+      continue
+    }
+
     const meta = processField(field)
     if (meta) schema.push(meta)
   }
