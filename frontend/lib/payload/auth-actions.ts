@@ -294,6 +294,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
     return { success: false, error: 'Пароль має містити мінімум 8 символів' }
   }
 
+  try {
   const payload = await getPayload({ config })
 
   const customers = await payload.find({
@@ -329,6 +330,10 @@ export async function resetPassword(token: string, newPassword: string): Promise
   })
 
   return { success: true }
+  } catch (error) {
+    log.error('Reset password failed', error)
+    return { success: false, error: 'Не вдалося змінити пароль. Спробуйте ще раз.' }
+  }
 }
 
 export async function resendVerificationEmail(): Promise<{ success: boolean; error?: string }> {
