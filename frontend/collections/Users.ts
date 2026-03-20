@@ -39,13 +39,6 @@ export const Users: CollectionConfig = {
       ],
       defaultValue: 'editor',
     },
-    // Hide internal auth fields from admin UI
-    { name: 'hash', type: 'text', admin: { hidden: true } },
-    { name: 'salt', type: 'text', admin: { hidden: true } },
-    { name: 'resetPasswordToken', type: 'text', admin: { hidden: true } },
-    { name: 'resetPasswordExpiration', type: 'date', admin: { hidden: true } },
-    { name: 'loginAttempts', type: 'number', admin: { hidden: true } },
-    { name: 'lockUntil', type: 'date', admin: { hidden: true } },
     {
       name: 'permissions',
       type: 'json',
