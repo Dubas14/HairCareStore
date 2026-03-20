@@ -52,7 +52,7 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
         subtitle: 'Професійний догляд для волосся від перевірених брендів.',
         link: banner.link || '/shop',
         mediaUrl: getImageUrl(banner.image) || undefined,
-        isVideo: isVideoMedia(banner.image),
+        isVideo: banner.mediaType === 'video' || isVideoMedia(banner.image),
         align: index % 2 === 0 ? 'center' : 'left',
         buttons: [
           { text: 'Перейти в каталог', href: banner.link || '/shop', variant: 'primary' },

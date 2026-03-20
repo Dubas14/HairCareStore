@@ -274,8 +274,8 @@ export const SiteSettings: GlobalConfig = {
                   labels: { singular: 'Показник', plural: 'Показники' },
                   admin: { initCollapsed: true, description: 'Цифри в секції "Про нас" — наприклад "5+ років досвіду"' },
                   fields: [
-                    { name: 'value', type: 'text', label: 'Значення', required: true, admin: { description: 'Напр. "5+", "50K+", "4.9"' } },
-                    { name: 'label', type: 'text', label: 'Підпис', required: true, admin: { description: 'Напр. "років досвіду", "задоволених клієнтів"' } },
+                    { name: 'value', type: 'text', label: 'Значення', admin: { description: 'Напр. "5+", "50K+", "4.9"' } },
+                    { name: 'label', type: 'text', label: 'Підпис', admin: { description: 'Напр. "років досвіду", "задоволених клієнтів"' } },
                   ],
                   defaultValue: [
                     { value: '5+', label: 'років досвіду' },

@@ -17,9 +17,23 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params
   const post = await getBlogPostBySlug(slug)
   if (!post) return { title: 'Стаття не знайдена' }
+  const title = `${post.title} | Блог HAIR LAB`
+  const description = post.excerpt || ''
+  const imageUrl = getImageUrl(post.featuredImage) || undefined
   return {
-    title: `${post.title} | Блог HAIR LAB`,
-    description: post.excerpt || '',
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      ...(imageUrl && { images: [{ url: imageUrl }] }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   }
 }
 

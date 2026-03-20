@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${brand.name} — купити в HAIR LAB`
   const description = brand.shortDescription || `Офіційна продукція ${brand.name} в інтернет-магазині HAIR LAB. Професійна косметика для волосся з доставкою по Україні.`
-  const imageUrl = brand.logo ? getImageUrl(brand.logo) : undefined
+  const imageUrl = (brand.seo?.ogImage ? getImageUrl(brand.seo.ogImage) : null) || (brand.logo ? getImageUrl(brand.logo) : undefined)
 
   return {
     title,

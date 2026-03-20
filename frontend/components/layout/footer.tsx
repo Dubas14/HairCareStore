@@ -1,19 +1,40 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from "next/link"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
-import { Facebook, Instagram, Youtube } from "lucide-react"
+import { Facebook, Instagram, Youtube, Send } from "lucide-react"
+import { getSiteSettings } from '@/lib/payload/actions'
+import type { SiteSettingsData } from '@/lib/payload/actions'
 
-const socialLinks = [
+const fallbackSocialLinks = [
   { name: "Instagram", href: "https://instagram.com/hairlab.ua", icon: Instagram },
   { name: "Facebook", href: "https://facebook.com/hairlab.ua", icon: Facebook },
   { name: "YouTube", href: "https://youtube.com/@hairlab", icon: Youtube },
 ]
 
+function buildSocialLinks(social?: SiteSettingsData['social']) {
+  if (!social) return fallbackSocialLinks
+  const links: Array<{ name: string; href: string; icon: typeof Instagram }> = []
+  if (social.instagram) links.push({ name: 'Instagram', href: social.instagram, icon: Instagram })
+  if (social.telegram) links.push({ name: 'Telegram', href: social.telegram, icon: Send })
+  if (social.facebook) links.push({ name: 'Facebook', href: social.facebook, icon: Facebook })
+  return links.length > 0 ? links : fallbackSocialLinks
+}
+
 export function Footer() {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
+  const [socialLinks, setSocialLinks] = useState(fallbackSocialLinks)
+
+  useEffect(() => {
+    getSiteSettings().then((settings) => {
+      if (settings?.social) {
+        setSocialLinks(buildSocialLinks(settings.social))
+      }
+    })
+  }, [])
 
   const footerLinks = {
     shop: {

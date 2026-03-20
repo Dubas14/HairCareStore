@@ -31,9 +31,9 @@ import {
   getBundlesForProduct as _getBundlesForProduct,
 } from './client'
 
-import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost, FilterFacets, ProductBundle } from './client'
+import type { Category, Brand, Banner, PromoBlock, Page, Review, BlogPost, FilterFacets, ProductBundle, SiteSettingsData } from './client'
 import type { PayloadProduct } from './types'
-import type { SiteSettingsData } from './client'
+export type { SiteSettingsData } from './client'
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const locale = await getLocale()

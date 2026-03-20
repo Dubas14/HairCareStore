@@ -129,11 +129,21 @@ PAYLOAD_DATABASE_URL=postgres://postgres:postgres123@localhost:5450/payload
 PAYLOAD_SECRET=your-secret-key-at-least-32-chars
 ```
 
+## Dependency Notes
+
+- Install with `npm install --legacy-peer-deps` due to transitive peer dep conflicts (Payload v3 + React 19)
+- Redis (`localhost:6390`) is used for caching/sessions
+
 ## Integrations
 
 - **Stripe** — payments via `@payloadcms/plugin-stripe`, client-side `@stripe/react-stripe-js`
 - **Resend** — transactional emails (email templates in `lib/email/templates/`)
 - **Sentry** — error tracking (`@sentry/nextjs`)
+- **Google Generative AI** — `@google/generative-ai` for AI-powered features
+- **next-intl** — i18n (Ukrainian locale)
+- **GSAP** — animations
+- **Recharts** — charts/analytics in admin
+- **jsPDF + PapaParse** — PDF/CSV export
 - **Zod** — schema validation (v4)
 
 ## Language

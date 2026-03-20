@@ -484,6 +484,7 @@ function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
   const intro = about?.intro
   const story = about?.story
   const features = about?.features ?? []
+  const stats = about?.stats ?? []
 
   return (
     <>
@@ -503,6 +504,25 @@ function AboutContent({ settings }: { settings: SiteSettingsData | null }) {
               ) : null}
             </div>
           </ScrollReveal>
+        </section>
+      )}
+
+      {stats.length > 0 && (
+        <section className="mb-16">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {stats.map((stat, index) => (
+              <ScrollReveal key={index} variant="fade-up" delay={index * 80}>
+                <div className="rounded-2xl border border-black/8 bg-white p-6 text-center shadow-[0_10px_24px_rgba(16,24,40,0.05)]">
+                  <p className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
         </section>
       )}
 
