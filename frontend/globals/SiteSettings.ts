@@ -6,6 +6,15 @@ export const SiteSettings: GlobalConfig = {
   label: 'Налаштування сайту',
   admin: {
     group: 'Налаштування',
+    components: {
+      views: {
+        edit: {
+          root: {
+            Component: '/components/payload/site-settings/SiteSettingsView',
+          },
+        },
+      },
+    },
   },
   access: {
     read: ({ req: { user } }) => {
