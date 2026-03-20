@@ -1,4 +1,5 @@
 import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 import { invalidateChatCache } from '@/lib/chat/product-context-cache'
 
 const LOW_STOCK_THRESHOLD = 5
@@ -192,10 +193,13 @@ export const Products: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('products', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('products', 'create'),
+    update: collectionAccess('products', 'update'),
+    delete: collectionAccess('products', 'delete'),
   },
   fields: [
     { name: 'title', type: 'text', required: true, localized: true },

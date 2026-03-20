@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -19,10 +20,13 @@ export const Media: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('media', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('media', 'create'),
+    update: collectionAccess('media', 'update'),
+    delete: collectionAccess('media', 'delete'),
   },
   upload: {
     staticDir: 'media',

@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { globalAccess } from '@/lib/payload/access'
 
 export const InventorySettings: GlobalConfig = {
   slug: 'inventory-settings',
@@ -14,8 +15,11 @@ export const InventorySettings: GlobalConfig = {
     },
   },
   access: {
-    read: () => true,
-    update: ({ req }) => req?.user?.collection === 'users',
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return globalAccess('inventory-settings', 'read')({ req: { user } } as any)
+    },
+    update: globalAccess('inventory-settings', 'update'),
   },
   fields: [
     {

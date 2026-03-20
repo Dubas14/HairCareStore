@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -31,19 +32,24 @@ export const Customers: CollectionConfig = {
     create: () => true, // Public registration
     read: ({ req }) => {
       if (!req.user) return false
-      // Admin users (from 'users' collection) can read all
-      if (req.user.collection === 'users') return true
-      // Customers can only read themselves
+      if (req.user.collection === 'users') {
+        return collectionAccess('customers', 'read')({ req } as any)
+      }
       return { id: { equals: req.user.id } }
     },
     update: ({ req }) => {
       if (!req.user) return false
-      if (req.user.collection === 'users') return true
+      if (req.user.collection === 'users') {
+        return collectionAccess('customers', 'update')({ req } as any)
+      }
       return { id: { equals: req.user.id } }
     },
     delete: ({ req }) => {
       if (!req.user) return false
-      return req.user.collection === 'users'
+      if (req.user.collection === 'users') {
+        return collectionAccess('customers', 'delete')({ req } as any)
+      }
+      return false
     },
   },
   fields: [

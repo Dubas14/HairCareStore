@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 import { createLogger } from '@/lib/logger'
 
 const log = createLogger('orders')
@@ -26,14 +27,25 @@ export const Orders: CollectionConfig = {
   access: {
     read: ({ req }) => {
       if (!req.user) return false
-      if (req.user.collection === 'users') return true
+      if (req.user.collection === 'users') {
+        return collectionAccess('orders', 'read')({ req } as any)
+      }
       return { customer: { equals: req.user.id } }
     },
-    create: () => true,
+    create: ({ req: { user } }) => {
+      // Public create (checkout)
+      if (!user) return true
+      if (user.collection !== 'users') return true
+      return collectionAccess('orders', 'create')({ req: { user } } as any)
+    },
     update: ({ req }) => {
       if (!req.user) return false
-      return req.user.collection === 'users'
+      if (req.user.collection === 'users') {
+        return collectionAccess('orders', 'update')({ req } as any)
+      }
+      return false
     },
+    delete: collectionAccess('orders', 'delete'),
   },
   fields: [
     // --- Основна інформація ---

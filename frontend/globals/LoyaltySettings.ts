@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { globalAccess } from '@/lib/payload/access'
 
 export const LoyaltySettings: GlobalConfig = {
   slug: 'loyalty-settings',
@@ -14,8 +15,11 @@ export const LoyaltySettings: GlobalConfig = {
     },
   },
   access: {
-    read: () => true,
-    update: ({ req }) => req?.user?.collection === 'users',
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return globalAccess('loyalty-settings', 'read')({ req: { user } } as any)
+    },
+    update: globalAccess('loyalty-settings', 'update'),
   },
   fields: [
     { name: 'pointsPerUah', type: 'number', defaultValue: 0.1, admin: { description: 'Points earned per 1 UAH spent' } },

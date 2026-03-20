@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 import { invalidateChatCache } from '@/lib/chat/product-context-cache'
 
 export const Brands: CollectionConfig = {
@@ -26,10 +27,13 @@ export const Brands: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('brands', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('brands', 'create'),
+    update: collectionAccess('brands', 'update'),
+    delete: collectionAccess('brands', 'delete'),
   },
   fields: [
     {

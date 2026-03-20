@@ -1,4 +1,5 @@
 import type { CollectionConfig, CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 const recalcProductRating = async (productId: number | string, payload: any) => {
   try {
@@ -62,10 +63,13 @@ export const Reviews: CollectionConfig = {
     },
   },
   access: {
-    read: () => true,
-    create: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    update: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
-    delete: ({ req }) => Boolean(req?.user && req.user.collection === 'users'),
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return collectionAccess('reviews', 'read')({ req: { user } } as any)
+    },
+    create: collectionAccess('reviews', 'create'),
+    update: collectionAccess('reviews', 'update'),
+    delete: collectionAccess('reviews', 'delete'),
   },
   fields: [
     {

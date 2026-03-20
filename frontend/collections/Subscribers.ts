@@ -1,8 +1,20 @@
 import type { CollectionConfig } from 'payload'
+import { collectionAccess } from '@/lib/payload/access'
 
 export const Subscribers: CollectionConfig = {
   slug: 'subscribers',
   labels: { singular: 'Підписник', plural: 'Підписники' },
+  access: {
+    read: collectionAccess('subscribers', 'read'),
+    create: ({ req: { user } }) => {
+      // Public create (newsletter subscription)
+      if (!user) return true
+      if (user.collection !== 'users') return true
+      return collectionAccess('subscribers', 'create')({ req: { user } } as any)
+    },
+    update: collectionAccess('subscribers', 'update'),
+    delete: collectionAccess('subscribers', 'delete'),
+  },
   admin: {
     group: 'Маркетинг',
     useAsTitle: 'email',

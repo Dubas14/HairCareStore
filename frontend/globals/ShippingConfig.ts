@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { globalAccess } from '@/lib/payload/access'
 
 export const ShippingConfig: GlobalConfig = {
   slug: 'shipping-config',
@@ -7,8 +8,11 @@ export const ShippingConfig: GlobalConfig = {
     group: 'Налаштування',
   },
   access: {
-    read: () => true,
-    update: ({ req }) => req?.user?.collection === 'users',
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return globalAccess('shipping-config', 'read')({ req: { user } } as any)
+    },
+    update: globalAccess('shipping-config', 'update'),
   },
   fields: [
     {

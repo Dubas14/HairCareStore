@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { globalAccess } from '@/lib/payload/access'
 
 export const EmailSettings: GlobalConfig = {
   slug: 'email-settings',
@@ -14,8 +15,11 @@ export const EmailSettings: GlobalConfig = {
     },
   },
   access: {
-    read: () => true,
-    update: ({ req }) => req?.user?.collection === 'users',
+    read: ({ req: { user } }) => {
+      if (!user) return true
+      return globalAccess('email-settings', 'read')({ req: { user } } as any)
+    },
+    update: globalAccess('email-settings', 'update'),
   },
   fields: [
     // Global toggle
