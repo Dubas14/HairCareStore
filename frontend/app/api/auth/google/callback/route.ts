@@ -42,7 +42,7 @@ function redirectWithError(baseUrl: string, error: string): NextResponse {
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
-  const baseUrl = request.nextUrl.origin
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.nextUrl.origin
 
   // Read and clean up OAuth cookies
   const storedState = cookieStore.get(GOOGLE_OAUTH_STATE_COOKIE)?.value
