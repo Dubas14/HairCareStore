@@ -199,8 +199,6 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
                       alt={slide.title}
                       fill
                       priority={index === 0}
-                      fetchPriority={index === 0 ? 'high' : undefined}
-                      loading={index === 0 ? 'eager' : 'lazy'}
                       sizes="100vw"
                       data-hero-media
                       className="object-cover"
