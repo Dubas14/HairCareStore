@@ -96,64 +96,99 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
   useEffect(() => {
     if (!sectionRef.current || prefersReducedMotion()) return
 
-    const { gsap } = ensureGsapPlugins()
-    const ctx = gsap.context(() => {
-      gsap.to('[data-hero-orb="left"]', {
-        x: 18,
-        y: -20,
-        duration: 8,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-      })
+    // Defer decorative animations to avoid blocking LCP
+    const startAnimations = () => {
+      if (!sectionRef.current) return
+      const { gsap } = ensureGsapPlugins()
+      const ctx = gsap.context(() => {
+        gsap.to('[data-hero-orb="left"]', {
+          x: 18,
+          y: -20,
+          duration: 8,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+        })
 
-      gsap.to('[data-hero-orb="right"]', {
-        x: -24,
-        y: 16,
-        duration: 9,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-      })
-    }, sectionRef)
+        gsap.to('[data-hero-orb="right"]', {
+          x: -24,
+          y: 16,
+          duration: 9,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+        })
+      }, sectionRef)
 
-    return () => ctx.revert()
+      return ctx
+    }
+
+    let ctx: ReturnType<typeof startAnimations>
+    const id = typeof requestIdleCallback !== 'undefined'
+      ? requestIdleCallback(() => { ctx = startAnimations() })
+      : setTimeout(() => { ctx = startAnimations() }, 200)
+
+    return () => {
+      ctx?.revert()
+      typeof requestIdleCallback !== 'undefined'
+        ? cancelIdleCallback(id as number)
+        : clearTimeout(id as ReturnType<typeof setTimeout>)
+    }
   }, [])
+
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
     const activeSlide = slideRefs.current[selectedIndex]
     if (!activeSlide || prefersReducedMotion()) return
 
-    const { gsap } = ensureGsapPlugins()
-    const media = activeSlide.querySelector<HTMLElement>('[data-hero-media]')
-    const animatedItems = activeSlide.querySelectorAll<HTMLElement>('[data-hero-animate]')
+    const runSlideAnimation = () => {
+      const { gsap } = ensureGsapPlugins()
+      const media = activeSlide.querySelector<HTMLElement>('[data-hero-media]')
+      const animatedItems = activeSlide.querySelectorAll<HTMLElement>('[data-hero-animate]')
 
-    gsap.killTweensOf(media)
-    gsap.killTweensOf(animatedItems)
-    gsap.set(animatedItems, { opacity: 0, y: 32 })
+      gsap.killTweensOf(media)
+      gsap.killTweensOf(animatedItems)
+      gsap.set(animatedItems, { opacity: 0, y: 32 })
 
-    if (media) {
-      gsap.fromTo(
-        media,
-        { scale: 1.12, filter: 'blur(8px)' },
-        { scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out' }
-      )
+      if (media) {
+        gsap.fromTo(
+          media,
+          { scale: 1.12, filter: 'blur(8px)' },
+          { scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out' }
+        )
 
-      gsap.to(media, {
-        scale: 1.06,
-        duration: 7,
-        ease: 'none',
+        gsap.to(media, {
+          scale: 1.06,
+          duration: 7,
+          ease: 'none',
+        })
+      }
+
+      gsap.to(animatedItems, {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        stagger: 0.12,
+        ease: 'power3.out',
+        clearProps: 'opacity,transform',
       })
     }
 
-    gsap.to(animatedItems, {
-      opacity: 1,
-      y: 0,
-      duration: 0.9,
-      stagger: 0.12,
-      ease: 'power3.out',
-      clearProps: 'opacity,transform',
-    })
+    // Defer first slide animation to not block LCP
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      const id = typeof requestIdleCallback !== 'undefined'
+        ? requestIdleCallback(runSlideAnimation)
+        : setTimeout(runSlideAnimation, 300)
+      return () => {
+        typeof requestIdleCallback !== 'undefined'
+          ? cancelIdleCallback(id as number)
+          : clearTimeout(id as ReturnType<typeof setTimeout>)
+      }
+    }
+
+    runSlideAnimation()
   }, [selectedIndex])
 
   return (
@@ -199,6 +234,8 @@ export function HeroSliderCMS({ banners = [] }: HeroSliderCMSProps) {
                       alt={slide.title}
                       fill
                       priority={index === 0}
+                      fetchPriority={index === 0 ? 'high' : undefined}
+                      loading={index === 0 ? 'eager' : 'lazy'}
                       sizes="100vw"
                       data-hero-media
                       className="object-cover"
