@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import '../../styles/globals.css'
@@ -27,6 +27,12 @@ const inter = Inter({
 const playfair = Playfair_Display({
   subsets: ['latin', 'cyrillic'],
   variable: '--font-playfair',
+  display: 'swap',
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-jetbrains',
   display: 'swap',
 })
 
@@ -66,7 +72,7 @@ export default async function FrontendLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale} className={`${inter.variable} ${playfair.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>

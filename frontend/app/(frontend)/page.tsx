@@ -1,7 +1,6 @@
 import dynamicImport from 'next/dynamic'
 import { CategoriesSection } from '@/components/home/categories-section'
 import { BenefitsSection } from '@/components/home/benefits-section'
-import { HeroSliderCMS } from '@/components/home/hero-slider-cms'
 import { getBanners, getPromoBlocks, getCategories, getBrands } from '@/lib/payload/client'
 import { HomePageAnimations } from '@/components/home/home-page-animations'
 import { buildWebSiteJsonLd, buildSiteNavigationJsonLd } from '@/lib/structured-data'
@@ -49,6 +48,11 @@ const localBusinessJsonLd = JSON.stringify({
     closes: '21:00',
   },
 })
+
+const HeroSliderCMS = dynamicImport(
+  () => import('@/components/home/hero-slider-cms').then(mod => ({ default: mod.HeroSliderCMS })),
+  { loading: () => <div className="w-full h-[500px] md:h-[600px] bg-muted animate-pulse rounded-lg" /> }
+)
 
 const FeaturedProducts = dynamicImport(
   () => import('@/components/home/featured-products').then(mod => ({ default: mod.FeaturedProducts })),
