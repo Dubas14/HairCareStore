@@ -102,7 +102,6 @@ export default async function HomePage() {
           rel="preload"
           as="image"
           href={`/_next/image?url=${encodeURIComponent(firstBannerImage)}&w=1920&q=75`}
-          // @ts-expect-error -- fetchPriority is valid HTML but not yet in React types
           fetchPriority="high"
         />
       )}
