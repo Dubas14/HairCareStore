@@ -5,6 +5,7 @@ import { HeroSliderCMS } from '@/components/home/hero-slider-cms'
 import { getBanners, getPromoBlocks, getCategories, getBrands } from '@/lib/payload/client'
 import { HomePageAnimations } from '@/components/home/home-page-animations'
 import { buildWebSiteJsonLd, buildSiteNavigationJsonLd } from '@/lib/structured-data'
+import { getImageUrl } from '@/lib/payload/types'
 
 export const revalidate = 300 // ISR: revalidate every 5 minutes
 
@@ -91,8 +92,20 @@ export default async function HomePage() {
     { name: 'Блог', url: '/blog' },
   ])
 
+  // Preload LCP image — the first banner hero image
+  const firstBannerImage = banners[0] ? getImageUrl(banners[0].image) : null
+
   return (
     <>
+      {firstBannerImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={`/_next/image?url=${encodeURIComponent(firstBannerImage)}&w=1920&q=75`}
+          // @ts-expect-error -- fetchPriority is valid HTML but not yet in React types
+          fetchPriority="high"
+        />
+      )}
       <JsonLd json={organizationJsonLd} />
       <JsonLd json={localBusinessJsonLd} />
       <JsonLd json={webSiteJsonLd} />
